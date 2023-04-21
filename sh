@@ -1,0 +1,1 @@
+cd /Users/admin/Desktop/vscode/docsify   && nohup  docsify serve >> /var/root/docsify/log/serve.log 2>&1 &
