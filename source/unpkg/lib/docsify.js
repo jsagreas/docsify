@@ -1175,7 +1175,7 @@
 
   var currentScript = document.currentScript;
 
-  ///** @param {import('./Docsify').Docsify} vm */
+  /** @param {import('./Docsify').Docsify} vm */
   function config (vm) {
     var config = merge(
       {
