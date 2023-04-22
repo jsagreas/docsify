@@ -6,18 +6,111 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
   <meta name="description" content="Description">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
-  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify@4/lib/themes/vue.css">
+  <link rel="stylesheet" href="css/vue.css">
+  
+
+
+
 </head>
 <body>
 
-  <div id="app"></div>
+  <div id="app">加载中......</div>
   <script>
     window.$docsify = {
-      name: '',
-      repo: ''
-    }
+      name: '<span style="color: red;">docsify</span>',
+      nameLink: '/',
+      themeColor: '',
+      repo: '',
+      topMargin: 90, // default: 0
+      notFoundPage: '404.md',
+
+
+
+
+      maxLevel: 6,
+      subMaxLevel: 6,
+      hideSidebar: false,
+      mergeNavbar: true,
+      logo: '',
+      auto2top: true,
+      // coverpage: true,
+      // coverpage: 'cover.md',
+      homepage: '',
+      externalLinkTarget: '_self', // default: '_blank'
+      cornerExternalLinkTarget: '_self', // default: '_blank'
+      loadNavbar: 'Navbar.md',// 加载 _navbar.md
+      loadSidebar: 'Sidebar.md',// 加载 _sidebar.md
+      autoHeader: false,
+      search: 'auto', // default
+      formatUpdated: '{MM}/{DD} {HH}:{mm}',
+      onlyCover: false,
+
+
+      copyCode: {
+      buttonText : '复制',
+      errorText  : 'Error',
+      successText: 'Copied'
+      },
+
+
+
+
+
+
+      formatUpdated: function(time) {
+      return time;
+      },
+
+
+      search: [
+      '/',            // => /README.md
+      '/guide',       // => /guide.md
+      '/get-started', // => /get-started.md
+      '/zh-cn/',      // => /zh-cn/README.md
+      ],
+      search:{  // complete configuration parameters
+        maxAge: 86400000, // Expiration time, the default one day
+        paths: [], // or 'auto'
+        placeholder: 'Type to search',
+        placeholder: { // Localization
+        '/zh-cn/': '搜索',
+        '/': 'Type to search',
+        },
+        noData: 'No Results!',
+        noData: { // Localization
+        '/zh-cn/': '找不到结果',
+        '/': 'No Results',
+        },
+        depth: 2,// Headline depth, 1 - 6
+        hideOtherSidebarContent: false, // whether or not to hide other sidebar content
+        namespace: 'website-1', // To avoid search index collision   // between multiple websites under the same domain
+        pathNamespaces: ['/zh-cn', '/ru-ru', '/ru-ru/v1'],
+        pathNamespaces: /^(\/(zh-cn|ru-ru))?(\/(v1|v2))?/,
+      }, 
+    };
   </script>
   <!-- Docsify v4 -->
-  <script src="//cdn.jsdelivr.net/npm/docsify@4"></script>
+  <script src="js/docsify.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/search.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/zoom-image.min.js"></script>
+
+<script src="https://unpkg.com/docsify-copy-code"></script>
+
+  <script src="//cdn.jsdelivr.net/npm/docsify-pagination/dist/docsify-pagination.min.js"></script>
+  <script src="//unpkg.com/docsify/lib/plugins/emoji.min.js"></script>
+  <script src="//unpkg.com/docsify/lib/plugins/zoom-image.min.js"></script>
+
+
+  <!-- 代码块 -->
+
+  <script src="//cdn.jsdelivr.net/npm/docsify-copy-code/dist/docsify-copy-code.min.js"></script>
+
+
+
+
+
+
 </body>
 </html>
+
+
