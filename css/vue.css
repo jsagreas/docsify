@@ -742,7 +742,6 @@ body {
 /* 改动过的 */
 .markdown-section pre > code {
   background-color: rgb(53,57,64);
-
   color: #525252;
   font-size: 0.8rem;
   padding: 2.2em 5px;
@@ -785,8 +784,6 @@ body {
 .markdown-section output::after {
   content: attr(data-lang);
 }
-
-
 /* code highlight */
 .token.comment,
 .token.prolog,

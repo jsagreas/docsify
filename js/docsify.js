@@ -8368,8 +8368,8 @@
         langOrMarkup,
         lang
       );
-
-      return ("<pre v-pre data-lang=\"" +  "\"><code class=\"lang-" + lang + "\">" + text + "</code></pre>"); //改动过的
+      // return ("<pre v-pre data-lang=\"" + lang + "\"><code class=\"lang-" + lang + "\">" + text + "</code></pre>");
+      return ("<pre v-pre data-lang=\"" + "\"><code class=\"lang-" + lang + "\">" + text + "</code></pre>"); //改动过
     });
   };
 
