@@ -1,0 +1,34 @@
+.sidebar-nav li {
+    position: relative;
+    /* margin: 0; */
+    margin-top: 15px;
+    margin-left: 30px;
+    cursor: pointer;
+}
+
+.sidebar-nav a{
+    margin-left: -30px;
+}
+
+
+.sidebar-nav ul:not(.app-sub-sidebar)>li:not(.file)::before {
+    content: '';
+    display: block;
+    position: absolute;
+    top: 11px;
+    left: 200px;
+    height: 6px;
+    width: 6px;
+    border-right: 1px solid #505d6b;
+    border-bottom: 1px solid #505d6b;
+    transform: rotate(-45deg);
+    transition: transform .1s
+}
+
+.sidebar-nav ul:not(.app-sub-sidebar)>li.open::before {
+    transform: rotate(45deg)
+}
+
+.sidebar-nav ul:not(.app-sub-sidebar)>li.collapse::before {
+    transform: rotate(-45deg)
+}

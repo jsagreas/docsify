@@ -10,24 +10,50 @@
 
    </style>
 
+   <link rel="icon" href="images/icon.png" type="image/x-icon"/>
+   <link rel="stylesheet" href="css/vue.css">
+   <link rel="stylesheet" href="css/prism-clike.css">
+   <link href="css/prism-line-numbers.css" rel="stylesheet">
+   <link href="css/sidebar.css" rel="stylesheet">
 
-  <link rel="stylesheet" href="css/vue.css">
-  <link rel="stylesheet" href="css/prism.css">
-  <link rel="stylesheet" href="css/line.css">
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 </head>
-<body class="line-numbers" >
+<body  >
 
   <div id="app">加载中......</div>
   <script>
+
+    
     window.$docsify = {
+
       name: '<span style="color: red;">docsify</span>',
       logo: '',
+      count:{
+      countable:true,
+      fontsize:'0.9em',
+      color:'rgb(90,90,90)',
+      language:'chinese'
+      },
 
       nameLink: '/',
 
       themeColor: '',
       repo: '',
+      showLevel: false,
+      tocLevel: 3,
 
       topMargin: 90, // default: 0
       notFoundPage: '404.md',
@@ -39,6 +65,7 @@
       subMaxLevel: 6,
       hideSidebar: false,
       mergeNavbar: true,
+
 
 
       auto2top: true,
@@ -74,6 +101,40 @@
       formatUpdated: function(time) {
       return time;
       },
+
+
+
+      plugins: [
+        function(hook) {
+          var footer = [
+          '<hr/>',
+          '<footer>',
+          '<span><a href="https://github.com/QingWei-Li">cinwell</a> &copy;2017.</span>',
+          '<span>Proudly published with <a href="https://github.com/docsifyjs/docsify" target="_blank">docsify</a>.</span>',
+          '</footer>'
+          ].join('');
+          hook.afterEach(function(html) {
+          return html + footer;
+        });
+      },
+      
+      //   function(hook, vm) {
+      //     hook.beforeEach(function(html) {
+      //     var url =
+      //     'https://github.com/docsifyjs/docsify/blob/master/docs/' +
+      //     vm.route.file;
+      //     var editHtml = '[📝 EDIT DOCUMENT](' + url + ')\n';
+
+      //     return (
+      //       editHtml +
+      //       html +
+      //       '\n----\n' +
+      //       'Last modified {docsify-updated} ' +
+      //       editHtml
+      //     );
+      //   });
+      // }
+    ],
 
 
 
@@ -116,9 +177,15 @@
       }, 
 
 
-
-
-
+      // autoFooter: {
+      //  name:       '底部信息', 
+      //  copyYear:   2023,   
+      //  url:        '',          // 
+      //  policy:     '' ,  
+      //  terms:      '' ,  
+      //  cookies:    '' ,  
+      //  onBody:     true            
+      // },
 
 
 
@@ -126,15 +193,16 @@
     };
   </script>
  
-  <script src="js/docsify.js"></script>
+ <script src="js/docsify.js"></script>
   <script src="js/search.js"></script>
   <script src="js/copy-code.js"></script>
-  <script src="js/pagination.js"></script>
-
-  <script src="js/prism.js"></script>
-  <script src="js/line.js"></script>
-  <script src="js/my.js"></script>
-
+  <script src="js/pagination.js"></script> 
+  <script src="js/highlight.js"></script>
+  <script src="js/zoom-image.js"></script>
+  <script src="js/countable.js"></script>
+  <script src="js/emoji.js"></script>
+  <script src="js/sidebarFooter.js"></script>
+  <script src="js/collapse.js"></script>
 
 </body>
 </html>
