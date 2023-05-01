@@ -2,7 +2,7 @@
 var defaultOptions = {
     countable: true,
     position: "top",
-    margin: "10px",
+    margin: "0px",
     float: "right",
     fontsize: "0.9em",
     color: "rgb(90,90,90)",
@@ -40,7 +40,7 @@ function plugin(hook, vm) {
             <span style="
                   float: ${defaultOptions.float === "right" ? "right" : "left"};
                   font-size: ${defaultOptions.fontsize};
-                  color:${defaultOptions.color};">
+                  color:${defaultOptions.color};padding-top:50px;padding-right:20px">
             ${str}
             ${defaultOptions.isExpected ? `&nbsp; | &nbsp;${readTime}` : ""}
             </span>
