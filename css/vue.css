@@ -112,7 +112,7 @@ li input[type=checkbox] {
     right: 0;
     cursor:pointer;
     text-align: right;
-    font-size: 18px !important;
+    font-size: 17px !important;
     z-index: 2
 }
 
@@ -204,10 +204,11 @@ li input[type=checkbox] {
 .app-nav li:hover ul {
     display: block
 }
-
+/* modify */
 .app-nav.no-badge {
+
     /* margin-right: 25px */
-    margin-right: 1200px;
+    margin-right: 800px;
 }
 
 .github-corner {
