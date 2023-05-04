@@ -104,14 +104,22 @@ li input[type=checkbox] {
     margin: 0 .2em .25em -1.6em;
     vertical-align: middle
 }
+
+
+/* modify */
+.app-nav.no-badge {
+    border-bottom: 1px solid #d5d9df !important;
+    /* margin-right: 25px */
+}
 /* modify */
 .app-nav {
-
-    margin: 25px 60px 0 0;
+    width: 100%;
+    margin-top: 8px;
+    padding-bottom: 5px;
+    text-align: center;
+    /* margin: 25px 60px 0 0; */
     position: absolute;
     right: 0;
-    cursor:pointer;
-    text-align: right;
     font-size: 17px !important;
     z-index: 2
 }
@@ -130,6 +138,7 @@ li input[type=checkbox] {
 
 .app-nav li,
 .app-nav ul {
+    cursor:pointer;
     display: inline-block;
     list-style: none;
     margin: 0
@@ -204,12 +213,7 @@ li input[type=checkbox] {
 .app-nav li:hover ul {
     display: block
 }
-/* modify */
-.app-nav.no-badge {
 
-    /* margin-right: 25px */
-    margin-right: 800px;
-}
 
 .github-corner {
     border-bottom: 0;

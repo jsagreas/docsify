@@ -1,5 +1,6 @@
 ! function() {
     function e(e) {
+
         var t = Object.create(null);
         return function(n) {
             var a = i(n) ? n : JSON.stringify(n);
@@ -105,6 +106,10 @@
     }
 
     function y(e, t) {
+        //导航宽度
+        var  width=document.getElementsByTagName('section')[0].offsetWidth;
+        document.getElementsByTagName('nav')[0].style.width=width+"px";
+    
         return [].slice.call(t ? e.querySelectorAll(t) : f.querySelectorAll(e))
     }
 
@@ -1014,6 +1019,7 @@
 
     function Se(e, t) {
         if (t) {
+            
             var n = E("#" + t);
             n && (i = n, ge && ge.stop(), me = !1, ge = new de({
                 start: window.pageYOffset,
@@ -1123,6 +1129,7 @@
     }
 
     function _e(e) {
+
         var t = e.config;
         e.compiler = new re(t, e.router), u && (window.__current_docsify_compiler__ = e.compiler);
         var n = t.el || "#app",
@@ -1135,6 +1142,7 @@
             return (p ? t + "<main>" : "<main>" + t) + '<section class="content"><article class="markdown-section" id="main">\x3c!--main--\x3e</article><div class="load" id="load">Loading...</div></section></main>'
         }(t), e._renderTo(a, r, !0)) : e.rendered = !0;
         var s;
+
         t.mergeNavbar && p ? o = E(".sidebar") : (i.classList.add("app-nav"), t.repo || i.classList.add("no-badge")), w(o, i), t.themeColor && (f.head.appendChild(v("div", (l = t.themeColor, "<style>:root{--theme-color: " + l + ";}</style>")).firstElementChild), function(e) {
             if (!(window.CSS && window.CSS.supports && window.CSS.supports("(--v:red)"))) {
                 var t = y("style:not(.inserted),link");
@@ -1184,6 +1192,9 @@
         }
         return ee("/" + e)
     };
+    
+
+
 
     function xe(e) {
         var t = location.href.indexOf("#");
@@ -1303,6 +1314,7 @@
             replaceSlug: te
         }),
         Me = U(function(e) {
+            
             var t = "undefined" != typeof window ? window : "undefined" != typeof WorkerGlobalScope && self instanceof WorkerGlobalScope ? self : {},
                 n = function() {
                     var e = /\blang(?:uage)?-(\w+)\b/i,
@@ -1781,6 +1793,7 @@
                     punctuation: /[{}():,¬«»《》]/
                 },
                 function(e) {
+                    
                     var t = {
                         pattern: /(^[ \t]*)\[(?!\[)(?:(["'$`])(?:(?!\2)[^\\]|\\.)*\2|\[(?:[^\]\\]|\\.)*\]|[^\]\\]|\\.)*\]/m,
                         lookbehind: !0,
@@ -5681,6 +5694,7 @@
         });
 
     function Fe() {
+        
         this._init()
     }
     var Be = Fe.prototype;
@@ -5896,10 +5910,13 @@
             slugify: q
         }, window.DocsifyCompiler = re, window.marked = G, window.Prism = Me, Fe.version = "4.6.3",
         function(e) {
+
             var t = document.readyState;
             if ("complete" === t || "interactive" === t) return setTimeout(e, 0);
-            document.addEventListener("DOMContentLoaded", e)
+            document.addEventListener("DOMContentLoaded", e);
+
         }(function(e) {
+
             return new Fe
         })
 }();

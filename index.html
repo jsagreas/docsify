@@ -15,7 +15,7 @@
    <link rel="stylesheet" href="css/prism-clike.css">
    <link href="css/prism-line-numbers.css" rel="stylesheet">
    <link href="css/sidebar.css" rel="stylesheet">
-
+   <!-- <link href="css/my.css" rel="stylesheet"> -->
 
 
 
@@ -39,8 +39,9 @@
     
     window.$docsify = {
 
-      name: '<span style="color: red;">docsify</span>',
-      logo: '',
+      // name: '<span style="color: red;">docsify</span>',
+
+      logo: 'https://img.shields.io/twitter/url/http/shields.io.svg?style=social',
       count:{
       countable:true,
       fontsize:'0.9em',
@@ -79,7 +80,7 @@
 
 
       loadNavbar: 'Navbar.md',// 加载 _navbar.md
-      loadSidebar: 'Sidebar.md',// 加载 _sidebar.md
+      loadSidebar: 'Sidebar.md',// 加载 Sidebar.md
 
       autoHeader: false,
       
@@ -159,10 +160,10 @@
       search:{  // complete configuration parameters
         maxAge: 86400000, // Expiration time, the default one day
         paths: [], // or 'auto'
-        placeholder: 'Type to search',
+        placeholder: '搜索',
         placeholder: { // Localization
         '/zh-cn/': '搜索',
-        '/': 'Type to search',
+        '/': '搜索',
         },
         noData: 'No Results!',
         noData: { // Localization
@@ -192,8 +193,8 @@
 
     };
   </script>
- 
- <script src="js/docsify.js"></script>
+
+  <script src="js/docsify.js"></script>
   <script src="js/search.js"></script>
   <script src="js/copy-code.js"></script>
   <script src="js/pagination.js"></script> 
@@ -203,7 +204,7 @@
   <script src="js/emoji.js"></script>
   <script src="js/sidebarFooter.js"></script>
   <script src="js/collapse.js"></script>
-
+  <script src="js/my.js"></script>
 </body>
 </html>
 
