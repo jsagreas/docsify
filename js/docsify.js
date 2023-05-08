@@ -1,5922 +1,10226 @@
-! function() {
-    function e(e) {
+(function () {
+  /**
+   * Create a cached version of a pure function.
+   * @param {*} fn The function call to be cached
+   * @void
+   */
 
-        var t = Object.create(null);
-        return function(n) {
-            var a = i(n) ? n : JSON.stringify(n);
-            return t[a] || (t[a] = e(n))
+  function cached(fn) {
+    var cache = Object.create(null);
+    return function (str) {
+      var key = isPrimitive(str) ? str : JSON.stringify(str);
+      var hit = cache[key];
+      return hit || (cache[key] = fn(str));
+    };
+  }
+
+  /**
+   * Hyphenate a camelCase string.
+   */
+  var hyphenate = cached(function (str) {
+    return str.replace(/([A-Z])/g, function (m) { return '-' + m.toLowerCase(); });
+  });
+
+  var hasOwn = Object.prototype.hasOwnProperty;
+
+  /**
+   * Simple Object.assign polyfill
+   * @param {Object} to The object to be merged with
+   * @returns {Object} The merged object
+   */
+  var merge =
+    Object.assign ||
+    function (to) {
+      var arguments$1 = arguments;
+
+      for (var i = 1; i < arguments.length; i++) {
+        var from = Object(arguments$1[i]);
+
+        for (var key in from) {
+          if (hasOwn.call(from, key)) {
+            to[key] = from[key];
+          }
         }
-    }
-    var t = e(function(e) {
-            return e.replace(/([A-Z])/g, function(e) {
-                return "-" + e.toLowerCase()
-            })
-        }),
-        n = Object.assign || function(e) {
-            for (var t = arguments, n = Object.prototype.hasOwnProperty, i = 1; i < arguments.length; i++) {
-                var a = Object(t[i]);
-                for (var r in a) n.call(a, r) && (e[r] = a[r])
-            }
-            return e
-        };
+      }
 
-    function i(e) {
-        return "string" == typeof e || "number" == typeof e
-    }
+      return to;
+    };
 
-    function a() {}
+  /**
+   * Check if value is primitive
+   * @param {*} value Checks if a value is primitive
+   * @returns {Boolean} Result of the check
+   */
+  function isPrimitive(value) {
+    return typeof value === 'string' || typeof value === 'number';
+  }
 
-    function r(e) {
-        return "function" == typeof e
-    }
-    var o = n({
-            el: "#app",
-            repo: "",
-            maxLevel: 6,
-            subMaxLevel: 0,
-            loadSidebar: null,
-            loadNavbar: null,
-            homepage: "README.md",
-            coverpage: "",
-            basePath: "",
-            auto2top: !1,
-            name: "",
-            themeColor: "",
-            nameLink: window.location.pathname,
-            autoHeader: !1,
-            executeScript: null,
-            noEmoji: !1,
-            ga: "",
-            ext: ".md",
-            mergeNavbar: !1,
-            formatUpdated: "",
-            externalLinkTarget: "_blank",
-            routerMode: "hash",
-            noCompileLinks: [],
-            showLevel: !0,
-            tocLevel: 3
-        }, window.$docsify),
-        s = document.currentScript || [].slice.call(document.getElementsByTagName("script")).filter(function(e) {
-            return /docsify\./.test(e.src)
-        })[0];
-    if (s) {
-        for (var l in o) {
-            var c = s.getAttribute("data-" + t(l));
-            i(c) && (o[l] = "" === c || c)
-        }!0 === o.loadSidebar && (o.loadSidebar = "_sidebar" + o.ext), !0 === o.loadNavbar && (o.loadNavbar = "_navbar" + o.ext), !0 === o.coverpage && (o.coverpage = "_coverpage" + o.ext), !0 === o.repo && (o.repo = ""), !0 === o.name && (o.name = "")
-    }
-    window.$docsify = o;
+  /**
+   * Performs no operation.
+   * @void
+   */
+  function noop() {}
 
-    function d(e, t, n, i) {
-        void 0 === i && (i = a);
-        var r = e._hooks[t],
-            o = function(e) {
-                var t = r[e];
-                if (e >= r.length) i(n);
-                else if ("function" == typeof t)
-                    if (2 === t.length) t(n, function(t) {
-                        n = t, o(e + 1)
-                    });
-                    else {
-                        var a = t(n);
-                        n = void 0 !== a ? a : n, o(e + 1)
-                    }
-                else o(e + 1)
-            };
-        o(0)
-    }
-    var u = !0,
-        p = u && document.body.clientWidth <= 600,
-        g = u && window.history && window.history.pushState && window.history.replaceState && !navigator.userAgent.match(/((iPod|iPhone|iPad).+\bOS\s+[1-4]\D|WebApps\/.+CFNetwork)/),
-        m = {};
+  /**
+   * Check if value is function
+   * @param {*} obj Any javascript object
+   * @returns {Boolean} True if the passed-in value is a function
+   */
+  function isFn(obj) {
+    return typeof obj === 'function';
+  }
 
-    function h(e, t) {
-        if (void 0 === t && (t = !1), "string" == typeof e) {
-            if (void 0 !== window.Vue) return E(e);
-            e = t ? E(e) : m[e] || (m[e] = E(e))
-        }
-        return e
-    }
-    var f = u && document,
-        b = u && f.body,
-        S = u && f.head;
+  /**
+   * Check if url is external
+   * @param {String} string  url
+   * @returns {Boolean} True if the passed-in url is external
+   */
+  function isExternal(url) {
+    var match = url.match(
+      /^([^:/?#]+:)?(?:\/{2,}([^/?#]*))?([^?#]+)?(\?[^#]*)?(#.*)?/
+    );
 
-    function E(e, t) {
-        return t ? e.querySelector(t) : f.querySelector(e)
+    if (
+      typeof match[1] === 'string' &&
+      match[1].length > 0 &&
+      match[1].toLowerCase() !== location.protocol
+    ) {
+      return true;
     }
+    if (
+      typeof match[2] === 'string' &&
+      match[2].length > 0 &&
+      match[2].replace(
+        new RegExp(
+          ':(' + { 'http:': 80, 'https:': 443 }[location.protocol] + ')?$'
+        ),
+        ''
+      ) !== location.host
+    ) {
+      return true;
+    }
+    return false;
+  }
 
-    function y(e, t) {
-        //导航宽度
-        var  width=document.getElementsByTagName('section')[0].offsetWidth;
-        document.getElementsByTagName('nav')[0].style.width=width+"px";
+  var inBrowser = !false;
+
+  var isMobile =  document.body.clientWidth <= 600;
+
+  /**
+   * @see https://github.com/MoOx/pjax/blob/master/lib/is-supported.js
+   */
+  var supportsPushState =
     
-        return [].slice.call(t ? e.querySelectorAll(t) : f.querySelectorAll(e))
+    (function () {
+      // Borrowed wholesale from https://github.com/defunkt/jquery-pjax
+      return (
+        window.history &&
+        window.history.pushState &&
+        window.history.replaceState &&
+        // PushState isn’t reliable on iOS until 5.
+        !navigator.userAgent.match(
+          /((iPod|iPhone|iPad).+\bOS\s+[1-4]\D|WebApps\/.+CFNetwork)/
+        )
+      );
+    })();
+
+  var cacheNode = {};
+
+  /**
+   * Get Node
+   * @param  {String|Element} el A DOM element
+   * @param  {Boolean} noCache Flag to use or not use the cache
+   * @return {Element} The found node element
+   */
+  function getNode(el, noCache) {
+    if ( noCache === void 0 ) noCache = false;
+
+    if (typeof el === 'string') {
+      if (typeof window.Vue !== 'undefined') {
+        return find(el);
+      }
+
+      el = noCache ? find(el) : cacheNode[el] || (cacheNode[el] = find(el));
     }
 
-    function v(e, t) {
-        return e = f.createElement(e), t && (e.innerHTML = t), e
+    return el;
+  }
+
+  var $ =  document;
+
+  var body =  $.body;
+
+  var head =  $.head;
+
+  /**
+   * Find elements
+   * @param {String|Element} el The root element where to perform the search from
+   * @param {Element} node The query
+   * @returns {Element} The found DOM element
+   * @example
+   * find('nav') => document.querySelector('nav')
+   * find(nav, 'a') => nav.querySelector('a')
+   */
+  function find(el, node) {
+    return node ? el.querySelector(node) : $.querySelector(el);
+  }
+
+  /**
+   * Find all elements
+   * @param {String|Element} el The root element where to perform the search from
+   * @param {Element} node The query
+   * @returns {Array<Element>} An array of DOM elements
+   * @example
+   * findAll('a') => [].slice.call(document.querySelectorAll('a'))
+   * findAll(nav, 'a') => [].slice.call(nav.querySelectorAll('a'))
+   */
+  function findAll(el, node) {
+    return [].slice.call(
+      node ? el.querySelectorAll(node) : $.querySelectorAll(el)
+    );
+  }
+
+  function create(node, tpl) {
+    node = $.createElement(node);
+    if (tpl) {
+      node.innerHTML = tpl;
     }
 
-    function k(e, t) {
-        return e.appendChild(t)
+    return node;
+  }
+
+  function appendTo(target, el) {
+    return target.appendChild(el);
+  }
+
+  function before(target, el) {
+    return target.insertBefore(el, target.children[0]);
+  }
+
+  function on(el, type, handler) {
+    isFn(type)
+      ? window.addEventListener(el, type)
+      : el.addEventListener(type, handler);
+  }
+
+  function off(el, type, handler) {
+    isFn(type)
+      ? window.removeEventListener(el, type)
+      : el.removeEventListener(type, handler);
+  }
+
+  /**
+   * Toggle class
+   * @param {String|Element} el The element that needs the class to be toggled
+   * @param {Element} type The type of action to be performed on the classList (toggle by default)
+   * @param {String} val Name of the class to be toggled
+   * @void
+   * @example
+   * toggleClass(el, 'active') => el.classList.toggle('active')
+   * toggleClass(el, 'add', 'active') => el.classList.add('active')
+   */
+  function toggleClass(el, type, val) {
+    el && el.classList[val ? type : 'toggle'](val || type);
+  }
+
+  function style(content) {
+    appendTo(head, create('style', content));
+  }
+
+  /**
+   * Fork https://github.com/bendrucker/document-ready/blob/master/index.js
+   * @param {Function} callback The callbacack to be called when the page is loaded
+   * @returns {Number|void} If the page is already laoded returns the result of the setTimeout callback,
+   *  otherwise it only attaches the callback to the DOMContentLoaded event
+   */
+  function documentReady(callback, doc) {
+    if ( doc === void 0 ) doc = document;
+
+    var state = doc.readyState;
+
+    if (state === 'complete' || state === 'interactive') {
+      return setTimeout(callback, 0);
     }
 
-    function w(e, t) {
-        return e.insertBefore(t, e.children[0])
+    doc.addEventListener('DOMContentLoaded', callback);
+  }
+
+  var dom = /*#__PURE__*/Object.freeze({
+    __proto__: null,
+    getNode: getNode,
+    $: $,
+    body: body,
+    head: head,
+    find: find,
+    findAll: findAll,
+    create: create,
+    appendTo: appendTo,
+    before: before,
+    on: on,
+    off: off,
+    toggleClass: toggleClass,
+    style: style,
+    documentReady: documentReady
+  });
+
+  function startsWith(str, prefix) {
+    return str.indexOf(prefix) === 0;
+  }
+
+  function endsWith(str, suffix) {
+    return str.indexOf(suffix, str.length - suffix.length) !== -1;
+  }
+
+  var decode = decodeURIComponent;
+  var encode = encodeURIComponent;
+
+  function parseQuery(query) {
+    var res = {};
+
+    query = query.trim().replace(/^(\?|#|&)/, '');
+
+    if (!query) {
+      return res;
     }
 
-    function T(e, t, n) {
-        r(t) ? window.addEventListener(e, t) : e.addEventListener(t, n)
-    }
+    // Simple parse
+    query.split('&').forEach(function (param) {
+      var parts = param.replace(/\+/g, ' ').split('=');
 
-    function _(e, t, n) {
-        r(t) ? window.removeEventListener(e, t) : e.removeEventListener(t, n)
-    }
-
-    function A(e, t, n) {
-        e && e.classList[n ? t : "toggle"](n || t)
-    }
-    var C = Object.freeze({
-        getNode: h,
-        $: f,
-        body: b,
-        head: S,
-        find: E,
-        findAll: y,
-        create: v,
-        appendTo: k,
-        before: w,
-        on: T,
-        off: _,
-        toggleClass: A,
-        style: function(e) {
-            k(S, v("style", e))
-        }
+      res[parts[0]] = parts[1] && decode(parts[1]);
     });
 
-    function x(e, t) {
-        return void 0 === t && (t = ""), e && e.length ? (e.forEach(function(e) {
-            t += '<li><a class="section-link" href="' + e.slug + '">' + e.title + "</a></li>", e.children && (t += '<li><ul class="children">' + x(e.children) + "</li></ul>")
-        }), t) : ""
+    return res;
+  }
+
+  function stringifyQuery(obj, ignores) {
+    if ( ignores === void 0 ) ignores = [];
+
+    var qs = [];
+
+    for (var key in obj) {
+      if (ignores.indexOf(key) > -1) {
+        continue;
+      }
+
+      qs.push(
+        obj[key]
+          ? ((encode(key)) + "=" + (encode(obj[key]))).toLowerCase()
+          : encode(key)
+      );
     }
 
-    function I(e, t) {
-        return '<p class="' + e + '">' + t.slice(5).trim() + "</p>"
-    }
-    var N, L;
+    return qs.length ? ("?" + (qs.join('&'))) : '';
+  }
 
-    function R(e) {
-        var t, n = e.loaded,
-            i = e.total,
-            a = e.step;
-        !N && function() {
-            var e = v("div");
-            e.classList.add("progress"), k(b, e), N = e
-        }(), t = a ? (t = parseInt(N.style.width || 0, 10) + a) > 80 ? 80 : t : Math.floor(n / i * 100), N.style.opacity = 1, N.style.width = t >= 95 ? "100%" : t + "%", t >= 95 && (clearTimeout(L), L = setTimeout(function(e) {
-            N.style.opacity = 0, N.style.width = "0%"
-        }, 200))
-    }
-    var O = {};
+  var isAbsolutePath = cached(function (path) {
+    return /(:|(\/{2}))/g.test(path);
+  });
 
-    function P(e, t, n) {
-        void 0 === t && (t = !1), void 0 === n && (n = {});
-        var i = new XMLHttpRequest,
-            r = function() {
-                i.addEventListener.apply(i, arguments)
-            },
-            o = O[e];
-        if (o) return {
-            then: function(e) {
-                return e(o.content, o.opt)
-            },
-            abort: a
-        };
-        i.open("GET", e);
-        for (var s in n) i.setRequestHeader(s, n[s]);
-        return i.send(), {
-            then: function(n, o) {
-                if (void 0 === o && (o = a), t) {
-                    var s = setInterval(function(e) {
-                        return R({
-                            step: Math.floor(5 * Math.random() + 1)
-                        })
-                    }, 500);
-                    r("progress", R), r("loadend", function(e) {
-                        R(e), clearInterval(s)
-                    })
-                }
-                r("error", o), r("load", function(t) {
-                    var a = t.target;
-                    if (a.status >= 400) o(a);
-                    else {
-                        var r = O[e] = {
-                            content: a.response,
-                            opt: {
-                                updatedAt: i.getResponseHeader("last-modified")
-                            }
-                        };
-                        n(r.content, r.opt)
-                    }
-                })
-            },
-            abort: function(e) {
-                return 4 !== i.readyState && i.abort()
-            }
+  var removeParams = cached(function (path) {
+    return path.split(/[?#]/)[0];
+  });
+
+  var getParentPath = cached(function (path) {
+    if (/\/$/g.test(path)) {
+      return path;
+    }
+
+    var matchingParts = path.match(/(\S*\/)[^/]+$/);
+    return matchingParts ? matchingParts[1] : '';
+  });
+
+  var cleanPath = cached(function (path) {
+    return path.replace(/^\/+/, '/').replace(/([^:])\/{2,}/g, '$1/');
+  });
+
+  var resolvePath = cached(function (path) {
+    var segments = path.replace(/^\//, '').split('/');
+    var resolved = [];
+    for (var i = 0, len = segments.length; i < len; i++) {
+      var segment = segments[i];
+      if (segment === '..') {
+        resolved.pop();
+      } else if (segment !== '.') {
+        resolved.push(segment);
+      }
+    }
+
+    return '/' + resolved.join('/');
+  });
+
+  /**
+   * Normalises the URI path to handle the case where Docsify is
+   * hosted off explicit files, i.e. /index.html. This function
+   * eliminates any path segments that contain `#` fragments.
+   *
+   * This is used to map browser URIs to markdown file sources.
+   *
+   * For example:
+   *
+   * http://example.org/base/index.html#/blah
+   *
+   * would be mapped to:
+   *
+   * http://example.org/base/blah.md.
+   *
+   * See here for more information:
+   *
+   * https://github.com/docsifyjs/docsify/pull/1372
+   *
+   * @param {string} path The URI path to normalise
+   * @return {string} { path, query }
+   */
+
+  function normaliseFragment(path) {
+    return path
+      .split('/')
+      .filter(function (p) { return p.indexOf('#') === -1; })
+      .join('/');
+  }
+
+  function getPath() {
+    var args = [], len = arguments.length;
+    while ( len-- ) args[ len ] = arguments[ len ];
+
+    return cleanPath(args.map(normaliseFragment).join('/'));
+  }
+
+  var replaceSlug = cached(function (path) {
+    return path.replace('#', '?id=');
+  });
+
+  var cached$1 = {};
+
+  function getAlias(path, alias, last) {
+    var match = Object.keys(alias).filter(function (key) {
+      var re = cached$1[key] || (cached$1[key] = new RegExp(("^" + key + "$")));
+      return re.test(path) && path !== last;
+    })[0];
+
+    return match
+      ? getAlias(path.replace(cached$1[match], alias[match]), alias, path)
+      : path;
+  }
+
+  function getFileName(path, ext) {
+    return new RegExp(("\\.(" + (ext.replace(/^\./, '')) + "|html)$"), 'g').test(path)
+      ? path
+      : /\/$/g.test(path)
+      ? (path + "README" + ext)
+      : ("" + path + ext);
+  }
+
+  var History = function History(config) {
+    this.config = config;
+  };
+
+  History.prototype.getBasePath = function getBasePath () {
+    return this.config.basePath;
+  };
+
+  History.prototype.getFile = function getFile (path, isRelative) {
+      if ( path === void 0 ) path = this.getCurrentPath();
+
+    var ref = this;
+      var config = ref.config;
+    var base = this.getBasePath();
+    var ext = typeof config.ext === 'string' ? config.ext : '.md';
+
+    path = config.alias ? getAlias(path, config.alias) : path;
+    path = getFileName(path, ext);
+    path = path === ("/README" + ext) ? config.homepage || path : path;
+    path = isAbsolutePath(path) ? path : getPath(base, path);
+
+    if (isRelative) {
+      path = path.replace(new RegExp(("^" + base)), '');
+    }
+
+    return path;
+  };
+
+  History.prototype.onchange = function onchange (cb) {
+      if ( cb === void 0 ) cb = noop;
+
+    cb();
+  };
+
+  History.prototype.getCurrentPath = function getCurrentPath () {};
+
+  History.prototype.normalize = function normalize () {};
+
+  History.prototype.parse = function parse () {};
+
+  History.prototype.toURL = function toURL (path, params, currentRoute) {
+    var local = currentRoute && path[0] === '#';
+    var route = this.parse(replaceSlug(path));
+
+    route.query = merge({}, route.query, params);
+    path = route.path + stringifyQuery(route.query);
+    path = path.replace(/\.md(\?)|\.md$/, '$1');
+
+    if (local) {
+      var idIndex = currentRoute.indexOf('?');
+      path =
+        (idIndex > 0 ? currentRoute.substring(0, idIndex) : currentRoute) +
+        path;
+    }
+
+    if (this.config.relativePath && path.indexOf('/') !== 0) {
+      var currentDir = currentRoute.substring(
+        0,
+        currentRoute.lastIndexOf('/') + 1
+      );
+      return cleanPath(resolvePath(currentDir + path));
+    }
+
+    return cleanPath('/' + path);
+  };
+
+  function replaceHash(path) {
+    var i = location.href.indexOf('#');
+    location.replace(location.href.slice(0, i >= 0 ? i : 0) + '#' + path);
+  }
+  var HashHistory = /*@__PURE__*/(function (History) {
+    function HashHistory(config) {
+      History.call(this, config);
+      this.mode = 'hash';
+    }
+
+    if ( History ) HashHistory.__proto__ = History;
+    HashHistory.prototype = Object.create( History && History.prototype );
+    HashHistory.prototype.constructor = HashHistory;
+
+    HashHistory.prototype.getBasePath = function getBasePath () {
+      var path = window.location.pathname || '';
+      var base = this.config.basePath;
+
+      // This handles the case where Docsify is served off an
+      // explicit file path, i.e.`/base/index.html#/blah`. This
+      // prevents the `/index.html` part of the URI from being
+      // remove during routing.
+      // See here: https://github.com/docsifyjs/docsify/pull/1372
+      var basePath = endsWith(path, '.html')
+        ? path + '#/' + base
+        : path + '/' + base;
+      return /^(\/|https?:)/g.test(base) ? base : cleanPath(basePath);
+    };
+
+    HashHistory.prototype.getCurrentPath = function getCurrentPath () {
+      // We can't use location.hash here because it's not
+      // consistent across browsers - Firefox will pre-decode it!
+      var href = location.href;
+      var index = href.indexOf('#');
+      return index === -1 ? '' : href.slice(index + 1);
+    };
+
+    /** @param {((params: {source: TODO}) => void)} [cb] */
+    HashHistory.prototype.onchange = function onchange (cb) {
+      if ( cb === void 0 ) cb = noop;
+
+      // The hashchange event does not tell us if it originated from
+      // a clicked link or by moving back/forward in the history;
+      // therefore we set a `navigating` flag when a link is clicked
+      // to be able to tell these two scenarios apart
+      var navigating = false;
+
+      on('click', function (e) {
+        var el = e.target.tagName === 'A' ? e.target : e.target.parentNode;
+
+        if (el && el.tagName === 'A' && !/_blank/.test(el.target)) {
+          navigating = true;
         }
+      });
+
+      on('hashchange', function (e) {
+        var source = navigating ? 'navigate' : 'history';
+        navigating = false;
+        cb({ event: e, source: source });
+      });
+    };
+
+    HashHistory.prototype.normalize = function normalize () {
+      var path = this.getCurrentPath();
+
+      path = replaceSlug(path);
+
+      if (path.charAt(0) === '/') {
+        return replaceHash(path);
+      }
+
+      replaceHash('/' + path);
+    };
+
+    /**
+     * Parse the url
+     * @param {string} [path=location.herf] URL to be parsed
+     * @return {object} { path, query }
+     */
+    HashHistory.prototype.parse = function parse (path) {
+      if ( path === void 0 ) path = location.href;
+
+      var query = '';
+
+      var hashIndex = path.indexOf('#');
+      if (hashIndex >= 0) {
+        path = path.slice(hashIndex + 1);
+      }
+
+      var queryIndex = path.indexOf('?');
+      if (queryIndex >= 0) {
+        query = path.slice(queryIndex + 1);
+        path = path.slice(0, queryIndex);
+      }
+
+      return {
+        path: path,
+        file: this.getFile(path, true),
+        query: parseQuery(query),
+      };
+    };
+
+    HashHistory.prototype.toURL = function toURL (path, params, currentRoute) {
+      return '#' + History.prototype.toURL.call(this, path, params, currentRoute);
+    };
+
+    return HashHistory;
+  }(History));
+
+  /** @typedef {any} TODO */
+
+  var HTML5History = /*@__PURE__*/(function (History) {
+    function HTML5History(config) {
+      History.call(this, config);
+      this.mode = 'history';
     }
 
-    function D(e, t) {
-        e.innerHTML = e.innerHTML.replace(/var\(\s*--theme-color.*?\)/g, t)
-    }
-    var M = /([^{]*?)\w(?=\})/g,
-        F = {
-            YYYY: "getFullYear",
-            YY: "getYear",
-            MM: function(e) {
-                return e.getMonth() + 1
-            },
-            DD: "getDate",
-            HH: "getHours",
-            mm: "getMinutes",
-            ss: "getSeconds"
-        };
-    var B = "undefined" != typeof window ? window : "undefined" != typeof global ? global : "undefined" != typeof self ? self : {};
+    if ( History ) HTML5History.__proto__ = History;
+    HTML5History.prototype = Object.create( History && History.prototype );
+    HTML5History.prototype.constructor = HTML5History;
 
-    function U(e, t) {
-        return e(t = {
-            exports: {}
-        }, t.exports), t.exports
+    HTML5History.prototype.getCurrentPath = function getCurrentPath () {
+      var base = this.getBasePath();
+      var path = window.location.pathname;
+
+      if (base && path.indexOf(base) === 0) {
+        path = path.slice(base.length);
+      }
+
+      return (path || '/') + window.location.search + window.location.hash;
+    };
+
+    HTML5History.prototype.onchange = function onchange (cb) {
+      var this$1 = this;
+      if ( cb === void 0 ) cb = noop;
+
+      on('click', function (e) {
+        var el = e.target.tagName === 'A' ? e.target : e.target.parentNode;
+
+        if (el && el.tagName === 'A' && !/_blank/.test(el.target)) {
+          e.preventDefault();
+          var url = el.href;
+          // solve history.pushState cross-origin issue
+          if (this$1.config.crossOriginLinks.indexOf(url) !== -1) {
+            window.open(url, '_self');
+          } else {
+            window.history.pushState({ key: url }, '', url);
+          }
+          cb({ event: e, source: 'navigate' });
+        }
+      });
+
+      on('popstate', function (e) {
+        cb({ event: e, source: 'history' });
+      });
+    };
+
+    /**
+     * Parse the url
+     * @param {string} [path=location.href] URL to be parsed
+     * @return {object} { path, query }
+     */
+    HTML5History.prototype.parse = function parse (path) {
+      if ( path === void 0 ) path = location.href;
+
+      var query = '';
+
+      var queryIndex = path.indexOf('?');
+      if (queryIndex >= 0) {
+        query = path.slice(queryIndex + 1);
+        path = path.slice(0, queryIndex);
+      }
+
+      var base = getPath(location.origin);
+      var baseIndex = path.indexOf(base);
+
+      if (baseIndex > -1) {
+        path = path.slice(baseIndex + base.length);
+      }
+
+      return {
+        path: path,
+        file: this.getFile(path),
+        query: parseQuery(query),
+      };
+    };
+
+    return HTML5History;
+  }(History));
+
+  /**
+   * @typedef {{
+   *   path?: string
+   * }} Route
+   */
+
+  /** @type {Route} */
+  var lastRoute = {};
+
+  /** @typedef {import('../Docsify').Constructor} Constructor */
+
+  /**
+   * @template {!Constructor} T
+   * @param {T} Base - The class to extend
+   */
+  function Router(Base) {
+    return /*@__PURE__*/(function (Base) {
+      function Router() {
+        var args = [], len = arguments.length;
+        while ( len-- ) args[ len ] = arguments[ len ];
+
+        Base.apply(this, args);
+
+        this.route = {};
+      }
+
+      if ( Base ) Router.__proto__ = Base;
+      Router.prototype = Object.create( Base && Base.prototype );
+      Router.prototype.constructor = Router;
+
+      Router.prototype.updateRender = function updateRender () {
+        this.router.normalize();
+        this.route = this.router.parse();
+        body.setAttribute('data-page', this.route.file);
+      };
+
+      Router.prototype.initRouter = function initRouter () {
+        var this$1 = this;
+
+        var config = this.config;
+        var mode = config.routerMode || 'hash';
+        var router;
+
+        if (mode === 'history' && supportsPushState) {
+          router = new HTML5History(config);
+        } else {
+          router = new HashHistory(config);
+        }
+
+        this.router = router;
+        this.updateRender();
+        lastRoute = this.route;
+
+        // eslint-disable-next-line no-unused-vars
+        router.onchange(function (params) {
+          this$1.updateRender();
+          this$1._updateRender();
+
+          if (lastRoute.path === this$1.route.path) {
+            this$1.$resetEvents(params.source);
+            return;
+          }
+
+          this$1.$fetch(noop, this$1.$resetEvents.bind(this$1, params.source));
+          lastRoute = this$1.route;
+        });
+      };
+
+      return Router;
+    }(Base));
+  }
+
+  var RGX = /([^{]*?)\w(?=\})/g;
+
+  var MAP = {
+  	YYYY: 'getFullYear',
+  	YY: 'getYear',
+  	MM: function (d) {
+  		return d.getMonth() + 1;
+  	},
+  	DD: 'getDate',
+  	HH: 'getHours',
+  	mm: 'getMinutes',
+  	ss: 'getSeconds',
+  	fff: 'getMilliseconds'
+  };
+
+  function tinydate (str, custom) {
+  	var parts=[], offset=0;
+
+  	str.replace(RGX, function (key, _, idx) {
+  		// save preceding string
+  		parts.push(str.substring(offset, idx - 1));
+  		offset = idx += key.length + 1;
+  		// save function
+  		parts.push(custom && custom[key] || function (d) {
+  			return ('00' + (typeof MAP[key] === 'string' ? d[MAP[key]]() : MAP[key](d))).slice(-key.length);
+  		});
+  	});
+
+  	if (offset !== str.length) {
+  		parts.push(str.substring(offset));
+  	}
+
+  	return function (arg) {
+  		var out='', i=0, d=arg||new Date();
+  		for (; i<parts.length; i++) {
+  			out += (typeof parts[i]==='string') ? parts[i] : parts[i](d);
+  		}
+  		return out;
+  	};
+  }
+
+  var barEl;
+  var timeId;
+
+  /**
+   * Init progress component
+   */
+  function init() {
+    var div = create('div');
+
+    div.classList.add('progress');
+    appendTo(body, div);
+    barEl = div;
+  }
+
+  /**
+   * Render progress bar
+   */
+  function progressbar (ref) {
+    var loaded = ref.loaded;
+    var total = ref.total;
+    var step = ref.step;
+
+    var num;
+
+    !barEl && init();
+
+    if (step) {
+      num = parseInt(barEl.style.width || 0, 10) + step;
+      num = num > 80 ? 80 : num;
+    } else {
+      num = Math.floor((loaded / total) * 100);
     }
-    var G = U(function(e, t) {
-        (function() {
-            var t = {
-                newline: /^\n+/,
-                code: /^( {4}[^\n]+\n*)+/,
-                fences: p,
-                hr: /^( *[-*_]){3,} *(?:\n+|$)/,
-                heading: /^ *(#{1,6}) *([^\n]+?) *#* *(?:\n+|$)/,
-                nptable: p,
-                lheading: /^([^\n]+)\n *(=|-){2,} *(?:\n+|$)/,
-                blockquote: /^( *>[^\n]+(\n(?!def)[^\n]+)*\n*)+/,
-                list: /^( *)(bull) [\s\S]+?(?:hr|def|\n{2,}(?! )(?!\1bull )\n*|\s*$)/,
-                html: /^ *(?:comment *(?:\n|\s*$)|closed *(?:\n{2,}|\s*$)|closing *(?:\n{2,}|\s*$))/,
-                def: /^ *\[([^\]]+)\]: *<?([^\s>]+)>?(?: +["(]([^\n]+)[")])? *(?:\n+|$)/,
-                table: p,
-                paragraph: /^((?:[^\n]+\n?(?!hr|heading|lheading|blockquote|tag|def))+)\n*/,
-                text: /^[^\n]+/
-            };
-            t.bullet = /(?:[*+-]|\d+\.)/, t.item = /^( *)(bull) [^\n]*(?:\n(?!\1bull )[^\n]*)*/, t.item = l(t.item, "gm")(/bull/g, t.bullet)(), t.list = l(t.list)(/bull/g, t.bullet)("hr", "\\n+(?=\\1?(?:[-*_] *){3,}(?:\\n+|$))")("def", "\\n+(?=" + t.def.source + ")")(), t.blockquote = l(t.blockquote)("def", t.def)(), t._tag = "(?!(?:a|em|strong|small|s|cite|q|dfn|abbr|data|time|code|var|samp|kbd|sub|sup|i|b|u|mark|ruby|rt|rp|bdi|bdo|span|br|wbr|ins|del|img)\\b)\\w+(?!:/|[^\\w\\s@]*@)\\b", t.html = l(t.html)("comment", /<!--[\s\S]*?-->/)("closed", /<(tag)[\s\S]+?<\/\1>/)("closing", /<tag(?:"[^"]*"|'[^']*'|[^'">])*?>/)(/tag/g, t._tag)(), t.paragraph = l(t.paragraph)("hr", t.hr)("heading", t.heading)("lheading", t.lheading)("blockquote", t.blockquote)("tag", "<" + t._tag)("def", t.def)(), t.normal = g({}, t), t.gfm = g({}, t.normal, {
-                fences: /^ *(`{3,}|~{3,})[ \.]*(\S+)? *\n([\s\S]*?)\s*\1 *(?:\n+|$)/,
-                paragraph: /^/,
-                heading: /^ *(#{1,6}) +([^\n]+?) *#* *(?:\n+|$)/
-            }), t.gfm.paragraph = l(t.paragraph)("(?!", "(?!" + t.gfm.fences.source.replace("\\1", "\\2") + "|" + t.list.source.replace("\\1", "\\3") + "|")(), t.tables = g({}, t.gfm, {
-                nptable: /^ *(\S.*\|.*)\n *([-:]+ *\|[-| :]*)\n((?:.*\|.*(?:\n|$))*)\n*/,
-                table: /^ *\|(.+)\n *\|( *[-:]+[-| :]*)\n((?: *\|.*(?:\n|$))*)\n*/
+
+    barEl.style.opacity = 1;
+    barEl.style.width = num >= 95 ? '100%' : num + '%';
+
+    if (num >= 95) {
+      clearTimeout(timeId);
+      // eslint-disable-next-line no-unused-vars
+      timeId = setTimeout(function (_) {
+        barEl.style.opacity = 0;
+        barEl.style.width = '0%';
+      }, 200);
+    }
+  }
+
+  /* eslint-disable no-unused-vars */
+
+  var cache = {};
+
+  /**
+   * Ajax GET implmentation
+   * @param {string} url Resource URL
+   * @param {boolean} [hasBar=false] Has progress bar
+   * @param {String[]} headers Array of headers
+   * @return {Promise} Promise response
+   */
+  function get(url, hasBar, headers) {
+    if ( hasBar === void 0 ) hasBar = false;
+    if ( headers === void 0 ) headers = {};
+
+    var xhr = new XMLHttpRequest();
+    var on = function () {
+      xhr.addEventListener.apply(xhr, arguments);
+    };
+
+    var cached = cache[url];
+
+    if (cached) {
+      return { then: function (cb) { return cb(cached.content, cached.opt); }, abort: noop };
+    }
+
+    xhr.open('GET', url);
+    for (var i in headers) {
+      if (hasOwn.call(headers, i)) {
+        xhr.setRequestHeader(i, headers[i]);
+      }
+    }
+
+    xhr.send();
+
+    return {
+      then: function (success, error) {
+        if ( error === void 0 ) error = noop;
+
+        if (hasBar) {
+          var id = setInterval(
+            function (_) { return progressbar({
+                step: Math.floor(Math.random() * 5 + 1),
+              }); },
+            500
+          );
+
+          on('progress', progressbar);
+          on('loadend', function (evt) {
+            progressbar(evt);
+            clearInterval(id);
+          });
+        }
+
+        on('error', error);
+        on('load', function (ref) {
+          var target = ref.target;
+
+          if (target.status >= 400) {
+            error(target);
+          } else {
+            var result = (cache[url] = {
+              content: target.response,
+              opt: {
+                updatedAt: xhr.getResponseHeader('last-modified'),
+              },
             });
 
-            function n(e) {
-                this.tokens = [], this.tokens.links = {}, this.options = e || m.defaults, this.rules = t.normal, this.options.gfm && (this.options.tables ? this.rules = t.tables : this.rules = t.gfm)
-            }
-            n.rules = t, n.lex = function(e, t) {
-                return new n(t).lex(e)
-            }, n.prototype.lex = function(e) {
-                return e = e.replace(/\r\n|\r/g, "\n").replace(/\t/g, "    ").replace(/\u00a0/g, " ").replace(/\u2424/g, "\n"), this.token(e, !0)
-            }, n.prototype.token = function(e, n, i) {
-                var a, r, o, s, l, c, d, u, p;
-                for (e = e.replace(/^ +$/gm, ""); e;)
-                    if ((o = this.rules.newline.exec(e)) && (e = e.substring(o[0].length), o[0].length > 1 && this.tokens.push({
-                            type: "space"
-                        })), o = this.rules.code.exec(e)) e = e.substring(o[0].length), o = o[0].replace(/^ {4}/gm, ""), this.tokens.push({
-                        type: "code",
-                        text: this.options.pedantic ? o : o.replace(/\n+$/, "")
-                    });
-                    else if (o = this.rules.fences.exec(e)) e = e.substring(o[0].length), this.tokens.push({
-                    type: "code",
-                    lang: o[2],
-                    text: o[3] || ""
-                });
-                else if (o = this.rules.heading.exec(e)) e = e.substring(o[0].length), this.tokens.push({
-                    type: "heading",
-                    depth: o[1].length,
-                    text: o[2]
-                });
-                else if (n && (o = this.rules.nptable.exec(e))) {
-                    for (e = e.substring(o[0].length), c = {
-                            type: "table",
-                            header: o[1].replace(/^ *| *\| *$/g, "").split(/ *\| */),
-                            align: o[2].replace(/^ *|\| *$/g, "").split(/ *\| */),
-                            cells: o[3].replace(/\n$/, "").split("\n")
-                        }, u = 0; u < c.align.length; u++) /^ *-+: *$/.test(c.align[u]) ? c.align[u] = "right" : /^ *:-+: *$/.test(c.align[u]) ? c.align[u] = "center" : /^ *:-+ *$/.test(c.align[u]) ? c.align[u] = "left" : c.align[u] = null;
-                    for (u = 0; u < c.cells.length; u++) c.cells[u] = c.cells[u].split(/ *\| */);
-                    this.tokens.push(c)
-                } else if (o = this.rules.lheading.exec(e)) e = e.substring(o[0].length), this.tokens.push({
-                    type: "heading",
-                    depth: "=" === o[2] ? 1 : 2,
-                    text: o[1]
-                });
-                else if (o = this.rules.hr.exec(e)) e = e.substring(o[0].length), this.tokens.push({
-                    type: "hr"
-                });
-                else if (o = this.rules.blockquote.exec(e)) e = e.substring(o[0].length), this.tokens.push({
-                    type: "blockquote_start"
-                }), o = o[0].replace(/^ *> ?/gm, ""), this.token(o, n, !0), this.tokens.push({
-                    type: "blockquote_end"
-                });
-                else if (o = this.rules.list.exec(e)) {
-                    for (e = e.substring(o[0].length), s = o[2], this.tokens.push({
-                            type: "list_start",
-                            ordered: s.length > 1
-                        }), a = !1, p = (o = o[0].match(this.rules.item)).length, u = 0; u < p; u++) d = (c = o[u]).length, ~(c = c.replace(/^ *([*+-]|\d+\.) +/, "")).indexOf("\n ") && (d -= c.length, c = this.options.pedantic ? c.replace(/^ {1,4}/gm, "") : c.replace(new RegExp("^ {1," + d + "}", "gm"), "")), this.options.smartLists && u !== p - 1 && (s === (l = t.bullet.exec(o[u + 1])[0]) || s.length > 1 && l.length > 1 || (e = o.slice(u + 1).join("\n") + e, u = p - 1)), r = a || /\n\n(?!\s*$)/.test(c), u !== p - 1 && (a = "\n" === c.charAt(c.length - 1), r || (r = a)), this.tokens.push({
-                        type: r ? "loose_item_start" : "list_item_start"
-                    }), this.token(c, !1, i), this.tokens.push({
-                        type: "list_item_end"
-                    });
-                    this.tokens.push({
-                        type: "list_end"
-                    })
-                } else if (o = this.rules.html.exec(e)) e = e.substring(o[0].length), this.tokens.push({
-                    type: this.options.sanitize ? "paragraph" : "html",
-                    pre: !this.options.sanitizer && ("pre" === o[1] || "script" === o[1] || "style" === o[1]),
-                    text: o[0]
-                });
-                else if (!i && n && (o = this.rules.def.exec(e))) e = e.substring(o[0].length), this.tokens.links[o[1].toLowerCase()] = {
-                    href: o[2],
-                    title: o[3]
-                };
-                else if (n && (o = this.rules.table.exec(e))) {
-                    for (e = e.substring(o[0].length), c = {
-                            type: "table",
-                            header: o[1].replace(/^ *| *\| *$/g, "").split(/ *\| */),
-                            align: o[2].replace(/^ *|\| *$/g, "").split(/ *\| */),
-                            cells: o[3].replace(/(?: *\| *)?\n$/, "").split("\n")
-                        }, u = 0; u < c.align.length; u++) /^ *-+: *$/.test(c.align[u]) ? c.align[u] = "right" : /^ *:-+: *$/.test(c.align[u]) ? c.align[u] = "center" : /^ *:-+ *$/.test(c.align[u]) ? c.align[u] = "left" : c.align[u] = null;
-                    for (u = 0; u < c.cells.length; u++) c.cells[u] = c.cells[u].replace(/^ *\| *| *\| *$/g, "").split(/ *\| */);
-                    this.tokens.push(c)
-                } else if (n && (o = this.rules.paragraph.exec(e))) e = e.substring(o[0].length), this.tokens.push({
-                    type: "paragraph",
-                    text: "\n" === o[1].charAt(o[1].length - 1) ? o[1].slice(0, -1) : o[1]
-                });
-                else if (o = this.rules.text.exec(e)) e = e.substring(o[0].length), this.tokens.push({
-                    type: "text",
-                    text: o[0]
-                });
-                else if (e) throw new Error("Infinite loop on byte: " + e.charCodeAt(0));
-                return this.tokens
-            };
-            var i = {
-                escape: /^\\([\\`*{}\[\]()#+\-.!_>])/,
-                autolink: /^<([^ <>]+(@|:\/)[^ <>]+)>/,
-                url: p,
-                tag: /^<!--[\s\S]*?-->|^<\/?\w+(?:"[^"]*"|'[^']*'|[^<'">])*?>/,
-                link: /^!?\[(inside)\]\(href\)/,
-                reflink: /^!?\[(inside)\]\s*\[([^\]]*)\]/,
-                nolink: /^!?\[((?:\[[^\]]*\]|[^\[\]])*)\]/,
-                strong: /^__([\s\S]+?)__(?!_)|^\*\*([\s\S]+?)\*\*(?!\*)/,
-                em: /^\b_((?:[^_]|__)+?)_\b|^\*((?:\*\*|[\s\S])+?)\*(?!\*)/,
-                code: /^(`+)([\s\S]*?[^`])\1(?!`)/,
-                br: /^ {2,}\n(?!\s*$)/,
-                del: p,
-                text: /^[\s\S]+?(?=[\\<!\[_*`]| {2,}\n|$)/
-            };
-            i._inside = /(?:\[[^\]]*\]|\\[\[\]]|[^\[\]]|\](?=[^\[]*\]))*/, i._href = /\s*<?([\s\S]*?)>?(?:\s+['"]([\s\S]*?)['"])?\s*/, i.link = l(i.link)("inside", i._inside)("href", i._href)(), i.reflink = l(i.reflink)("inside", i._inside)(), i.normal = g({}, i), i.pedantic = g({}, i.normal, {
-                strong: /^__(?=\S)([\s\S]*?\S)__(?!_)|^\*\*(?=\S)([\s\S]*?\S)\*\*(?!\*)/,
-                em: /^_(?=\S)([\s\S]*?\S)_(?!_)|^\*(?=\S)([\s\S]*?\S)\*(?!\*)/
-            }), i.gfm = g({}, i.normal, {
-                escape: l(i.escape)("])", "~|])")(),
-                url: /^(https?:\/\/[^\s<]+[^<.,:;"')\]\s])/,
-                del: /^~~(?=\S)([\s\S]*?\S)~~/,
-                text: l(i.text)("]|", "~]|")("|", "|https?://|")()
-            }), i.breaks = g({}, i.gfm, {
-                br: l(i.br)("{2,}", "*")(),
-                text: l(i.gfm.text)("{2,}", "*")()
-            });
+            success(result.content, result.opt);
+          }
+        });
+      },
+      abort: function (_) { return xhr.readyState !== 4 && xhr.abort(); },
+    };
+  }
 
-            function a(e, t) {
-                if (this.options = t || m.defaults, this.links = e, this.rules = i.normal, this.renderer = this.options.renderer || new r, this.renderer.options = this.options, !this.links) throw new Error("Tokens array requires a `links` property.");
-                this.options.gfm ? this.options.breaks ? this.rules = i.breaks : this.rules = i.gfm : this.options.pedantic && (this.rules = i.pedantic)
-            }
-            a.rules = i, a.output = function(e, t, n) {
-                return new a(t, n).output(e)
-            }, a.prototype.output = function(e) {
-                for (var t, n, i, a, r = ""; e;)
-                    if (a = this.rules.escape.exec(e)) e = e.substring(a[0].length), r += a[1];
-                    else if (a = this.rules.autolink.exec(e)) e = e.substring(a[0].length), "@" === a[2] ? (n = s(":" === a[1].charAt(6) ? this.mangle(a[1].substring(7)) : this.mangle(a[1])), i = this.mangle("mailto:") + n) : i = n = s(a[1]), r += this.renderer.link(i, null, n);
-                else if (this.inLink || !(a = this.rules.url.exec(e))) {
-                    if (a = this.rules.tag.exec(e)) !this.inLink && /^<a /i.test(a[0]) ? this.inLink = !0 : this.inLink && /^<\/a>/i.test(a[0]) && (this.inLink = !1), e = e.substring(a[0].length), r += this.options.sanitize ? this.options.sanitizer ? this.options.sanitizer(a[0]) : s(a[0]) : a[0];
-                    else if (a = this.rules.link.exec(e)) e = e.substring(a[0].length), this.inLink = !0, r += this.outputLink(a, {
-                        href: a[2],
-                        title: a[3]
-                    }), this.inLink = !1;
-                    else if ((a = this.rules.reflink.exec(e)) || (a = this.rules.nolink.exec(e))) {
-                        if (e = e.substring(a[0].length), t = (a[2] || a[1]).replace(/\s+/g, " "), !(t = this.links[t.toLowerCase()]) || !t.href) {
-                            r += a[0].charAt(0), e = a[0].substring(1) + e;
-                            continue
-                        }
-                        this.inLink = !0, r += this.outputLink(a, t), this.inLink = !1
-                    } else if (a = this.rules.strong.exec(e)) e = e.substring(a[0].length), r += this.renderer.strong(this.output(a[2] || a[1]));
-                    else if (a = this.rules.em.exec(e)) e = e.substring(a[0].length), r += this.renderer.em(this.output(a[2] || a[1]));
-                    else if (a = this.rules.code.exec(e)) e = e.substring(a[0].length), r += this.renderer.codespan(s(a[2].trim(), !0));
-                    else if (a = this.rules.br.exec(e)) e = e.substring(a[0].length), r += this.renderer.br();
-                    else if (a = this.rules.del.exec(e)) e = e.substring(a[0].length), r += this.renderer.del(this.output(a[1]));
-                    else if (a = this.rules.text.exec(e)) e = e.substring(a[0].length), r += this.renderer.text(s(this.smartypants(a[0])));
-                    else if (e) throw new Error("Infinite loop on byte: " + e.charCodeAt(0))
-                } else e = e.substring(a[0].length), i = n = s(a[1]), r += this.renderer.link(i, null, n);
-                return r
-            }, a.prototype.outputLink = function(e, t) {
-                var n = s(t.href),
-                    i = t.title ? s(t.title) : null;
-                return "!" !== e[0].charAt(0) ? this.renderer.link(n, i, this.output(e[1])) : this.renderer.image(n, i, s(e[1]))
-            }, a.prototype.smartypants = function(e) {
-                return this.options.smartypants ? e.replace(/---/g, "—").replace(/--/g, "–").replace(/(^|[-\u2014/(\[{"\s])'/g, "$1‘").replace(/'/g, "’").replace(/(^|[-\u2014/(\[{\u2018\s])"/g, "$1“").replace(/"/g, "”").replace(/\.{3}/g, "…") : e
-            }, a.prototype.mangle = function(e) {
-                if (!this.options.mangle) return e;
-                for (var t, n = "", i = e.length, a = 0; a < i; a++) t = e.charCodeAt(a), Math.random() > .5 && (t = "x" + t.toString(16)), n += "&#" + t + ";";
-                return n
-            };
+  function replaceVar(block, color) {
+    block.innerHTML = block.innerHTML.replace(
+      /var\(\s*--theme-color.*?\)/g,
+      color
+    );
+  }
 
-            function r(e) {
-                this.options = e || {}
-            }
-            r.prototype.code = function(e, t, n) {
-                if (this.options.highlight) {
-                    var i = this.options.highlight(e, t);
-                    null != i && i !== e && (n = !0, e = i)
-                }
-                return t ? '<pre><code class="' + this.options.langPrefix + s(t, !0) + '">' + (n ? e : s(e, !0)) + "\n</code></pre>\n" : "<pre><code>" + (n ? e : s(e, !0)) + "\n</code></pre>"
-            }, r.prototype.blockquote = function(e) {
-                return "<blockquote>\n" + e + "</blockquote>\n"
-            }, r.prototype.html = function(e) {
-                return e
-            }, r.prototype.heading = function(e, t, n) {
-                return "<h" + t + ' id="' + this.options.headerPrefix + n.toLowerCase().replace(/[^\w]+/g, "-") + '">' + e + "</h" + t + ">\n"
-            }, r.prototype.hr = function() {
-                return this.options.xhtml ? "<hr/>\n" : "<hr>\n"
-            }, r.prototype.list = function(e, t) {
-                var n = t ? "ol" : "ul";
-                return "<" + n + ">\n" + e + "</" + n + ">\n"
-            }, r.prototype.listitem = function(e) {
-                return "<li>" + e + "</li>\n"
-            }, r.prototype.paragraph = function(e) {
-                return "<p>" + e + "</p>\n"
-            }, r.prototype.table = function(e, t) {
-                return "<table>\n<thead>\n" + e + "</thead>\n<tbody>\n" + t + "</tbody>\n</table>\n"
-            }, r.prototype.tablerow = function(e) {
-                return "<tr>\n" + e + "</tr>\n"
-            }, r.prototype.tablecell = function(e, t) {
-                var n = t.header ? "th" : "td";
-                return (t.align ? "<" + n + ' style="text-align:' + t.align + '">' : "<" + n + ">") + e + "</" + n + ">\n"
-            }, r.prototype.strong = function(e) {
-                return "<strong>" + e + "</strong>"
-            }, r.prototype.em = function(e) {
-                return "<em>" + e + "</em>"
-            }, r.prototype.codespan = function(e) {
-                return "<code>" + e + "</code>"
-            }, r.prototype.br = function() {
-                return this.options.xhtml ? "<br/>" : "<br>"
-            }, r.prototype.del = function(e) {
-                return "<del>" + e + "</del>"
-            }, r.prototype.link = function(e, t, n) {
-                if (this.options.sanitize) {
-                    try {
-                        var i = decodeURIComponent((a = e, a.replace(/&(#(?:\d+)|(?:#x[0-9A-Fa-f]+)|(?:\w+));?/gi, function(e, t) {
-                            return "colon" === (t = t.toLowerCase()) ? ":" : "#" === t.charAt(0) ? "x" === t.charAt(1) ? String.fromCharCode(parseInt(t.substring(2), 16)) : String.fromCharCode(+t.substring(1)) : ""
-                        }))).replace(/[^\w:]/g, "").toLowerCase()
-                    } catch (e) {
-                        return n
-                    }
-                    if (0 === i.indexOf("javascript:") || 0 === i.indexOf("vbscript:") || 0 === i.indexOf("data:")) return n
-                }
-                var a;
-                this.options.baseUrl && !u.test(e) && (e = c(this.options.baseUrl, e));
-                var r = '<a href="' + e + '"';
-                return t && (r += ' title="' + t + '"'), r += ">" + n + "</a>"
-            }, r.prototype.image = function(e, t, n) {
-                this.options.baseUrl && !u.test(e) && (e = c(this.options.baseUrl, e));
-                var i = '<img src="' + e + '" alt="' + n + '"';
-                return t && (i += ' title="' + t + '"'), i += this.options.xhtml ? "/>" : ">"
-            }, r.prototype.text = function(e) {
-                return e
-            };
+  function cssVars (color) {
+    // Variable support
+    if (window.CSS && window.CSS.supports && window.CSS.supports('(--v:red)')) {
+      return;
+    }
 
-            function o(e) {
-                this.tokens = [], this.token = null, this.options = e || m.defaults, this.options.renderer = this.options.renderer || new r, this.renderer = this.options.renderer, this.renderer.options = this.options
-            }
-            o.parse = function(e, t, n) {
-                return new o(t, n).parse(e)
-            }, o.prototype.parse = function(e) {
-                this.inline = new a(e.links, this.options, this.renderer), this.tokens = e.reverse();
-                for (var t = ""; this.next();) t += this.tok();
-                return t
-            }, o.prototype.next = function() {
-                return this.token = this.tokens.pop()
-            }, o.prototype.peek = function() {
-                return this.tokens[this.tokens.length - 1] || 0
-            }, o.prototype.parseText = function() {
-                for (var e = this.token.text;
-                    "text" === this.peek().type;) e += "\n" + this.next().text;
-                return this.inline.output(e)
-            }, o.prototype.tok = function() {
-                switch (this.token.type) {
-                    case "space":
-                        return "";
-                    case "hr":
-                        return this.renderer.hr();
-                    case "heading":
-                        return this.renderer.heading(this.inline.output(this.token.text), this.token.depth, this.token.text);
-                    case "code":
-                        return this.renderer.code(this.token.text, this.token.lang, this.token.escaped);
-                    case "table":
-                        var e, t, n, i, a = "",
-                            r = "";
-                        for (n = "", e = 0; e < this.token.header.length; e++)({
-                            header: !0,
-                            align: this.token.align[e]
-                        }), n += this.renderer.tablecell(this.inline.output(this.token.header[e]), {
-                            header: !0,
-                            align: this.token.align[e]
-                        });
-                        for (a += this.renderer.tablerow(n), e = 0; e < this.token.cells.length; e++) {
-                            for (t = this.token.cells[e], n = "", i = 0; i < t.length; i++) n += this.renderer.tablecell(this.inline.output(t[i]), {
-                                header: !1,
-                                align: this.token.align[i]
-                            });
-                            r += this.renderer.tablerow(n)
-                        }
-                        return this.renderer.table(a, r);
-                    case "blockquote_start":
-                        for (r = "";
-                            "blockquote_end" !== this.next().type;) r += this.tok();
-                        return this.renderer.blockquote(r);
-                    case "list_start":
-                        r = "";
-                        for (var o = this.token.ordered;
-                            "list_end" !== this.next().type;) r += this.tok();
-                        return this.renderer.list(r, o);
-                    case "list_item_start":
-                        for (r = "";
-                            "list_item_end" !== this.next().type;) r += "text" === this.token.type ? this.parseText() : this.tok();
-                        return this.renderer.listitem(r);
-                    case "loose_item_start":
-                        for (r = "";
-                            "list_item_end" !== this.next().type;) r += this.tok();
-                        return this.renderer.listitem(r);
-                    case "html":
-                        var s = this.token.pre || this.options.pedantic ? this.token.text : this.inline.output(this.token.text);
-                        return this.renderer.html(s);
-                    case "paragraph":
-                        return this.renderer.paragraph(this.inline.output(this.token.text));
-                    case "text":
-                        return this.renderer.paragraph(this.parseText())
-                }
-            };
+    var styleBlocks = findAll('style:not(.inserted),link');
+    [].forEach.call(styleBlocks, function (block) {
+      if (block.nodeName === 'STYLE') {
+        replaceVar(block, color);
+      } else if (block.nodeName === 'LINK') {
+        var href = block.getAttribute('href');
 
-            function s(e, t) {
-                return e.replace(t ? /&/g : /&(?!#?\w+;)/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;")
-            }
+        if (!/\.css$/.test(href)) {
+          return;
+        }
 
-            function l(e, t) {
-                return e = e.source, t = t || "",
-                    function n(i, a) {
-                        return i ? (a = (a = a.source || a).replace(/(^|[^\[])\^/g, "$1"), e = e.replace(i, a), n) : new RegExp(e, t)
-                    }
-            }
+        get(href).then(function (res) {
+          var style = create('style', res);
 
-            function c(e, t) {
-                return d[" " + e] || (/^[^:]+:\/*[^/]*$/.test(e) ? d[" " + e] = e + "/" : d[" " + e] = e.replace(/[^/]*$/, "")), e = d[" " + e], "//" === t.slice(0, 2) ? e.replace(/:[\s\S]*/, ":") + t : "/" === t.charAt(0) ? e.replace(/(:\/*[^/]*)[\s\S]*/, "$1") + t : e + t
-            }
-            var d = {},
-                u = /^$|^[a-z][a-z0-9+.-]*:|^[?#]/i;
+          head.appendChild(style);
+          replaceVar(style, color);
+        });
+      }
+    });
+  }
 
-            function p() {}
-            p.exec = p;
+  /* eslint-disable no-unused-vars */
 
-            function g(e) {
-                for (var t, n, i = arguments, a = 1; a < arguments.length; a++) {
-                    t = i[a];
-                    for (n in t) Object.prototype.hasOwnProperty.call(t, n) && (e[n] = t[n])
-                }
-                return e
-            }
+  var title = $.title;
+  /**
+   * Toggle button
+   * @param {Element} el Button to be toggled
+   * @void
+   */
+  function btn(el) {
+    var toggle = function (_) { return body.classList.toggle('close'); };
 
-            function m(e, t, i) {
-                if (i || "function" == typeof t) {
-                    i || (i = t, t = null);
-                    var a, r, l = (t = g({}, m.defaults, t || {})).highlight,
-                        c = 0;
-                    try {
-                        a = n.lex(e, t)
-                    } catch (e) {
-                        return i(e)
-                    }
-                    r = a.length;
-                    var d = function(e) {
-                        if (e) return t.highlight = l, i(e);
-                        var n;
-                        try {
-                            n = o.parse(a, t)
-                        } catch (t) {
-                            e = t
-                        }
-                        return t.highlight = l, e ? i(e) : i(null, n)
-                    };
-                    if (!l || l.length < 3) return d();
-                    if (delete t.highlight, !r) return d();
-                    for (; c < a.length; c++) ! function(e) {
-                        "code" !== e.type ? --r || d() : l(e.text, e.lang, function(t, n) {
-                            return t ? d(t) : null == n || n === e.text ? --r || d() : (e.text = n, e.escaped = !0, void(--r || d()))
-                        })
-                    }(a[c])
-                } else try {
-                    return t && (t = g({}, m.defaults, t)), o.parse(n.lex(e, t), t)
-                } catch (e) {
-                    if (e.message += "\nPlease report this to https://github.com/chjj/marked.", (t || m.defaults).silent) return "<p>An error occurred:</p><pre>" + s(e.message + "", !0) + "</pre>";
-                    throw e
-                }
-            }
-            m.options = m.setOptions = function(e) {
-                return g(m.defaults, e), m
-            }, m.defaults = {
-                gfm: !0,
-                tables: !0,
-                breaks: !1,
-                pedantic: !1,
-                sanitize: !1,
-                sanitizer: null,
-                mangle: !0,
-                smartLists: !1,
-                silent: !1,
-                highlight: null,
-                langPrefix: "lang-",
-                smartypants: !1,
-                headerPrefix: "",
-                renderer: new r,
-                xhtml: !1,
-                baseUrl: null
-            }, m.Parser = o, m.parser = o.parse, m.Renderer = r, m.Lexer = n, m.lexer = n.lex, m.InlineLexer = a, m.inlineLexer = a.output, m.parse = m, e.exports = m
-        }).call(function() {
-            return this || ("undefined" != typeof window ? window : B)
-        }())
+    el = getNode(el);
+    if (el === null || el === undefined) {
+      return;
+    }
+
+    on(el, 'click', function (e) {
+      e.stopPropagation();
+      toggle();
     });
 
-    function H(e, t) {
-        var n = [],
-            i = {};
-        return e.forEach(function(e) {
-            var a = e.level || 1,
-                r = a - 1;
-            a > t || (i[r] ? i[r].children = (i[r].children || []).concat(e) : n.push(e), i[a] = e)
-        }), n
-    }
-    var $ = {},
-        z = /[\u2000-\u206F\u2E00-\u2E7F\\'!"#$%&()*+,.\/:;<=>?@\[\]^`{|}~]/g;
+    isMobile &&
+      on(
+        body,
+        'click',
+        function (_) { return body.classList.contains('close') && toggle(); }
+      );
+  }
 
-    function W(e) {
-        return e.toLowerCase()
+  function collapse(el) {
+    el = getNode(el);
+    if (el === null || el === undefined) {
+      return;
     }
 
-    function q(e) {
-        if ("string" != typeof e) return "";
-        var t = e.trim().replace(/[A-Z]+/g, W).replace(/<[^>\d]+>/g, "").replace(z, "").replace(/\s/g, "-").replace(/-+/g, "-").replace(/^(\d)/, "_$1"),
-            n = $[t];
-        return n = $.hasOwnProperty(t) ? n + 1 : 0, $[t] = n, n && (t = t + "-" + n), t
-    }
-    q.clear = function() {
-        $ = {}
-    };
+    on(el, 'click', function (ref) {
+      var target = ref.target;
 
-    function j(e, t) {
-        return '<img class="emoji" src="https://assets-cdn.github.com/images/icons/emoji/' + t + '.png" alt="' + t + '" />'
-    }
-    var V = decodeURIComponent,
-        Y = encodeURIComponent;
+      if (
+        target.nodeName === 'A' &&
+        target.nextSibling &&
+        target.nextSibling.classList &&
+        target.nextSibling.classList.contains('app-sub-sidebar')
+      ) {
+        toggleClass(target.parentNode, 'collapse');
+      }
+    });
+  }
 
-    function K(e) {
-        var t = {};
-        return (e = e.trim().replace(/^(\?|#|&)/, "")) ? (e.split("&").forEach(function(e) {
-            var n = e.replace(/\+/g, " ").split("=");
-            t[n[0]] = n[1] && V(n[1])
-        }), t) : t
+  function sticky() {
+    var cover = getNode('section.cover');
+    if (!cover) {
+      return;
     }
 
-    function Z(e, t) {
-        void 0 === t && (t = []);
-        var n = [];
-        for (var i in e) t.indexOf(i) > -1 || n.push(e[i] ? (Y(i) + "=" + Y(e[i])).toLowerCase() : Y(i));
-        return n.length ? "?" + n.join("&") : ""
+    var coverHeight = cover.getBoundingClientRect().height;
+
+    if (window.pageYOffset >= coverHeight || cover.classList.contains('hidden')) {
+      toggleClass(body, 'add', 'sticky');
+    } else {
+      toggleClass(body, 'remove', 'sticky');
+    }
+  }
+
+  /**
+   * Get and active link
+   * @param  {Object} router Router
+   * @param  {String|Element} el Target element
+   * @param  {Boolean} isParent Active parent
+   * @param  {Boolean} autoTitle Automatically set title
+   * @return {Element} Active element
+   */
+  function getAndActive(router, el, isParent, autoTitle) {
+    el = getNode(el);
+    var links = [];
+    if (el !== null && el !== undefined) {
+      links = findAll(el, 'a');
     }
 
-    function X() {
-        for (var e = [], t = arguments.length; t--;) e[t] = arguments[t];
-        return ee(e.join("/"))
-    }
-    var Q = e(function(e) {
-            return /(:|(\/{2}))/g.test(e)
-        }),
-        J = e(function(e) {
-            return /\/$/g.test(e) ? e : (e = e.match(/(\S*\/)[^\/]+$/)) ? e[1] : ""
-        }),
-        ee = e(function(e) {
-            return e.replace(/^\/+/, "/").replace(/([^:])\/{2,}/g, "$1/")
-        }),
-        te = e(function(e) {
-            return e.replace("#", "?id=")
-        }),
-        ne = {};
+    var hash = decodeURI(router.toURL(router.getCurrentPath()));
+    var target;
 
-    function ie(e) {
-        void 0 === e && (e = "");
-        var t = {};
-        return e && (e = e.replace(/:([\w-]+)=?([\w-]+)?/g, function(e, n, i) {
-            return t[n] = i && i.replace(/&quot;/g, "") || !0, ""
-        }).trim()), {
-            str: e,
-            config: t
+    links
+      .sort(function (a, b) { return b.href.length - a.href.length; })
+      .forEach(function (a) {
+        var href = decodeURI(a.getAttribute('href'));
+        var node = isParent ? a.parentNode : a;
+
+        a.title = a.title || a.innerText;
+
+        if (hash.indexOf(href) === 0 && !target) {
+          target = a;
+          toggleClass(node, 'add', 'active');
+        } else {
+          toggleClass(node, 'remove', 'active');
         }
-    }
-    var ae = {
-            markdown: function(e) {
-                return {
-                    url: e
-                }
-            },
-            iframe: function(e, t) {
-                return {
-                    code: '<iframe src="' + e + '" ' + (t || "width=100% height=400") + "></iframe>"
-                }
-            },
-            video: function(e, t) {
-                return {
-                    code: '<video src="' + e + '" ' + (t || "controls") + ">Not Support</video>"
-                }
-            },
-            audio: function(e, t) {
-                return {
-                    code: '<audio src="' + e + '" ' + (t || "controls") + ">Not Support</audio>"
-                }
-            },
-            code: function(e, t) {
-                var n = e.match(/\.(\w+)$/);
-                return "md" === (n = t || n && n[1]) && (n = "markdown"), {
-                    url: e,
-                    lang: n
-                }
-            }
-        },
-        re = function(t, a) {
-            var o = this;
-            this.config = t, this.router = a, this.cacheTree = {}, this.toc = [], this.linkTarget = t.externalLinkTarget || "_blank", this.contentBase = a.getBasePath(), this.pageToc = {
-                tag: "\x3c!-- toc --\x3e",
-                hasTag: !1,
-                start: 0
-            };
-            var s, l = this._initRenderer(),
-                c = t.markdown || {};
-            r(c) ? s = c(G, l) : (G.setOptions(n(c, {
-                renderer: n(l, c.renderer)
-            })), s = G), this._marked = s, this.compile = e(function(e) {
-                var n = "";
-                if (!e) return e;
-                n = i(e) ? s(e) : s.parser(e), n = o._genToc(n), n = t.noEmoji ? n : (a = n, a.replace(/<(pre|template|code)[^>]*?>[\s\S]+?<\/(pre|template|code)>/g, function(e) {
-                    return e.replace(/:/g, "__colon__")
-                }).replace(/:(\w+?):/gi, u && window.emojify || j).replace(/__colon__/g, ":"));
-                var a;
-                return q.clear(), n
-            })
-        };
-    re.prototype.compileEmbed = function(e, t) {
-        var n, i = ie(t),
-            a = i.str,
-            r = i.config;
-        if (t = a, r.include) {
-            Q(e) || (e = X(this.contentBase, e));
-            var o;
-            if (r.type && (o = ae[r.type]))(n = o.call(this, e, t)).type = r.type;
-            else {
-                var s = "code";
-                /\.(md|markdown)/.test(e) ? s = "markdown" : /\.html?/.test(e) ? s = "iframe" : /\.(mp4|ogg)/.test(e) ? s = "video" : /\.mp3/.test(e) && (s = "audio"), (n = ae[s].call(this, e, t)).type = s
-            }
-            return n
-        }
-    }, re.prototype._matchNotCompileLink = function(e) {
-        for (var t = this.config.noCompileLinks || [], n = 0; n < t.length; n++) {
-            var i = t[n];
-            if ((ne[i] || (ne[i] = new RegExp("^" + i + "$"))).test(e)) return e
-        }
-    }, re.prototype._initRenderer = function() {
-        var e = new G.Renderer,
-            t = this.linkTarget,
-            n = this.router,
-            i = this.contentBase,
-            a = this,
-            r = {};
-        r.heading = e.heading = function(e, t) {
-            var i = {
-                level: t,
-                title: e
-            };
-            /{docsify-ignore}/g.test(e) && (e = e.replace("{docsify-ignore}", ""), i.title = e, i.ignoreSubHeading = !0), /{docsify-ignore-all}/g.test(e) && (e = e.replace("{docsify-ignore-all}", ""), i.title = e, i.ignoreAllSubs = !0);
-            var r = q(e),
-                o = n.toURL(n.getCurrentPath(), {
-                    id: r
-                });
-            return i.slug = o, a.toc.push(i), "<h" + t + ' id="' + r + '"><a href="' + o + '" data-id="' + r + '" class="anchor"><span>' + e + "</span></a></h" + t + ">"
-        }, r.code = e.code = function(e, t) {
-            return void 0 === t && (t = ""), '<pre v-pre data-lang="' + t + '"><code class="language-' + t + " lang-" + t + '">' + (e = e.replace(/</g, "&lt").replace(/>/g, "&gt")) + "</code></pre>"
-        }, r.link = e.link = function(e, i, r) {
-            void 0 === i && (i = "");
-            var o = "",
-                s = ie(i),
-                l = s.str,
-                c = s.config;
-            return i = l, /:|(\/{2})/.test(e) || a._matchNotCompileLink(e) || c.ignore ? o += ' target="' + t + '"' : (e === a.config.homepage && (e = "README"), e = n.toURL(e, null, n.getCurrentPath())), c.target && (o += " target=" + c.target), c.disabled && (o += " disabled", e = "javascript:void(0)"), i && (o += ' title="' + i + '"'), '<a href="' + e + '"' + o + ">" + r + "</a>"
-        }, r.paragraph = e.paragraph = function(e) {
-            return /^!&gt;/.test(e) ? I("tip", e) : /^\?&gt;/.test(e) ? I("warn", e) : "<p>" + e + "</p>"
-        }, r.image = e.image = function(e, t, n) {
-            var a = e,
-                r = "",
-                o = ie(t);
-            return t = o.str, o.config["no-zoom"] && (r += " data-no-zoom"), t && (r += ' title="' + t + '"'), Q(e) || (a = X(i, e)), '<img src="' + a + '"data-origin="' + e + '" alt="' + n + '"' + r + ">"
-        };
-        var o = /^\[([ x])\] +/;
-        return r.listitem = e.listitem = function(e) {
-            var t = o.exec(e);
-            return t && (e = e.replace(o, '<input type="checkbox" ' + ("x" === t[1] ? "checked" : "") + " />")), "<li" + (t ? ' class="task-list-item"' : "") + ">" + e + "</li>\n"
-        }, e.origin = r, e
-    }, re.prototype.sidebar = function(e, t) {
-        var n = this.router.getCurrentPath(),
-            i = "";
-        if (e) i = (i = this.compile(e)) && i.match(/<ul[^>]*>([\s\S]+)<\/ul>/g)[0];
-        else {
-            var a = this.cacheTree[n] || H(this.toc, t);
-            i = x(a, "<ul>"), this.cacheTree[n] = a
-        }
-        return i
-    }, re.prototype.subSidebar = function(e) {
-        if (e) {
-            var t = this.router.getCurrentPath(),
-                n = this.cacheTree,
-                i = this.toc;
-            i[0] && i[0].ignoreAllSubs && i.splice(0), i[0] && 1 === i[0].level && i.shift();
-            for (var a = 0; a < i.length; a++) i[a].ignoreSubHeading && i.splice(a, 1) && a--;
-            var r = n[t] || H(i, e);
-            return n[t] = r, this.toc = [], x(r, '<ul class="app-sub-sidebar">')
-        }
-        this.toc = []
-    }, re.prototype.article = function(e) {
-        return this.compile(e)
-    }, re.prototype.cover = function(e) {
-        var t = this.toc.slice(),
-            n = this.compile(e);
-        return this.toc = t.slice(), n
-    }, re.prototype.calTocStart = function(e) {
-        var t, n = /^ *(#{1,6}) *([^\n]+?) *#* *(?:\n+|$)/gim,
-            i = e.indexOf(this.pageToc.tag),
-            a = 0;
-        if (-1 !== i) {
-            for (this.pageToc.hasTag = !0; null != (t = n.exec(e)) && !(t.index > i);) a++;
-            this.pageToc.start = a
-        } else this.pageToc.hasTag = !1
-    }, re.prototype._genToc = function(e) {
-        if (!this.pageToc.hasTag) return e;
-        var t, n, i, a = this.pageToc.tag,
-            r = this.config.tocLevel,
-            o = "",
-            s = 0,
-            l = 5,
-            c = this.toc,
-            d = this.pageToc.start;
-        for (t = d; t < c.length; t++)(i = c[t]).level < l && (l = i.level);
-        var u = l - 1;
-        for (t = d; t < c.length; t++)
-            if (!((i = c[t]).level > r)) {
-                if (u > i.level) {
-                    for (n = u - i.level; n >= 0; n--) o += "</ul>", s--;
-                    o += "<ul class='toc'>", s++
-                }
-                if (u < i.level)
-                    for (n = i.level - u; n > 0; n--) o += "<ul class='toc'>", s++;
-                o += "<li><a href='" + i.slug + "'>" + i.title + "</a></li>", u = i.level
-            } for (t = 0; t < s; t++) o += "</ul>";
-        return e = e.replace(a, o), this.pageToc.hasTag = !1, this.pageToc.start = 0, e
-    };
-    var oe = f.title;
+      });
 
-    function se() {
-        var e = h("section.cover");
-        if (e) {
-            var t = e.getBoundingClientRect().height;
-            window.pageYOffset >= t || e.classList.contains("hidden") ? A(b, "add", "sticky") : A(b, "remove", "sticky")
-        }
+    if (autoTitle) {
+      $.title = target
+        ? target.title || ((target.innerText) + " - " + title)
+        : title;
     }
 
-    function le(e, t, n, i) {
-        var a, r = y(t = h(t), "a"),
-            o = decodeURI(e.toURL(e.getCurrentPath()));
-        return r.sort(function(e, t) {
-            return t.href.length - e.href.length
-        }).forEach(function(e) {
-            var t = e.getAttribute("href"),
-                i = n ? e.parentNode : e;
-            0 !== o.indexOf(t) || a ? A(i, "remove", "active") : (a = e, A(i, "add", "active"))
-        }), i && (f.title = a ? a.innerText + " - " + oe : oe), a
-    }
-    var ce = function() {
-        function e(e, t) {
-            for (var n = 0; n < t.length; n++) {
-                var i = t[n];
-                i.enumerable = i.enumerable || !1, i.configurable = !0, "value" in i && (i.writable = !0), Object.defineProperty(e, i.key, i)
-            }
-        }
-        return function(t, n, i) {
-            return n && e(t.prototype, n), i && e(t, i), t
-        }
-    }();
-    var de = function() {
-            function e() {
-                var t = arguments.length > 0 && void 0 !== arguments[0] ? arguments[0] : {};
-                ! function(e, t) {
-                    if (!(e instanceof t)) throw new TypeError("Cannot call a class as a function")
-                }(this, e), this.duration = t.duration || 1e3, this.ease = t.easing || this._defaultEase, this.start = t.start, this.end = t.end, this.frame = null, this.next = null, this.isRunning = !1, this.events = {}, this.direction = this.start < this.end ? "up" : "down"
-            }
-            return ce(e, [{
-                key: "begin",
-                value: function() {
-                    return this.isRunning || this.next === this.end || (this.frame = window.requestAnimationFrame(this._tick.bind(this))), this
-                }
-            }, {
-                key: "stop",
-                value: function() {
-                    return window.cancelAnimationFrame(this.frame), this.isRunning = !1, this.frame = null, this.timeStart = null, this.next = null, this
-                }
-            }, {
-                key: "on",
-                value: function(e, t) {
-                    return this.events[e] = this.events[e] || [], this.events[e].push(t), this
-                }
-            }, {
-                key: "emit",
-                value: function(e, t) {
-                    var n = this,
-                        i = this.events[e];
-                    i && i.forEach(function(e) {
-                        return e.call(n, t)
-                    })
-                }
-            }, {
-                key: "_tick",
-                value: function(e) {
-                    this.isRunning = !0;
-                    var t = this.next || this.start;
-                    this.timeStart || (this.timeStart = e), this.timeElapsed = e - this.timeStart, this.next = Math.round(this.ease(this.timeElapsed, this.start, this.end - this.start, this.duration)), this._shouldTick(t) ? (this.emit("tick", this.next), this.frame = window.requestAnimationFrame(this._tick.bind(this))) : (this.emit("tick", this.end), this.emit("done", null))
-                }
-            }, {
-                key: "_shouldTick",
-                value: function(e) {
-                    return {
-                        up: this.next < this.end && e <= this.next,
-                        down: this.next > this.end && e >= this.next
-                    } [this.direction]
-                }
-            }, {
-                key: "_defaultEase",
-                value: function(e, t, n, i) {
-                    return (e /= i / 2) < 1 ? n / 2 * e * e + t : -n / 2 * (--e * (e - 2) - 1) + t
-                }
-            }]), e
-        }(),
-        ue = {},
-        pe = !1,
-        ge = null,
-        me = !0,
-        he = 0;
+    return target;
+  }
 
-    function fe(e) {
-        if (me) {
-            for (var t, n = h(".sidebar"), i = y(".anchor"), a = E(n, ".sidebar-nav"), r = E(n, "li.active"), o = document.documentElement, s = (o && o.scrollTop || document.body.scrollTop) - he, l = 0, c = i.length; l < c; l += 1) {
-                var d = i[l];
-                if (d.offsetTop > s) {
-                    t || (t = d);
-                    break
-                }
-                t = d
-            }
-            if (t) {
-                var u = ue[be(e, t.getAttribute("data-id"))];
-                if (u && u !== r && (r && r.classList.remove("active"), u.classList.add("active"), r = u, !pe && b.classList.contains("sticky"))) {
-                    var p = n.clientHeight,
-                        g = r.offsetTop + r.clientHeight + 40,
-                        m = g - 0 < p,
-                        f = r.offsetTop >= a.scrollTop && g <= a.scrollTop + p ? a.scrollTop : m ? 0 : g - p;
-                    n.scrollTop = f
-                }
-            }
-        }
+  var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) { descriptor.writable = true; } Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) { defineProperties(Constructor.prototype, protoProps); } if (staticProps) { defineProperties(Constructor, staticProps); } return Constructor; }; }();
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+  var SingleTweener = function () {
+    function SingleTweener() {
+      var opts = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+
+      _classCallCheck(this, SingleTweener);
+
+      this.start = opts.start;
+      this.end = opts.end;
+      this.decimal = opts.decimal;
     }
 
-    function be(e, t) {
-        return e + "?id=" + t
-    }
-
-    function Se(e, t) {
-        if (t) {
-            
-            var n = E("#" + t);
-            n && (i = n, ge && ge.stop(), me = !1, ge = new de({
-                start: window.pageYOffset,
-                end: i.getBoundingClientRect().top + window.pageYOffset,
-                duration: 500
-            }).on("tick", function(e) {
-                return window.scrollTo(0, e)
-            }).on("done", function() {
-                me = !0, ge = null
-            }).begin());
-            var i, a = ue[be(e, t)],
-                r = E(h(".sidebar"), "li.active");
-            r && r.classList.remove("active"), a && a.classList.add("active")
+    _createClass(SingleTweener, [{
+      key: "getIntermediateValue",
+      value: function getIntermediateValue(tick) {
+        if (this.decimal) {
+          return tick;
+        } else {
+          return Math.round(tick);
         }
-    }
-    var Ee = f.scrollingElement || f.documentElement;
-    var ye = {};
+      }
+    }, {
+      key: "getFinalValue",
+      value: function getFinalValue() {
+        return this.end;
+      }
+    }]);
 
-    function ve(e, t) {
-        var i = e.compiler,
-            a = e.raw;
-        void 0 === a && (a = "");
-        var r, o = e.fetch;
-        if (r = ye[a]) return t(r);
-        var s = i._marked,
-            l = s.lexer(a),
-            c = [],
-            d = s.InlineLexer.rules.link,
-            u = l.links;
-        l.forEach(function(e, t) {
-            "paragraph" === e.type && (e.text = e.text.replace(new RegExp(d.source, "g"), function(e, n, a, r) {
-                var o = i.compileEmbed(a, r);
-                return o ? ("markdown" !== o.type && "code" !== o.type || c.push({
-                    index: t,
-                    embed: o
-                }), o.code) : e
-            }))
+    return SingleTweener;
+  }();
+
+  var _createClass$1 = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) { descriptor.writable = true; } Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) { defineProperties(Constructor.prototype, protoProps); } if (staticProps) { defineProperties(Constructor, staticProps); } return Constructor; }; }();
+
+  function _classCallCheck$1(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+  var Tweezer = function () {
+    function Tweezer() {
+      var opts = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+
+      _classCallCheck$1(this, Tweezer);
+
+      this.duration = opts.duration || 1000;
+      this.ease = opts.easing || this._defaultEase;
+      this.tweener = opts.tweener || new SingleTweener(opts);
+      this.start = this.tweener.start;
+      this.end = this.tweener.end;
+
+      this.frame = null;
+      this.next = null;
+      this.isRunning = false;
+      this.events = {};
+      this.direction = this.start < this.end ? 'up' : 'down';
+    }
+
+    _createClass$1(Tweezer, [{
+      key: 'begin',
+      value: function begin() {
+        if (!this.isRunning && this.next !== this.end) {
+          this.frame = window.requestAnimationFrame(this._tick.bind(this));
+        }
+        return this;
+      }
+    }, {
+      key: 'stop',
+      value: function stop() {
+        window.cancelAnimationFrame(this.frame);
+        this.isRunning = false;
+        this.frame = null;
+        this.timeStart = null;
+        this.next = null;
+        return this;
+      }
+    }, {
+      key: 'on',
+      value: function on(name, handler) {
+        this.events[name] = this.events[name] || [];
+        this.events[name].push(handler);
+        return this;
+      }
+    }, {
+      key: '_emit',
+      value: function _emit(name, val) {
+        var _this = this;
+
+        var e = this.events[name];
+        e && e.forEach(function (handler) {
+          return handler.call(_this, val);
         });
-        var p = 0;
-        ! function e(t, n) {
-            var i = t.step;
-            void 0 === i && (i = 0);
-            var a = t.embedTokens,
-                r = t.compile,
-                o = t.fetch,
-                s = a[i];
-            if (!s) return n({});
-            P(s.embed.url).then(function(t) {
-                var l;
-                t && ("markdown" === s.embed.type ? l = r.lexer(t) : "code" === s.embed.type && (l = r.lexer("```" + s.embed.lang + "\n" + t.replace(/`/g, "@DOCSIFY_QM@") + "\n```\n"))), n({
-                    token: s,
-                    embedToken: l
-                }), e({
-                    step: ++i,
-                    compile: r,
-                    embedTokens: a,
-                    fetch: o
-                }, n)
-            })
-        }({
-            compile: s,
-            embedTokens: c,
-            fetch: o
-        }, function(e) {
-            var i = e.embedToken,
-                r = e.token;
-            if (r) {
-                var o = r.index + p;
-                n(u, i.links), l = l.slice(0, o).concat(i, l.slice(o + 1)), p += i.length - 1
-            } else ye[a] = l.concat(), l.links = ye[a].links = u, t(l)
-        })
-    }
+      }
+    }, {
+      key: '_tick',
+      value: function _tick(currentTime) {
+        this.isRunning = true;
 
-    function ke() {
-        var e = y(".markdown-section>script").filter(function(e) {
-            return !/template/.test(e.type)
-        })[0];
-        if (!e) return !1;
-        var t = e.innerText.trim();
-        if (!t) return !1;
-        setTimeout(function(e) {
-            window.__EXECUTE_RESULT__ = new Function(t)()
-        }, 0)
-    }
+        var lastTick = this.next || this.start;
 
-    function we(e, t, n) {
-        return t = "function" == typeof n ? n(t) : "string" == typeof n ? function(e) {
-            var t = [],
-                n = 0;
-            return e.replace(M, function(i, a, r) {
-                    t.push(e.substring(n, r - 1)), n = r += i.length + 1, t.push(function(e) {
-                        return ("00" + ("string" == typeof F[i] ? e[F[i]]() : F[i](e))).slice(-i.length)
-                    })
-                }), n !== e.length && t.push(e.substring(n)),
-                function(e) {
-                    for (var n = "", i = 0, a = e || new Date; i < t.length; i++) n += "string" == typeof t[i] ? t[i] : t[i](a);
-                    return n
-                }
-        }(n)(new Date(t)) : t, e.replace(/{docsify-updated}/g, t)
-    }
+        if (!this.timeStart) { this.timeStart = currentTime; }
+        this.timeElapsed = currentTime - this.timeStart;
+        this.next = this.ease(this.timeElapsed, this.start, this.end - this.start, this.duration);
 
-    function Te(e) {
-        e || (e = "not found"), this._renderTo(".markdown-section", e), !this.config.loadSidebar && this._renderSidebar(), !1 === this.config.executeScript || void 0 === window.Vue || ke() ? this.config.executeScript && ke() : setTimeout(function(e) {
-            var t = window.__EXECUTE_RESULT__;
-            t && t.$destroy && t.$destroy(), window.__EXECUTE_RESULT__ = (new window.Vue).$mount("#main")
-        }, 0)
-    }
-
-    function _e(e) {
-
-        var t = e.config;
-        e.compiler = new re(t, e.router), u && (window.__current_docsify_compiler__ = e.compiler);
-        var n = t.el || "#app",
-            i = E("nav") || v("nav"),
-            a = E(n),
-            r = "",
-            o = b;
-        a ? (t.repo && (r += (s = t.repo, s ? (/\/\//.test(s) || (s = "https://github.com/" + s), '<a href="' + (s = s.replace(/^git\+/, "")) + '" class="github-corner" aria-label="View source on Github"><svg viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>') : "")), t.coverpage && (r += '<section class="cover show" style="background: linear-gradient(to left bottom, hsl(' + Math.floor(255 * Math.random()) + ", 100%, 85%) 0%,hsl(" + Math.floor(255 * Math.random()) + ', 100%, 85%) 100%)"><div class="cover-main">\x3c!--cover--\x3e</div><div class="mask"></div></section>'), r += function(e) {
-            var t = '<button class="sidebar-toggle"><div class="sidebar-toggle-button"><span></span><span></span><span></span></div></button><aside class="sidebar">' + (e.name ? '<h1><a class="app-name-link" data-nosearch>' + e.name + "</a></h1>" : "") + '<div class="sidebar-nav">\x3c!--sidebar--\x3e</div></aside>';
-            return (p ? t + "<main>" : "<main>" + t) + '<section class="content"><article class="markdown-section" id="main">\x3c!--main--\x3e</article><div class="load" id="load">Loading...</div></section></main>'
-        }(t), e._renderTo(a, r, !0)) : e.rendered = !0;
-        var s;
-
-        t.mergeNavbar && p ? o = E(".sidebar") : (i.classList.add("app-nav"), t.repo || i.classList.add("no-badge")), w(o, i), t.themeColor && (f.head.appendChild(v("div", (l = t.themeColor, "<style>:root{--theme-color: " + l + ";}</style>")).firstElementChild), function(e) {
-            if (!(window.CSS && window.CSS.supports && window.CSS.supports("(--v:red)"))) {
-                var t = y("style:not(.inserted),link");
-                [].forEach.call(t, function(t) {
-                    if ("STYLE" === t.nodeName) D(t, e);
-                    else if ("LINK" === t.nodeName) {
-                        var n = t.getAttribute("href");
-                        if (!/\.css$/.test(n)) return;
-                        P(n).then(function(t) {
-                            var n = v("style", t);
-                            S.appendChild(n), D(n, e)
-                        })
-                    }
-                })
-            }
-        }(t.themeColor));
-        var l;
-        e._updateRender(), A(b, "ready")
-    }
-    var Ae = {};
-    var Ce = function(e) {
-        this.config = e
-    };
-    Ce.prototype.getBasePath = function() {
-        return this.config.basePath
-    }, Ce.prototype.getFile = function(e, t) {
-        void 0 === e && (e = this.getCurrentPath());
-        var n = this.config,
-            i = this.getBasePath(),
-            a = "string" != typeof n.ext ? ".md" : n.ext;
-        e = n.alias ? function e(t, n, i) {
-            var a = Object.keys(n).filter(function(e) {
-                return (Ae[e] || (Ae[e] = new RegExp("^" + e + "$"))).test(t) && t !== i
-            })[0];
-            return a ? e(t.replace(Ae[a], n[a]), n, t) : t
-        }(e, n.alias) : e, r = e, o = a;
-        var r, o;
-        return e = (e = new RegExp("\\.(" + o.replace(/^\./, "") + "|html)$", "g").test(r) ? r : /\/$/g.test(r) ? r + "README" + o : "" + r + o) === "/README" + a ? n.homepage || e : e, e = Q(e) ? e : X(i, e), t && (e = e.replace(new RegExp("^" + i), "")), e
-    }, Ce.prototype.onchange = function(e) {
-        void 0 === e && (e = a), e()
-    }, Ce.prototype.getCurrentPath = function() {}, Ce.prototype.normalize = function() {}, Ce.prototype.parse = function() {}, Ce.prototype.toURL = function(e, t, i) {
-        var a = i && "#" === e[0],
-            r = this.parse(te(e));
-        if (r.query = n({}, r.query, t), e = (e = r.path + Z(r.query)).replace(/\.md(\?)|\.md$/, "$1"), a) {
-            var o = i.indexOf("?");
-            e = (o > 0 ? i.substr(0, o) : i) + e
+        if (this._shouldTick(lastTick)) {
+          this._emit('tick', this.tweener.getIntermediateValue(this.next));
+          this.frame = window.requestAnimationFrame(this._tick.bind(this));
+        } else {
+          this._emit('tick', this.tweener.getFinalValue());
+          this._emit('done', null);
         }
-        return ee("/" + e)
+      }
+    }, {
+      key: '_shouldTick',
+      value: function _shouldTick(lastTick) {
+        return {
+          up: this.next < this.end && lastTick <= this.next,
+          down: this.next > this.end && lastTick >= this.next
+        }[this.direction];
+      }
+    }, {
+      key: '_defaultEase',
+      value: function _defaultEase(t, b, c, d) {
+        if ((t /= d / 2) < 1) { return c / 2 * t * t + b; }
+        return -c / 2 * (--t * (t - 2) - 1) + b;
+      }
+    }]);
+
+    return Tweezer;
+  }();
+
+  var currentScript = document.currentScript;
+
+  /** @param {import('./Docsify').Docsify} vm */
+  function config (vm) {
+    var config = merge(
+      {
+        auto2top: false,
+        autoHeader: false,
+        basePath: '',
+        catchPluginErrors: true,
+        cornerExternalLinkTarget: '_blank',
+        coverpage: '',
+        crossOriginLinks: [],
+        el: '#app',
+        executeScript: null,
+        ext: '.md',
+        externalLinkRel: 'noopener',
+        externalLinkTarget: '_blank',
+        formatUpdated: '',
+        ga: '',
+        homepage: 'README.md',
+        loadNavbar: null,
+        loadSidebar: null,
+        maxLevel: 6,
+        mergeNavbar: false,
+        name: '',
+        nameLink: window.location.pathname,
+        nativeEmoji: false,
+        noCompileLinks: [],
+        noEmoji: false,
+        notFoundPage: true,
+        relativePath: false,
+        repo: '',
+        routes: {},
+        routerMode: 'hash',
+        subMaxLevel: 0,
+        themeColor: '',
+        topMargin: 0,
+      },
+      typeof window.$docsify === 'function'
+        ? window.$docsify(vm)
+        : window.$docsify
+    );
+
+    var script =
+      currentScript ||
+      [].slice
+        .call(document.getElementsByTagName('script'))
+        .filter(function (n) { return /docsify\./.test(n.src); })[0];
+
+    if (script) {
+      for (var prop in config) {
+        if (hasOwn.call(config, prop)) {
+          var val = script.getAttribute('data-' + hyphenate(prop));
+
+          if (isPrimitive(val)) {
+            config[prop] = val === '' ? true : val;
+          }
+        }
+      }
+    }
+
+    if (config.loadSidebar === true) {
+      config.loadSidebar = '_sidebar' + config.ext;
+    }
+
+    if (config.loadNavbar === true) {
+      config.loadNavbar = '_navbar' + config.ext;
+    }
+
+    if (config.coverpage === true) {
+      config.coverpage = '_coverpage' + config.ext;
+    }
+
+    if (config.repo === true) {
+      config.repo = '';
+    }
+
+    if (config.name === true) {
+      config.name = '';
+    }
+
+    window.$docsify = config;
+
+    return config;
+  }
+
+  var nav = {};
+  var hoverOver = false;
+  var scroller = null;
+  var enableScrollEvent = true;
+  var coverHeight = 0;
+
+  function scrollTo(el, offset) {
+    if ( offset === void 0 ) offset = 0;
+
+    if (scroller) {
+      scroller.stop();
+    }
+
+    enableScrollEvent = false;
+    scroller = new Tweezer({
+      start: window.pageYOffset,
+      end:
+        Math.round(el.getBoundingClientRect().top) + window.pageYOffset - offset,
+      duration: 500,
+    })
+      .on('tick', function (v) { return window.scrollTo(0, v); })
+      .on('done', function () {
+        enableScrollEvent = true;
+        scroller = null;
+      })
+      .begin();
+  }
+
+  function highlight(path) {
+    if (!enableScrollEvent) {
+      return;
+    }
+
+    var sidebar = getNode('.sidebar');
+    var anchors = findAll('.anchor');
+    var wrap = find(sidebar, '.sidebar-nav');
+    var active = find(sidebar, 'li.active');
+    var doc = document.documentElement;
+    var top = ((doc && doc.scrollTop) || document.body.scrollTop) - coverHeight;
+    var last;
+
+    for (var i = 0, len = anchors.length; i < len; i += 1) {
+      var node = anchors[i];
+
+      if (node.offsetTop > top) {
+        if (!last) {
+          last = node;
+        }
+
+        break;
+      } else {
+        last = node;
+      }
+    }
+
+    if (!last) {
+      return;
+    }
+
+    var li = nav[getNavKey(path, last.getAttribute('data-id'))];
+
+    if (!li || li === active) {
+      return;
+    }
+
+    active && active.classList.remove('active');
+    li.classList.add('active');
+    active = li;
+
+    // Scroll into view
+    // https://github.com/vuejs/vuejs.org/blob/master/themes/vue/source/js/common.js#L282-L297
+    if (!hoverOver && body.classList.contains('sticky')) {
+      var height = sidebar.clientHeight;
+      var curOffset = 0;
+      var cur = active.offsetTop + active.clientHeight + 40;
+      var isInView =
+        active.offsetTop >= wrap.scrollTop && cur <= wrap.scrollTop + height;
+      var notThan = cur - curOffset < height;
+
+      sidebar.scrollTop = isInView
+        ? wrap.scrollTop
+        : notThan
+        ? curOffset
+        : cur - height;
+    }
+  }
+
+  function getNavKey(path, id) {
+    return ((decodeURIComponent(path)) + "?id=" + (decodeURIComponent(id)));
+  }
+
+  function scrollActiveSidebar(router) {
+    var cover = find('.cover.show');
+    coverHeight = cover ? cover.offsetHeight : 0;
+
+    var sidebar = getNode('.sidebar');
+    var lis = [];
+    if (sidebar !== null && sidebar !== undefined) {
+      lis = findAll(sidebar, 'li');
+    }
+
+    for (var i = 0, len = lis.length; i < len; i += 1) {
+      var li = lis[i];
+      var a = li.querySelector('a');
+      if (!a) {
+        continue;
+      }
+
+      var href = a.getAttribute('href');
+
+      if (href !== '/') {
+        var ref = router.parse(href);
+        var id = ref.query.id;
+        var path$1 = ref.path;
+        if (id) {
+          href = getNavKey(path$1, id);
+        }
+      }
+
+      if (href) {
+        nav[decodeURIComponent(href)] = li;
+      }
+    }
+
+    if (isMobile) {
+      return;
+    }
+
+    var path = removeParams(router.getCurrentPath());
+    off('scroll', function () { return highlight(path); });
+    on('scroll', function () { return highlight(path); });
+    on(sidebar, 'mouseover', function () {
+      hoverOver = true;
+    });
+    on(sidebar, 'mouseleave', function () {
+      hoverOver = false;
+    });
+  }
+
+  function scrollIntoView(path, id) {
+    if (!id) {
+      return;
+    }
+    var topMargin = config().topMargin;
+    var section = find('#' + id);
+    section && scrollTo(section, topMargin);
+
+    var li = nav[getNavKey(path, id)];
+    var sidebar = getNode('.sidebar');
+    var active = find(sidebar, 'li.active');
+    active && active.classList.remove('active');
+    li && li.classList.add('active');
+  }
+
+  var scrollEl = $.scrollingElement || $.documentElement;
+
+  function scroll2Top(offset) {
+    if ( offset === void 0 ) offset = 0;
+
+    scrollEl.scrollTop = offset === true ? 0 : Number(offset);
+  }
+
+  var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
+
+  function createCommonjsModule(fn, module) {
+  	return module = { exports: {} }, fn(module, module.exports), module.exports;
+  }
+
+  var defaults = createCommonjsModule(function (module) {
+  function getDefaults() {
+    return {
+      baseUrl: null,
+      breaks: false,
+      gfm: true,
+      headerIds: true,
+      headerPrefix: '',
+      highlight: null,
+      langPrefix: 'language-',
+      mangle: true,
+      pedantic: false,
+      renderer: null,
+      sanitize: false,
+      sanitizer: null,
+      silent: false,
+      smartLists: false,
+      smartypants: false,
+      tokenizer: null,
+      walkTokens: null,
+      xhtml: false
     };
-    
+  }
 
+  function changeDefaults(newDefaults) {
+    module.exports.defaults = newDefaults;
+  }
 
+  module.exports = {
+    defaults: getDefaults(),
+    getDefaults: getDefaults,
+    changeDefaults: changeDefaults
+  };
+  });
+  var defaults_1 = defaults.defaults;
+  var defaults_2 = defaults.getDefaults;
+  var defaults_3 = defaults.changeDefaults;
 
-    function xe(e) {
-        var t = location.href.indexOf("#");
-        location.replace(location.href.slice(0, t >= 0 ? t : 0) + "#" + e)
-    }
-    var Ie = function(e) {
-            function t(t) {
-                e.call(this, t), this.mode = "hash"
-            }
-            return e && (t.__proto__ = e), t.prototype = Object.create(e && e.prototype), t.prototype.constructor = t, t.prototype.getBasePath = function() {
-                var e = window.location.pathname || "",
-                    t = this.config.basePath;
-                return /^(\/|https?:)/g.test(t) ? t : ee(e + "/" + t)
-            }, t.prototype.getCurrentPath = function() {
-                var e = location.href,
-                    t = e.indexOf("#");
-                return -1 === t ? "" : e.slice(t + 1)
-            }, t.prototype.onchange = function(e) {
-                void 0 === e && (e = a), T("hashchange", e)
-            }, t.prototype.normalize = function() {
-                var e = this.getCurrentPath();
-                if ("/" === (e = te(e)).charAt(0)) return xe(e);
-                xe("/" + e)
-            }, t.prototype.parse = function(e) {
-                void 0 === e && (e = location.href);
-                var t = "",
-                    n = e.indexOf("#");
-                n >= 0 && (e = e.slice(n + 1));
-                var i = e.indexOf("?");
-                return i >= 0 && (t = e.slice(i + 1), e = e.slice(0, i)), {
-                    path: e,
-                    file: this.getFile(e, !0),
-                    query: K(t)
-                }
-            }, t.prototype.toURL = function(t, n, i) {
-                return "#" + e.prototype.toURL.call(this, t, n, i)
-            }, t
-        }(Ce),
-        Ne = function(e) {
-            function t(t) {
-                e.call(this, t), this.mode = "history"
-            }
-            return e && (t.__proto__ = e), t.prototype = Object.create(e && e.prototype), t.prototype.constructor = t, t.prototype.getCurrentPath = function() {
-                var e = this.getBasePath(),
-                    t = window.location.pathname;
-                return e && 0 === t.indexOf(e) && (t = t.slice(e.length)), (t || "/") + window.location.search + window.location.hash
-            }, t.prototype.onchange = function(e) {
-                void 0 === e && (e = a), T("click", function(t) {
-                    var n = "A" === t.target.tagName ? t.target : t.target.parentNode;
-                    if ("A" === n.tagName && !/_blank/.test(n.target)) {
-                        t.preventDefault();
-                        var i = n.href;
-                        window.history.pushState({
-                            key: i
-                        }, "", i), e()
-                    }
-                }), T("popstate", e)
-            }, t.prototype.parse = function(e) {
-                void 0 === e && (e = location.href);
-                var t = "",
-                    n = e.indexOf("?");
-                n >= 0 && (t = e.slice(n + 1), e = e.slice(0, n));
-                var i = X(location.origin),
-                    a = e.indexOf(i);
-                return a > -1 && (e = e.slice(a + i.length)), {
-                    path: e,
-                    file: this.getFile(e),
-                    query: K(t)
-                }
-            }, t
-        }(Ce);
-    var Le = {};
-
-    function Re(e) {
-        e.router.normalize(), e.route = e.router.parse(), b.setAttribute("data-page", e.route.file)
+  /**
+   * Helpers
+   */
+  var escapeTest = /[&<>"']/;
+  var escapeReplace = /[&<>"']/g;
+  var escapeTestNoEncode = /[<>"']|&(?!#?\w+;)/;
+  var escapeReplaceNoEncode = /[<>"']|&(?!#?\w+;)/g;
+  var escapeReplacements = {
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;'
+  };
+  var getEscapeReplacement = function (ch) { return escapeReplacements[ch]; };
+  function escape(html, encode) {
+    if (encode) {
+      if (escapeTest.test(html)) {
+        return html.replace(escapeReplace, getEscapeReplacement);
+      }
+    } else {
+      if (escapeTestNoEncode.test(html)) {
+        return html.replace(escapeReplaceNoEncode, getEscapeReplacement);
+      }
     }
 
-    function Oe(e) {
-        ! function(e, t) {
-            var n = function(e) {
-                return b.classList.toggle("close")
+    return html;
+  }
+
+  var unescapeTest = /&(#(?:\d+)|(?:#x[0-9A-Fa-f]+)|(?:\w+));?/ig;
+
+  function unescape(html) {
+    // explicitly match decimal, hex, and named HTML entities
+    return html.replace(unescapeTest, function (_, n) {
+      n = n.toLowerCase();
+      if (n === 'colon') { return ':'; }
+      if (n.charAt(0) === '#') {
+        return n.charAt(1) === 'x'
+          ? String.fromCharCode(parseInt(n.substring(2), 16))
+          : String.fromCharCode(+n.substring(1));
+      }
+      return '';
+    });
+  }
+
+  var caret = /(^|[^\[])\^/g;
+  function edit(regex, opt) {
+    regex = regex.source || regex;
+    opt = opt || '';
+    var obj = {
+      replace: function (name, val) {
+        val = val.source || val;
+        val = val.replace(caret, '$1');
+        regex = regex.replace(name, val);
+        return obj;
+      },
+      getRegex: function () {
+        return new RegExp(regex, opt);
+      }
+    };
+    return obj;
+  }
+
+  var nonWordAndColonTest = /[^\w:]/g;
+  var originIndependentUrl = /^$|^[a-z][a-z0-9+.-]*:|^[?#]/i;
+  function cleanUrl(sanitize, base, href) {
+    if (sanitize) {
+      var prot;
+      try {
+        prot = decodeURIComponent(unescape(href))
+          .replace(nonWordAndColonTest, '')
+          .toLowerCase();
+      } catch (e) {
+        return null;
+      }
+      if (prot.indexOf('javascript:') === 0 || prot.indexOf('vbscript:') === 0 || prot.indexOf('data:') === 0) {
+        return null;
+      }
+    }
+    if (base && !originIndependentUrl.test(href)) {
+      href = resolveUrl(base, href);
+    }
+    try {
+      href = encodeURI(href).replace(/%25/g, '%');
+    } catch (e) {
+      return null;
+    }
+    return href;
+  }
+
+  var baseUrls = {};
+  var justDomain = /^[^:]+:\/*[^/]*$/;
+  var protocol = /^([^:]+:)[\s\S]*$/;
+  var domain = /^([^:]+:\/*[^/]*)[\s\S]*$/;
+
+  function resolveUrl(base, href) {
+    if (!baseUrls[' ' + base]) {
+      // we can ignore everything in base after the last slash of its path component,
+      // but we might need to add _that_
+      // https://tools.ietf.org/html/rfc3986#section-3
+      if (justDomain.test(base)) {
+        baseUrls[' ' + base] = base + '/';
+      } else {
+        baseUrls[' ' + base] = rtrim(base, '/', true);
+      }
+    }
+    base = baseUrls[' ' + base];
+    var relativeBase = base.indexOf(':') === -1;
+
+    if (href.substring(0, 2) === '//') {
+      if (relativeBase) {
+        return href;
+      }
+      return base.replace(protocol, '$1') + href;
+    } else if (href.charAt(0) === '/') {
+      if (relativeBase) {
+        return href;
+      }
+      return base.replace(domain, '$1') + href;
+    } else {
+      return base + href;
+    }
+  }
+
+  var noopTest = { exec: function noopTest() {} };
+
+  function merge$1(obj) {
+    var arguments$1 = arguments;
+
+    var i = 1,
+      target,
+      key;
+
+    for (; i < arguments.length; i++) {
+      target = arguments$1[i];
+      for (key in target) {
+        if (Object.prototype.hasOwnProperty.call(target, key)) {
+          obj[key] = target[key];
+        }
+      }
+    }
+
+    return obj;
+  }
+
+  function splitCells(tableRow, count) {
+    // ensure that every cell-delimiting pipe has a space
+    // before it to distinguish it from an escaped pipe
+    var row = tableRow.replace(/\|/g, function (match, offset, str) {
+        var escaped = false,
+          curr = offset;
+        while (--curr >= 0 && str[curr] === '\\') { escaped = !escaped; }
+        if (escaped) {
+          // odd number of slashes means | is escaped
+          // so we leave it alone
+          return '|';
+        } else {
+          // add space before unescaped |
+          return ' |';
+        }
+      }),
+      cells = row.split(/ \|/);
+    var i = 0;
+
+    if (cells.length > count) {
+      cells.splice(count);
+    } else {
+      while (cells.length < count) { cells.push(''); }
+    }
+
+    for (; i < cells.length; i++) {
+      // leading or trailing whitespace is ignored per the gfm spec
+      cells[i] = cells[i].trim().replace(/\\\|/g, '|');
+    }
+    return cells;
+  }
+
+  // Remove trailing 'c's. Equivalent to str.replace(/c*$/, '').
+  // /c*$/ is vulnerable to REDOS.
+  // invert: Remove suffix of non-c chars instead. Default falsey.
+  function rtrim(str, c, invert) {
+    var l = str.length;
+    if (l === 0) {
+      return '';
+    }
+
+    // Length of suffix matching the invert condition.
+    var suffLen = 0;
+
+    // Step left until we fail to match the invert condition.
+    while (suffLen < l) {
+      var currChar = str.charAt(l - suffLen - 1);
+      if (currChar === c && !invert) {
+        suffLen++;
+      } else if (currChar !== c && invert) {
+        suffLen++;
+      } else {
+        break;
+      }
+    }
+
+    return str.substr(0, l - suffLen);
+  }
+
+  function findClosingBracket(str, b) {
+    if (str.indexOf(b[1]) === -1) {
+      return -1;
+    }
+    var l = str.length;
+    var level = 0,
+      i = 0;
+    for (; i < l; i++) {
+      if (str[i] === '\\') {
+        i++;
+      } else if (str[i] === b[0]) {
+        level++;
+      } else if (str[i] === b[1]) {
+        level--;
+        if (level < 0) {
+          return i;
+        }
+      }
+    }
+    return -1;
+  }
+
+  function checkSanitizeDeprecation(opt) {
+    if (opt && opt.sanitize && !opt.silent) {
+      console.warn('marked(): sanitize and sanitizer parameters are deprecated since version 0.7.0, should not be used and will be removed in the future. Read more here: https://marked.js.org/#/USING_ADVANCED.md#options');
+    }
+  }
+
+  // copied from https://stackoverflow.com/a/5450113/806777
+  function repeatString(pattern, count) {
+    if (count < 1) {
+      return '';
+    }
+    var result = '';
+    while (count > 1) {
+      if (count & 1) {
+        result += pattern;
+      }
+      count >>= 1;
+      pattern += pattern;
+    }
+    return result + pattern;
+  }
+
+  var helpers = {
+    escape: escape,
+    unescape: unescape,
+    edit: edit,
+    cleanUrl: cleanUrl,
+    resolveUrl: resolveUrl,
+    noopTest: noopTest,
+    merge: merge$1,
+    splitCells: splitCells,
+    rtrim: rtrim,
+    findClosingBracket: findClosingBracket,
+    checkSanitizeDeprecation: checkSanitizeDeprecation,
+    repeatString: repeatString
+  };
+
+  var defaults$1 = defaults.defaults;
+
+  var rtrim$1 = helpers.rtrim;
+  var splitCells$1 = helpers.splitCells;
+  var escape$1 = helpers.escape;
+  var findClosingBracket$1 = helpers.findClosingBracket;
+
+  function outputLink(cap, link, raw) {
+    var href = link.href;
+    var title = link.title ? escape$1(link.title) : null;
+    var text = cap[1].replace(/\\([\[\]])/g, '$1');
+
+    if (cap[0].charAt(0) !== '!') {
+      return {
+        type: 'link',
+        raw: raw,
+        href: href,
+        title: title,
+        text: text
+      };
+    } else {
+      return {
+        type: 'image',
+        raw: raw,
+        href: href,
+        title: title,
+        text: escape$1(text)
+      };
+    }
+  }
+
+  function indentCodeCompensation(raw, text) {
+    var matchIndentToCode = raw.match(/^(\s+)(?:```)/);
+
+    if (matchIndentToCode === null) {
+      return text;
+    }
+
+    var indentToCode = matchIndentToCode[1];
+
+    return text
+      .split('\n')
+      .map(function (node) {
+        var matchIndentInNode = node.match(/^\s+/);
+        if (matchIndentInNode === null) {
+          return node;
+        }
+
+        var indentInNode = matchIndentInNode[0];
+
+        if (indentInNode.length >= indentToCode.length) {
+          return node.slice(indentToCode.length);
+        }
+
+        return node;
+      })
+      .join('\n');
+  }
+
+  /**
+   * Tokenizer
+   */
+  var Tokenizer = /*@__PURE__*/(function () {
+    function Tokenizer(options) {
+      this.options = options || defaults$1;
+    }
+
+    Tokenizer.prototype.space = function space (src) {
+      var cap = this.rules.block.newline.exec(src);
+      if (cap) {
+        if (cap[0].length > 1) {
+          return {
+            type: 'space',
+            raw: cap[0]
+          };
+        }
+        return { raw: '\n' };
+      }
+    };
+
+    Tokenizer.prototype.code = function code (src, tokens) {
+      var cap = this.rules.block.code.exec(src);
+      if (cap) {
+        var lastToken = tokens[tokens.length - 1];
+        // An indented code block cannot interrupt a paragraph.
+        if (lastToken && lastToken.type === 'paragraph') {
+          return {
+            raw: cap[0],
+            text: cap[0].trimRight()
+          };
+        }
+
+        var text = cap[0].replace(/^ {1,4}/gm, '');
+        return {
+          type: 'code',
+          raw: cap[0],
+          codeBlockStyle: 'indented',
+          text: !this.options.pedantic
+            ? rtrim$1(text, '\n')
+            : text
+        };
+      }
+    };
+
+    Tokenizer.prototype.fences = function fences (src) {
+      var cap = this.rules.block.fences.exec(src);
+      if (cap) {
+        var raw = cap[0];
+        var text = indentCodeCompensation(raw, cap[3] || '');
+
+        return {
+          type: 'code',
+          raw: raw,
+          lang: cap[2] ? cap[2].trim() : cap[2],
+          text: text
+        };
+      }
+    };
+
+    Tokenizer.prototype.heading = function heading (src) {
+      var cap = this.rules.block.heading.exec(src);
+      if (cap) {
+        var text = cap[2].trim();
+
+        // remove trailing #s
+        if (/#$/.test(text)) {
+          var trimmed = rtrim$1(text, '#');
+          if (this.options.pedantic) {
+            text = trimmed.trim();
+          } else if (!trimmed || / $/.test(trimmed)) {
+            // CommonMark requires space before trailing #s
+            text = trimmed.trim();
+          }
+        }
+
+        return {
+          type: 'heading',
+          raw: cap[0],
+          depth: cap[1].length,
+          text: text
+        };
+      }
+    };
+
+    Tokenizer.prototype.nptable = function nptable (src) {
+      var cap = this.rules.block.nptable.exec(src);
+      if (cap) {
+        var item = {
+          type: 'table',
+          header: splitCells$1(cap[1].replace(/^ *| *\| *$/g, '')),
+          align: cap[2].replace(/^ *|\| *$/g, '').split(/ *\| */),
+          cells: cap[3] ? cap[3].replace(/\n$/, '').split('\n') : [],
+          raw: cap[0]
+        };
+
+        if (item.header.length === item.align.length) {
+          var l = item.align.length;
+          var i;
+          for (i = 0; i < l; i++) {
+            if (/^ *-+: *$/.test(item.align[i])) {
+              item.align[i] = 'right';
+            } else if (/^ *:-+: *$/.test(item.align[i])) {
+              item.align[i] = 'center';
+            } else if (/^ *:-+ *$/.test(item.align[i])) {
+              item.align[i] = 'left';
+            } else {
+              item.align[i] = null;
+            }
+          }
+
+          l = item.cells.length;
+          for (i = 0; i < l; i++) {
+            item.cells[i] = splitCells$1(item.cells[i], item.header.length);
+          }
+
+          return item;
+        }
+      }
+    };
+
+    Tokenizer.prototype.hr = function hr (src) {
+      var cap = this.rules.block.hr.exec(src);
+      if (cap) {
+        return {
+          type: 'hr',
+          raw: cap[0]
+        };
+      }
+    };
+
+    Tokenizer.prototype.blockquote = function blockquote (src) {
+      var cap = this.rules.block.blockquote.exec(src);
+      if (cap) {
+        var text = cap[0].replace(/^ *> ?/gm, '');
+
+        return {
+          type: 'blockquote',
+          raw: cap[0],
+          text: text
+        };
+      }
+    };
+
+    Tokenizer.prototype.list = function list (src) {
+      var cap = this.rules.block.list.exec(src);
+      if (cap) {
+        var raw = cap[0];
+        var bull = cap[2];
+        var isordered = bull.length > 1;
+
+        var list = {
+          type: 'list',
+          raw: raw,
+          ordered: isordered,
+          start: isordered ? +bull.slice(0, -1) : '',
+          loose: false,
+          items: []
+        };
+
+        // Get each top-level item.
+        var itemMatch = cap[0].match(this.rules.block.item);
+
+        var next = false,
+          item,
+          space,
+          bcurr,
+          bnext,
+          addBack,
+          loose,
+          istask,
+          ischecked;
+
+        var l = itemMatch.length;
+        bcurr = this.rules.block.listItemStart.exec(itemMatch[0]);
+        for (var i = 0; i < l; i++) {
+          item = itemMatch[i];
+          raw = item;
+
+          // Determine whether the next list item belongs here.
+          // Backpedal if it does not belong in this list.
+          if (i !== l - 1) {
+            bnext = this.rules.block.listItemStart.exec(itemMatch[i + 1]);
+            if (
+              !this.options.pedantic
+                ? bnext[1].length > bcurr[0].length || bnext[1].length > 3
+                : bnext[1].length > bcurr[1].length
+            ) {
+              // nested list
+              itemMatch.splice(i, 2, itemMatch[i] + '\n' + itemMatch[i + 1]);
+              i--;
+              l--;
+              continue;
+            } else {
+              if (
+                // different bullet style
+                !this.options.pedantic || this.options.smartLists
+                  ? bnext[2][bnext[2].length - 1] !== bull[bull.length - 1]
+                  : isordered === (bnext[2].length === 1)
+              ) {
+                addBack = itemMatch.slice(i + 1).join('\n');
+                list.raw = list.raw.substring(0, list.raw.length - addBack.length);
+                i = l - 1;
+              }
+            }
+            bcurr = bnext;
+          }
+
+          // Remove the list item's bullet
+          // so it is seen as the next token.
+          space = item.length;
+          item = item.replace(/^ *([*+-]|\d+[.)]) ?/, '');
+
+          // Outdent whatever the
+          // list item contains. Hacky.
+          if (~item.indexOf('\n ')) {
+            space -= item.length;
+            item = !this.options.pedantic
+              ? item.replace(new RegExp('^ {1,' + space + '}', 'gm'), '')
+              : item.replace(/^ {1,4}/gm, '');
+          }
+
+          // Determine whether item is loose or not.
+          // Use: /(^|\n)(?! )[^\n]+\n\n(?!\s*$)/
+          // for discount behavior.
+          loose = next || /\n\n(?!\s*$)/.test(item);
+          if (i !== l - 1) {
+            next = item.charAt(item.length - 1) === '\n';
+            if (!loose) { loose = next; }
+          }
+
+          if (loose) {
+            list.loose = true;
+          }
+
+          // Check for task list items
+          if (this.options.gfm) {
+            istask = /^\[[ xX]\] /.test(item);
+            ischecked = undefined;
+            if (istask) {
+              ischecked = item[1] !== ' ';
+              item = item.replace(/^\[[ xX]\] +/, '');
+            }
+          }
+
+          list.items.push({
+            type: 'list_item',
+            raw: raw,
+            task: istask,
+            checked: ischecked,
+            loose: loose,
+            text: item
+          });
+        }
+
+        return list;
+      }
+    };
+
+    Tokenizer.prototype.html = function html (src) {
+      var cap = this.rules.block.html.exec(src);
+      if (cap) {
+        return {
+          type: this.options.sanitize
+            ? 'paragraph'
+            : 'html',
+          raw: cap[0],
+          pre: !this.options.sanitizer
+            && (cap[1] === 'pre' || cap[1] === 'script' || cap[1] === 'style'),
+          text: this.options.sanitize ? (this.options.sanitizer ? this.options.sanitizer(cap[0]) : escape$1(cap[0])) : cap[0]
+        };
+      }
+    };
+
+    Tokenizer.prototype.def = function def (src) {
+      var cap = this.rules.block.def.exec(src);
+      if (cap) {
+        if (cap[3]) { cap[3] = cap[3].substring(1, cap[3].length - 1); }
+        var tag = cap[1].toLowerCase().replace(/\s+/g, ' ');
+        return {
+          tag: tag,
+          raw: cap[0],
+          href: cap[2],
+          title: cap[3]
+        };
+      }
+    };
+
+    Tokenizer.prototype.table = function table (src) {
+      var cap = this.rules.block.table.exec(src);
+      if (cap) {
+        var item = {
+          type: 'table',
+          header: splitCells$1(cap[1].replace(/^ *| *\| *$/g, '')),
+          align: cap[2].replace(/^ *|\| *$/g, '').split(/ *\| */),
+          cells: cap[3] ? cap[3].replace(/\n$/, '').split('\n') : []
+        };
+
+        if (item.header.length === item.align.length) {
+          item.raw = cap[0];
+
+          var l = item.align.length;
+          var i;
+          for (i = 0; i < l; i++) {
+            if (/^ *-+: *$/.test(item.align[i])) {
+              item.align[i] = 'right';
+            } else if (/^ *:-+: *$/.test(item.align[i])) {
+              item.align[i] = 'center';
+            } else if (/^ *:-+ *$/.test(item.align[i])) {
+              item.align[i] = 'left';
+            } else {
+              item.align[i] = null;
+            }
+          }
+
+          l = item.cells.length;
+          for (i = 0; i < l; i++) {
+            item.cells[i] = splitCells$1(
+              item.cells[i].replace(/^ *\| *| *\| *$/g, ''),
+              item.header.length);
+          }
+
+          return item;
+        }
+      }
+    };
+
+    Tokenizer.prototype.lheading = function lheading (src) {
+      var cap = this.rules.block.lheading.exec(src);
+      if (cap) {
+        return {
+          type: 'heading',
+          raw: cap[0],
+          depth: cap[2].charAt(0) === '=' ? 1 : 2,
+          text: cap[1]
+        };
+      }
+    };
+
+    Tokenizer.prototype.paragraph = function paragraph (src) {
+      var cap = this.rules.block.paragraph.exec(src);
+      if (cap) {
+        return {
+          type: 'paragraph',
+          raw: cap[0],
+          text: cap[1].charAt(cap[1].length - 1) === '\n'
+            ? cap[1].slice(0, -1)
+            : cap[1]
+        };
+      }
+    };
+
+    Tokenizer.prototype.text = function text (src, tokens) {
+      var cap = this.rules.block.text.exec(src);
+      if (cap) {
+        var lastToken = tokens[tokens.length - 1];
+        if (lastToken && lastToken.type === 'text') {
+          return {
+            raw: cap[0],
+            text: cap[0]
+          };
+        }
+
+        return {
+          type: 'text',
+          raw: cap[0],
+          text: cap[0]
+        };
+      }
+    };
+
+    Tokenizer.prototype.escape = function escape$1$1 (src) {
+      var cap = this.rules.inline.escape.exec(src);
+      if (cap) {
+        return {
+          type: 'escape',
+          raw: cap[0],
+          text: escape$1(cap[1])
+        };
+      }
+    };
+
+    Tokenizer.prototype.tag = function tag (src, inLink, inRawBlock) {
+      var cap = this.rules.inline.tag.exec(src);
+      if (cap) {
+        if (!inLink && /^<a /i.test(cap[0])) {
+          inLink = true;
+        } else if (inLink && /^<\/a>/i.test(cap[0])) {
+          inLink = false;
+        }
+        if (!inRawBlock && /^<(pre|code|kbd|script)(\s|>)/i.test(cap[0])) {
+          inRawBlock = true;
+        } else if (inRawBlock && /^<\/(pre|code|kbd|script)(\s|>)/i.test(cap[0])) {
+          inRawBlock = false;
+        }
+
+        return {
+          type: this.options.sanitize
+            ? 'text'
+            : 'html',
+          raw: cap[0],
+          inLink: inLink,
+          inRawBlock: inRawBlock,
+          text: this.options.sanitize
+            ? (this.options.sanitizer
+              ? this.options.sanitizer(cap[0])
+              : escape$1(cap[0]))
+            : cap[0]
+        };
+      }
+    };
+
+    Tokenizer.prototype.link = function link (src) {
+      var cap = this.rules.inline.link.exec(src);
+      if (cap) {
+        var trimmedUrl = cap[2].trim();
+        if (!this.options.pedantic && /^</.test(trimmedUrl)) {
+          // commonmark requires matching angle brackets
+          if (!(/>$/.test(trimmedUrl))) {
+            return;
+          }
+
+          // ending angle bracket cannot be escaped
+          var rtrimSlash = rtrim$1(trimmedUrl.slice(0, -1), '\\');
+          if ((trimmedUrl.length - rtrimSlash.length) % 2 === 0) {
+            return;
+          }
+        } else {
+          // find closing parenthesis
+          var lastParenIndex = findClosingBracket$1(cap[2], '()');
+          if (lastParenIndex > -1) {
+            var start = cap[0].indexOf('!') === 0 ? 5 : 4;
+            var linkLen = start + cap[1].length + lastParenIndex;
+            cap[2] = cap[2].substring(0, lastParenIndex);
+            cap[0] = cap[0].substring(0, linkLen).trim();
+            cap[3] = '';
+          }
+        }
+        var href = cap[2];
+        var title = '';
+        if (this.options.pedantic) {
+          // split pedantic href and title
+          var link = /^([^'"]*[^\s])\s+(['"])(.*)\2/.exec(href);
+
+          if (link) {
+            href = link[1];
+            title = link[3];
+          }
+        } else {
+          title = cap[3] ? cap[3].slice(1, -1) : '';
+        }
+
+        href = href.trim();
+        if (/^</.test(href)) {
+          if (this.options.pedantic && !(/>$/.test(trimmedUrl))) {
+            // pedantic allows starting angle bracket without ending angle bracket
+            href = href.slice(1);
+          } else {
+            href = href.slice(1, -1);
+          }
+        }
+        return outputLink(cap, {
+          href: href ? href.replace(this.rules.inline._escapes, '$1') : href,
+          title: title ? title.replace(this.rules.inline._escapes, '$1') : title
+        }, cap[0]);
+      }
+    };
+
+    Tokenizer.prototype.reflink = function reflink (src, links) {
+      var cap;
+      if ((cap = this.rules.inline.reflink.exec(src))
+          || (cap = this.rules.inline.nolink.exec(src))) {
+        var link = (cap[2] || cap[1]).replace(/\s+/g, ' ');
+        link = links[link.toLowerCase()];
+        if (!link || !link.href) {
+          var text = cap[0].charAt(0);
+          return {
+            type: 'text',
+            raw: text,
+            text: text
+          };
+        }
+        return outputLink(cap, link, cap[0]);
+      }
+    };
+
+    Tokenizer.prototype.strong = function strong (src, maskedSrc, prevChar) {
+      if ( prevChar === void 0 ) prevChar = '';
+
+      var match = this.rules.inline.strong.start.exec(src);
+
+      if (match && (!match[1] || (match[1] && (prevChar === '' || this.rules.inline.punctuation.exec(prevChar))))) {
+        maskedSrc = maskedSrc.slice(-1 * src.length);
+        var endReg = match[0] === '**' ? this.rules.inline.strong.endAst : this.rules.inline.strong.endUnd;
+
+        endReg.lastIndex = 0;
+
+        var cap;
+        while ((match = endReg.exec(maskedSrc)) != null) {
+          cap = this.rules.inline.strong.middle.exec(maskedSrc.slice(0, match.index + 3));
+          if (cap) {
+            return {
+              type: 'strong',
+              raw: src.slice(0, cap[0].length),
+              text: src.slice(2, cap[0].length - 2)
             };
-            T(e = h(e), "click", function(e) {
-                e.stopPropagation(), n()
-            }), p && T(b, "click", function(e) {
-                return b.classList.contains("close") && n()
-            })
-        }("button.sidebar-toggle", e.router), t = ".sidebar", e.router, T(t = h(t), "click", function(e) {
-            var t = e.target;
-            "A" === t.nodeName && t.nextSibling && t.nextSibling.classList.contains("app-sub-sidebar") && A(t.parentNode, "collapse")
-        });
-        var t;
-        e.config.coverpage ? !p && T("scroll", se) : b.classList.add("sticky")
+          }
+        }
+      }
+    };
+
+    Tokenizer.prototype.em = function em (src, maskedSrc, prevChar) {
+      if ( prevChar === void 0 ) prevChar = '';
+
+      var match = this.rules.inline.em.start.exec(src);
+
+      if (match && (!match[1] || (match[1] && (prevChar === '' || this.rules.inline.punctuation.exec(prevChar))))) {
+        maskedSrc = maskedSrc.slice(-1 * src.length);
+        var endReg = match[0] === '*' ? this.rules.inline.em.endAst : this.rules.inline.em.endUnd;
+
+        endReg.lastIndex = 0;
+
+        var cap;
+        while ((match = endReg.exec(maskedSrc)) != null) {
+          cap = this.rules.inline.em.middle.exec(maskedSrc.slice(0, match.index + 2));
+          if (cap) {
+            return {
+              type: 'em',
+              raw: src.slice(0, cap[0].length),
+              text: src.slice(1, cap[0].length - 1)
+            };
+          }
+        }
+      }
+    };
+
+    Tokenizer.prototype.codespan = function codespan (src) {
+      var cap = this.rules.inline.code.exec(src);
+      if (cap) {
+        var text = cap[2].replace(/\n/g, ' ');
+        var hasNonSpaceChars = /[^ ]/.test(text);
+        var hasSpaceCharsOnBothEnds = /^ /.test(text) && / $/.test(text);
+        if (hasNonSpaceChars && hasSpaceCharsOnBothEnds) {
+          text = text.substring(1, text.length - 1);
+        }
+        text = escape$1(text, true);
+        return {
+          type: 'codespan',
+          raw: cap[0],
+          text: text
+        };
+      }
+    };
+
+    Tokenizer.prototype.br = function br (src) {
+      var cap = this.rules.inline.br.exec(src);
+      if (cap) {
+        return {
+          type: 'br',
+          raw: cap[0]
+        };
+      }
+    };
+
+    Tokenizer.prototype.del = function del (src) {
+      var cap = this.rules.inline.del.exec(src);
+      if (cap) {
+        return {
+          type: 'del',
+          raw: cap[0],
+          text: cap[2]
+        };
+      }
+    };
+
+    Tokenizer.prototype.autolink = function autolink (src, mangle) {
+      var cap = this.rules.inline.autolink.exec(src);
+      if (cap) {
+        var text, href;
+        if (cap[2] === '@') {
+          text = escape$1(this.options.mangle ? mangle(cap[1]) : cap[1]);
+          href = 'mailto:' + text;
+        } else {
+          text = escape$1(cap[1]);
+          href = text;
+        }
+
+        return {
+          type: 'link',
+          raw: cap[0],
+          text: text,
+          href: href,
+          tokens: [
+            {
+              type: 'text',
+              raw: text,
+              text: text
+            }
+          ]
+        };
+      }
+    };
+
+    Tokenizer.prototype.url = function url (src, mangle) {
+      var cap;
+      if (cap = this.rules.inline.url.exec(src)) {
+        var text, href;
+        if (cap[2] === '@') {
+          text = escape$1(this.options.mangle ? mangle(cap[0]) : cap[0]);
+          href = 'mailto:' + text;
+        } else {
+          // do extended autolink path validation
+          var prevCapZero;
+          do {
+            prevCapZero = cap[0];
+            cap[0] = this.rules.inline._backpedal.exec(cap[0])[0];
+          } while (prevCapZero !== cap[0]);
+          text = escape$1(cap[0]);
+          if (cap[1] === 'www.') {
+            href = 'http://' + text;
+          } else {
+            href = text;
+          }
+        }
+        return {
+          type: 'link',
+          raw: cap[0],
+          text: text,
+          href: href,
+          tokens: [
+            {
+              type: 'text',
+              raw: text,
+              text: text
+            }
+          ]
+        };
+      }
+    };
+
+    Tokenizer.prototype.inlineText = function inlineText (src, inRawBlock, smartypants) {
+      var cap = this.rules.inline.text.exec(src);
+      if (cap) {
+        var text;
+        if (inRawBlock) {
+          text = this.options.sanitize ? (this.options.sanitizer ? this.options.sanitizer(cap[0]) : escape$1(cap[0])) : cap[0];
+        } else {
+          text = escape$1(this.options.smartypants ? smartypants(cap[0]) : cap[0]);
+        }
+        return {
+          type: 'text',
+          raw: cap[0],
+          text: text
+        };
+      }
+    };
+
+    return Tokenizer;
+  }());
+
+  var noopTest$1 = helpers.noopTest;
+  var edit$1 = helpers.edit;
+  var merge$2 = helpers.merge;
+
+  /**
+   * Block-Level Grammar
+   */
+  var block = {
+    newline: /^(?: *(?:\n|$))+/,
+    code: /^( {4}[^\n]+(?:\n(?: *(?:\n|$))*)?)+/,
+    fences: /^ {0,3}(`{3,}(?=[^`\n]*\n)|~{3,})([^\n]*)\n(?:|([\s\S]*?)\n)(?: {0,3}\1[~`]* *(?:\n+|$)|$)/,
+    hr: /^ {0,3}((?:- *){3,}|(?:_ *){3,}|(?:\* *){3,})(?:\n+|$)/,
+    heading: /^ {0,3}(#{1,6})(?=\s|$)(.*)(?:\n+|$)/,
+    blockquote: /^( {0,3}> ?(paragraph|[^\n]*)(?:\n|$))+/,
+    list: /^( {0,3})(bull) [\s\S]+?(?:hr|def|\n{2,}(?! )(?! {0,3}bull )\n*|\s*$)/,
+    html: '^ {0,3}(?:' // optional indentation
+      + '<(script|pre|style)[\\s>][\\s\\S]*?(?:</\\1>[^\\n]*\\n+|$)' // (1)
+      + '|comment[^\\n]*(\\n+|$)' // (2)
+      + '|<\\?[\\s\\S]*?(?:\\?>\\n*|$)' // (3)
+      + '|<![A-Z][\\s\\S]*?(?:>\\n*|$)' // (4)
+      + '|<!\\[CDATA\\[[\\s\\S]*?(?:\\]\\]>\\n*|$)' // (5)
+      + '|</?(tag)(?: +|\\n|/?>)[\\s\\S]*?(?:\\n{2,}|$)' // (6)
+      + '|<(?!script|pre|style)([a-z][\\w-]*)(?:attribute)*? */?>(?=[ \\t]*(?:\\n|$))[\\s\\S]*?(?:\\n{2,}|$)' // (7) open tag
+      + '|</(?!script|pre|style)[a-z][\\w-]*\\s*>(?=[ \\t]*(?:\\n|$))[\\s\\S]*?(?:\\n{2,}|$)' // (7) closing tag
+      + ')',
+    def: /^ {0,3}\[(label)\]: *\n? *<?([^\s>]+)>?(?:(?: +\n? *| *\n *)(title))? *(?:\n+|$)/,
+    nptable: noopTest$1,
+    table: noopTest$1,
+    lheading: /^([^\n]+)\n {0,3}(=+|-+) *(?:\n+|$)/,
+    // regex template, placeholders will be replaced according to different paragraph
+    // interruption rules of commonmark and the original markdown spec:
+    _paragraph: /^([^\n]+(?:\n(?!hr|heading|lheading|blockquote|fences|list|html| +\n)[^\n]+)*)/,
+    text: /^[^\n]+/
+  };
+
+  block._label = /(?!\s*\])(?:\\[\[\]]|[^\[\]])+/;
+  block._title = /(?:"(?:\\"?|[^"\\])*"|'[^'\n]*(?:\n[^'\n]+)*\n?'|\([^()]*\))/;
+  block.def = edit$1(block.def)
+    .replace('label', block._label)
+    .replace('title', block._title)
+    .getRegex();
+
+  block.bullet = /(?:[*+-]|\d{1,9}[.)])/;
+  block.item = /^( *)(bull) ?[^\n]*(?:\n(?! *bull ?)[^\n]*)*/;
+  block.item = edit$1(block.item, 'gm')
+    .replace(/bull/g, block.bullet)
+    .getRegex();
+
+  block.listItemStart = edit$1(/^( *)(bull)/)
+    .replace('bull', block.bullet)
+    .getRegex();
+
+  block.list = edit$1(block.list)
+    .replace(/bull/g, block.bullet)
+    .replace('hr', '\\n+(?=\\1?(?:(?:- *){3,}|(?:_ *){3,}|(?:\\* *){3,})(?:\\n+|$))')
+    .replace('def', '\\n+(?=' + block.def.source + ')')
+    .getRegex();
+
+  block._tag = 'address|article|aside|base|basefont|blockquote|body|caption'
+    + '|center|col|colgroup|dd|details|dialog|dir|div|dl|dt|fieldset|figcaption'
+    + '|figure|footer|form|frame|frameset|h[1-6]|head|header|hr|html|iframe'
+    + '|legend|li|link|main|menu|menuitem|meta|nav|noframes|ol|optgroup|option'
+    + '|p|param|section|source|summary|table|tbody|td|tfoot|th|thead|title|tr'
+    + '|track|ul';
+  block._comment = /<!--(?!-?>)[\s\S]*?(?:-->|$)/;
+  block.html = edit$1(block.html, 'i')
+    .replace('comment', block._comment)
+    .replace('tag', block._tag)
+    .replace('attribute', / +[a-zA-Z:_][\w.:-]*(?: *= *"[^"\n]*"| *= *'[^'\n]*'| *= *[^\s"'=<>`]+)?/)
+    .getRegex();
+
+  block.paragraph = edit$1(block._paragraph)
+    .replace('hr', block.hr)
+    .replace('heading', ' {0,3}#{1,6} ')
+    .replace('|lheading', '') // setex headings don't interrupt commonmark paragraphs
+    .replace('blockquote', ' {0,3}>')
+    .replace('fences', ' {0,3}(?:`{3,}(?=[^`\\n]*\\n)|~{3,})[^\\n]*\\n')
+    .replace('list', ' {0,3}(?:[*+-]|1[.)]) ') // only lists starting from 1 can interrupt
+    .replace('html', '</?(?:tag)(?: +|\\n|/?>)|<(?:script|pre|style|!--)')
+    .replace('tag', block._tag) // pars can be interrupted by type (6) html blocks
+    .getRegex();
+
+  block.blockquote = edit$1(block.blockquote)
+    .replace('paragraph', block.paragraph)
+    .getRegex();
+
+  /**
+   * Normal Block Grammar
+   */
+
+  block.normal = merge$2({}, block);
+
+  /**
+   * GFM Block Grammar
+   */
+
+  block.gfm = merge$2({}, block.normal, {
+    nptable: '^ *([^|\\n ].*\\|.*)\\n' // Header
+      + ' {0,3}([-:]+ *\\|[-| :]*)' // Align
+      + '(?:\\n((?:(?!\\n|hr|heading|blockquote|code|fences|list|html).*(?:\\n|$))*)\\n*|$)', // Cells
+    table: '^ *\\|(.+)\\n' // Header
+      + ' {0,3}\\|?( *[-:]+[-| :]*)' // Align
+      + '(?:\\n *((?:(?!\\n|hr|heading|blockquote|code|fences|list|html).*(?:\\n|$))*)\\n*|$)' // Cells
+  });
+
+  block.gfm.nptable = edit$1(block.gfm.nptable)
+    .replace('hr', block.hr)
+    .replace('heading', ' {0,3}#{1,6} ')
+    .replace('blockquote', ' {0,3}>')
+    .replace('code', ' {4}[^\\n]')
+    .replace('fences', ' {0,3}(?:`{3,}(?=[^`\\n]*\\n)|~{3,})[^\\n]*\\n')
+    .replace('list', ' {0,3}(?:[*+-]|1[.)]) ') // only lists starting from 1 can interrupt
+    .replace('html', '</?(?:tag)(?: +|\\n|/?>)|<(?:script|pre|style|!--)')
+    .replace('tag', block._tag) // tables can be interrupted by type (6) html blocks
+    .getRegex();
+
+  block.gfm.table = edit$1(block.gfm.table)
+    .replace('hr', block.hr)
+    .replace('heading', ' {0,3}#{1,6} ')
+    .replace('blockquote', ' {0,3}>')
+    .replace('code', ' {4}[^\\n]')
+    .replace('fences', ' {0,3}(?:`{3,}(?=[^`\\n]*\\n)|~{3,})[^\\n]*\\n')
+    .replace('list', ' {0,3}(?:[*+-]|1[.)]) ') // only lists starting from 1 can interrupt
+    .replace('html', '</?(?:tag)(?: +|\\n|/?>)|<(?:script|pre|style|!--)')
+    .replace('tag', block._tag) // tables can be interrupted by type (6) html blocks
+    .getRegex();
+
+  /**
+   * Pedantic grammar (original John Gruber's loose markdown specification)
+   */
+
+  block.pedantic = merge$2({}, block.normal, {
+    html: edit$1(
+      '^ *(?:comment *(?:\\n|\\s*$)'
+      + '|<(tag)[\\s\\S]+?</\\1> *(?:\\n{2,}|\\s*$)' // closed tag
+      + '|<tag(?:"[^"]*"|\'[^\']*\'|\\s[^\'"/>\\s]*)*?/?> *(?:\\n{2,}|\\s*$))')
+      .replace('comment', block._comment)
+      .replace(/tag/g, '(?!(?:'
+        + 'a|em|strong|small|s|cite|q|dfn|abbr|data|time|code|var|samp|kbd|sub'
+        + '|sup|i|b|u|mark|ruby|rt|rp|bdi|bdo|span|br|wbr|ins|del|img)'
+        + '\\b)\\w+(?!:|[^\\w\\s@]*@)\\b')
+      .getRegex(),
+    def: /^ *\[([^\]]+)\]: *<?([^\s>]+)>?(?: +(["(][^\n]+[")]))? *(?:\n+|$)/,
+    heading: /^(#{1,6})(.*)(?:\n+|$)/,
+    fences: noopTest$1, // fences not supported
+    paragraph: edit$1(block.normal._paragraph)
+      .replace('hr', block.hr)
+      .replace('heading', ' *#{1,6} *[^\n]')
+      .replace('lheading', block.lheading)
+      .replace('blockquote', ' {0,3}>')
+      .replace('|fences', '')
+      .replace('|list', '')
+      .replace('|html', '')
+      .getRegex()
+  });
+
+  /**
+   * Inline-Level Grammar
+   */
+  var inline = {
+    escape: /^\\([!"#$%&'()*+,\-./:;<=>?@\[\]\\^_`{|}~])/,
+    autolink: /^<(scheme:[^\s\x00-\x1f<>]*|email)>/,
+    url: noopTest$1,
+    tag: '^comment'
+      + '|^</[a-zA-Z][\\w:-]*\\s*>' // self-closing tag
+      + '|^<[a-zA-Z][\\w-]*(?:attribute)*?\\s*/?>' // open tag
+      + '|^<\\?[\\s\\S]*?\\?>' // processing instruction, e.g. <?php ?>
+      + '|^<![a-zA-Z]+\\s[\\s\\S]*?>' // declaration, e.g. <!DOCTYPE html>
+      + '|^<!\\[CDATA\\[[\\s\\S]*?\\]\\]>', // CDATA section
+    link: /^!?\[(label)\]\(\s*(href)(?:\s+(title))?\s*\)/,
+    reflink: /^!?\[(label)\]\[(?!\s*\])((?:\\[\[\]]?|[^\[\]\\])+)\]/,
+    nolink: /^!?\[(?!\s*\])((?:\[[^\[\]]*\]|\\[\[\]]|[^\[\]])*)\](?:\[\])?/,
+    reflinkSearch: 'reflink|nolink(?!\\()',
+    strong: {
+      start: /^(?:(\*\*(?=[*punctuation]))|\*\*)(?![\s])|__/, // (1) returns if starts w/ punctuation
+      middle: /^\*\*(?:(?:(?!overlapSkip)(?:[^*]|\\\*)|overlapSkip)|\*(?:(?!overlapSkip)(?:[^*]|\\\*)|overlapSkip)*?\*)+?\*\*$|^__(?![\s])((?:(?:(?!overlapSkip)(?:[^_]|\\_)|overlapSkip)|_(?:(?!overlapSkip)(?:[^_]|\\_)|overlapSkip)*?_)+?)__$/,
+      endAst: /[^punctuation\s]\*\*(?!\*)|[punctuation]\*\*(?!\*)(?:(?=[punctuation_\s]|$))/, // last char can't be punct, or final * must also be followed by punct (or endline)
+      endUnd: /[^\s]__(?!_)(?:(?=[punctuation*\s])|$)/ // last char can't be a space, and final _ must preceed punct or \s (or endline)
+    },
+    em: {
+      start: /^(?:(\*(?=[punctuation]))|\*)(?![*\s])|_/, // (1) returns if starts w/ punctuation
+      middle: /^\*(?:(?:(?!overlapSkip)(?:[^*]|\\\*)|overlapSkip)|\*(?:(?!overlapSkip)(?:[^*]|\\\*)|overlapSkip)*?\*)+?\*$|^_(?![_\s])(?:(?:(?!overlapSkip)(?:[^_]|\\_)|overlapSkip)|_(?:(?!overlapSkip)(?:[^_]|\\_)|overlapSkip)*?_)+?_$/,
+      endAst: /[^punctuation\s]\*(?!\*)|[punctuation]\*(?!\*)(?:(?=[punctuation_\s]|$))/, // last char can't be punct, or final * must also be followed by punct (or endline)
+      endUnd: /[^\s]_(?!_)(?:(?=[punctuation*\s])|$)/ // last char can't be a space, and final _ must preceed punct or \s (or endline)
+    },
+    code: /^(`+)([^`]|[^`][\s\S]*?[^`])\1(?!`)/,
+    br: /^( {2,}|\\)\n(?!\s*$)/,
+    del: noopTest$1,
+    text: /^(`+|[^`])(?:(?= {2,}\n)|[\s\S]*?(?:(?=[\\<!\[`*]|\b_|$)|[^ ](?= {2,}\n)))/,
+    punctuation: /^([\s*punctuation])/
+  };
+
+  // list of punctuation marks from common mark spec
+  // without * and _ to workaround cases with double emphasis
+  inline._punctuation = '!"#$%&\'()+\\-.,/:;<=>?@\\[\\]`^{|}~';
+  inline.punctuation = edit$1(inline.punctuation).replace(/punctuation/g, inline._punctuation).getRegex();
+
+  // sequences em should skip over [title](link), `code`, <html>
+  inline._blockSkip = '\\[[^\\]]*?\\]\\([^\\)]*?\\)|`[^`]*?`|<[^>]*?>';
+  inline._overlapSkip = '__[^_]*?__|\\*\\*\\[^\\*\\]*?\\*\\*';
+
+  inline._comment = edit$1(block._comment).replace('(?:-->|$)', '-->').getRegex();
+
+  inline.em.start = edit$1(inline.em.start)
+    .replace(/punctuation/g, inline._punctuation)
+    .getRegex();
+
+  inline.em.middle = edit$1(inline.em.middle)
+    .replace(/punctuation/g, inline._punctuation)
+    .replace(/overlapSkip/g, inline._overlapSkip)
+    .getRegex();
+
+  inline.em.endAst = edit$1(inline.em.endAst, 'g')
+    .replace(/punctuation/g, inline._punctuation)
+    .getRegex();
+
+  inline.em.endUnd = edit$1(inline.em.endUnd, 'g')
+    .replace(/punctuation/g, inline._punctuation)
+    .getRegex();
+
+  inline.strong.start = edit$1(inline.strong.start)
+    .replace(/punctuation/g, inline._punctuation)
+    .getRegex();
+
+  inline.strong.middle = edit$1(inline.strong.middle)
+    .replace(/punctuation/g, inline._punctuation)
+    .replace(/overlapSkip/g, inline._overlapSkip)
+    .getRegex();
+
+  inline.strong.endAst = edit$1(inline.strong.endAst, 'g')
+    .replace(/punctuation/g, inline._punctuation)
+    .getRegex();
+
+  inline.strong.endUnd = edit$1(inline.strong.endUnd, 'g')
+    .replace(/punctuation/g, inline._punctuation)
+    .getRegex();
+
+  inline.blockSkip = edit$1(inline._blockSkip, 'g')
+    .getRegex();
+
+  inline.overlapSkip = edit$1(inline._overlapSkip, 'g')
+    .getRegex();
+
+  inline._escapes = /\\([!"#$%&'()*+,\-./:;<=>?@\[\]\\^_`{|}~])/g;
+
+  inline._scheme = /[a-zA-Z][a-zA-Z0-9+.-]{1,31}/;
+  inline._email = /[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+(@)[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+(?![-_])/;
+  inline.autolink = edit$1(inline.autolink)
+    .replace('scheme', inline._scheme)
+    .replace('email', inline._email)
+    .getRegex();
+
+  inline._attribute = /\s+[a-zA-Z:_][\w.:-]*(?:\s*=\s*"[^"]*"|\s*=\s*'[^']*'|\s*=\s*[^\s"'=<>`]+)?/;
+
+  inline.tag = edit$1(inline.tag)
+    .replace('comment', inline._comment)
+    .replace('attribute', inline._attribute)
+    .getRegex();
+
+  inline._label = /(?:\[(?:\\.|[^\[\]\\])*\]|\\.|`[^`]*`|[^\[\]\\`])*?/;
+  inline._href = /<(?:\\.|[^\n<>\\])+>|[^\s\x00-\x1f]*/;
+  inline._title = /"(?:\\"?|[^"\\])*"|'(?:\\'?|[^'\\])*'|\((?:\\\)?|[^)\\])*\)/;
+
+  inline.link = edit$1(inline.link)
+    .replace('label', inline._label)
+    .replace('href', inline._href)
+    .replace('title', inline._title)
+    .getRegex();
+
+  inline.reflink = edit$1(inline.reflink)
+    .replace('label', inline._label)
+    .getRegex();
+
+  inline.reflinkSearch = edit$1(inline.reflinkSearch, 'g')
+    .replace('reflink', inline.reflink)
+    .replace('nolink', inline.nolink)
+    .getRegex();
+
+  /**
+   * Normal Inline Grammar
+   */
+
+  inline.normal = merge$2({}, inline);
+
+  /**
+   * Pedantic Inline Grammar
+   */
+
+  inline.pedantic = merge$2({}, inline.normal, {
+    strong: {
+      start: /^__|\*\*/,
+      middle: /^__(?=\S)([\s\S]*?\S)__(?!_)|^\*\*(?=\S)([\s\S]*?\S)\*\*(?!\*)/,
+      endAst: /\*\*(?!\*)/g,
+      endUnd: /__(?!_)/g
+    },
+    em: {
+      start: /^_|\*/,
+      middle: /^()\*(?=\S)([\s\S]*?\S)\*(?!\*)|^_(?=\S)([\s\S]*?\S)_(?!_)/,
+      endAst: /\*(?!\*)/g,
+      endUnd: /_(?!_)/g
+    },
+    link: edit$1(/^!?\[(label)\]\((.*?)\)/)
+      .replace('label', inline._label)
+      .getRegex(),
+    reflink: edit$1(/^!?\[(label)\]\s*\[([^\]]*)\]/)
+      .replace('label', inline._label)
+      .getRegex()
+  });
+
+  /**
+   * GFM Inline Grammar
+   */
+
+  inline.gfm = merge$2({}, inline.normal, {
+    escape: edit$1(inline.escape).replace('])', '~|])').getRegex(),
+    _extended_email: /[A-Za-z0-9._+-]+(@)[a-zA-Z0-9-_]+(?:\.[a-zA-Z0-9-_]*[a-zA-Z0-9])+(?![-_])/,
+    url: /^((?:ftp|https?):\/\/|www\.)(?:[a-zA-Z0-9\-]+\.?)+[^\s<]*|^email/,
+    _backpedal: /(?:[^?!.,:;*_~()&]+|\([^)]*\)|&(?![a-zA-Z0-9]+;$)|[?!.,:;*_~)]+(?!$))+/,
+    del: /^(~~?)(?=[^\s~])([\s\S]*?[^\s~])\1(?=[^~]|$)/,
+    text: /^([`~]+|[^`~])(?:(?= {2,}\n)|[\s\S]*?(?:(?=[\\<!\[`*~]|\b_|https?:\/\/|ftp:\/\/|www\.|$)|[^ ](?= {2,}\n)|[^a-zA-Z0-9.!#$%&'*+\/=?_`{\|}~-](?=[a-zA-Z0-9.!#$%&'*+\/=?_`{\|}~-]+@))|(?=[a-zA-Z0-9.!#$%&'*+\/=?_`{\|}~-]+@))/
+  });
+
+  inline.gfm.url = edit$1(inline.gfm.url, 'i')
+    .replace('email', inline.gfm._extended_email)
+    .getRegex();
+  /**
+   * GFM + Line Breaks Inline Grammar
+   */
+
+  inline.breaks = merge$2({}, inline.gfm, {
+    br: edit$1(inline.br).replace('{2,}', '*').getRegex(),
+    text: edit$1(inline.gfm.text)
+      .replace('\\b_', '\\b_| {2,}\\n')
+      .replace(/\{2,\}/g, '*')
+      .getRegex()
+  });
+
+  var rules = {
+    block: block,
+    inline: inline
+  };
+
+  var defaults$2 = defaults.defaults;
+
+  var block$1 = rules.block;
+  var inline$1 = rules.inline;
+
+  var repeatString$1 = helpers.repeatString;
+
+  /**
+   * smartypants text replacement
+   */
+  function smartypants(text) {
+    return text
+      // em-dashes
+      .replace(/---/g, '\u2014')
+      // en-dashes
+      .replace(/--/g, '\u2013')
+      // opening singles
+      .replace(/(^|[-\u2014/(\[{"\s])'/g, '$1\u2018')
+      // closing singles & apostrophes
+      .replace(/'/g, '\u2019')
+      // opening doubles
+      .replace(/(^|[-\u2014/(\[{\u2018\s])"/g, '$1\u201c')
+      // closing doubles
+      .replace(/"/g, '\u201d')
+      // ellipses
+      .replace(/\.{3}/g, '\u2026');
+  }
+
+  /**
+   * mangle email addresses
+   */
+  function mangle(text) {
+    var out = '',
+      i,
+      ch;
+
+    var l = text.length;
+    for (i = 0; i < l; i++) {
+      ch = text.charCodeAt(i);
+      if (Math.random() > 0.5) {
+        ch = 'x' + ch.toString(16);
+      }
+      out += '&#' + ch + ';';
     }
 
-    function Pe(e, t, n, i, a, r) {
-        e = r ? e : e.replace(/\/$/, ""), (e = J(e)) && P(a.router.getFile(e + n) + t, !1, a.config.requestHeaders).then(i, function(r) {
-            return Pe(e, t, n, i, a)
-        })
+    return out;
+  }
+
+  /**
+   * Block Lexer
+   */
+  var Lexer = /*@__PURE__*/(function () {
+    function Lexer(options) {
+      this.tokens = [];
+      this.tokens.links = Object.create(null);
+      this.options = options || defaults$2;
+      this.options.tokenizer = this.options.tokenizer || new Tokenizer();
+      this.tokenizer = this.options.tokenizer;
+      this.tokenizer.options = this.options;
+
+      var rules = {
+        block: block$1.normal,
+        inline: inline$1.normal
+      };
+
+      if (this.options.pedantic) {
+        rules.block = block$1.pedantic;
+        rules.inline = inline$1.pedantic;
+      } else if (this.options.gfm) {
+        rules.block = block$1.gfm;
+        if (this.options.breaks) {
+          rules.inline = inline$1.breaks;
+        } else {
+          rules.inline = inline$1.gfm;
+        }
+      }
+      this.tokenizer.rules = rules;
     }
-    var De = Object.freeze({
-            cached: e,
-            hyphenate: t,
-            merge: n,
-            isPrimitive: i,
-            noop: a,
-            isFn: r,
-            inBrowser: u,
-            isMobile: p,
-            supportsPushState: g,
-            parseQuery: K,
-            stringifyQuery: Z,
-            getPath: X,
-            isAbsolutePath: Q,
-            getParentPath: J,
-            cleanPath: ee,
-            replaceSlug: te
-        }),
-        Me = U(function(e) {
-            
-            var t = "undefined" != typeof window ? window : "undefined" != typeof WorkerGlobalScope && self instanceof WorkerGlobalScope ? self : {},
-                n = function() {
-                    var e = /\blang(?:uage)?-(\w+)\b/i,
-                        n = 0,
-                        i = t.Prism = {
-                            util: {
-                                encode: function(e) {
-                                    return e instanceof a ? new a(e.type, i.util.encode(e.content), e.alias) : "Array" === i.util.type(e) ? e.map(i.util.encode) : e.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/\u00a0/g, " ")
-                                },
-                                type: function(e) {
-                                    return Object.prototype.toString.call(e).match(/\[object (\w+)\]/)[1]
-                                },
-                                objId: function(e) {
-                                    return e.__id || Object.defineProperty(e, "__id", {
-                                        value: ++n
-                                    }), e.__id
-                                },
-                                clone: function(e) {
-                                    switch (i.util.type(e)) {
-                                        case "Object":
-                                            var t = {};
-                                            for (var n in e) e.hasOwnProperty(n) && (t[n] = i.util.clone(e[n]));
-                                            return t;
-                                        case "Array":
-                                            return e.map && e.map(function(e) {
-                                                return i.util.clone(e)
-                                            })
-                                    }
-                                    return e
-                                }
-                            },
-                            languages: {
-                                extend: function(e, t) {
-                                    var n = i.util.clone(i.languages[e]);
-                                    for (var a in t) n[a] = t[a];
-                                    return n
-                                },
-                                insertBefore: function(e, t, n, a) {
-                                    var r = (a = a || i.languages)[e];
-                                    if (2 == arguments.length) {
-                                        n = arguments[1];
-                                        for (var o in n) n.hasOwnProperty(o) && (r[o] = n[o]);
-                                        return r
-                                    }
-                                    var s = {};
-                                    for (var l in r)
-                                        if (r.hasOwnProperty(l)) {
-                                            if (l == t)
-                                                for (var o in n) n.hasOwnProperty(o) && (s[o] = n[o]);
-                                            s[l] = r[l]
-                                        } return i.languages.DFS(i.languages, function(t, n) {
-                                        n === a[e] && t != e && (this[t] = s)
-                                    }), a[e] = s
-                                },
-                                DFS: function(e, t, n, a) {
-                                    a = a || {};
-                                    for (var r in e) e.hasOwnProperty(r) && (t.call(e, r, e[r], n || r), "Object" !== i.util.type(e[r]) || a[i.util.objId(e[r])] ? "Array" !== i.util.type(e[r]) || a[i.util.objId(e[r])] || (a[i.util.objId(e[r])] = !0, i.languages.DFS(e[r], t, r, a)) : (a[i.util.objId(e[r])] = !0, i.languages.DFS(e[r], t, null, a)))
-                                }
-                            },
-                            plugins: {},
-                            highlightAll: function(e, t) {
-                                var n = {
-                                    callback: t,
-                                    selector: 'code[class*="language-"], [class*="language-"] code, code[class*="lang-"], [class*="lang-"] code'
-                                };
-                                i.hooks.run("before-highlightall", n);
-                                for (var a, r = n.elements || document.querySelectorAll(n.selector), o = 0; a = r[o++];) i.highlightElement(a, !0 === e, n.callback)
-                            },
-                            highlightElement: function(n, a, r) {
-                                for (var o, s, l = n; l && !e.test(l.className);) l = l.parentNode;
-                                l && (o = (l.className.match(e) || [, ""])[1].toLowerCase(), s = i.languages[o]), n.className = n.className.replace(e, "").replace(/\s+/g, " ") + " language-" + o, l = n.parentNode, /pre/i.test(l.nodeName) && (l.className = l.className.replace(e, "").replace(/\s+/g, " ") + " language-" + o);
-                                var c = {
-                                    element: n,
-                                    language: o,
-                                    grammar: s,
-                                    code: n.textContent
-                                };
-                                if (i.hooks.run("before-sanity-check", c), !c.code || !c.grammar) return c.code && (c.element.textContent = c.code), void i.hooks.run("complete", c);
-                                if (i.hooks.run("before-highlight", c), a && t.Worker) {
-                                    var d = new Worker(i.filename);
-                                    d.onmessage = function(e) {
-                                        c.highlightedCode = e.data, i.hooks.run("before-insert", c), c.element.innerHTML = c.highlightedCode, r && r.call(c.element), i.hooks.run("after-highlight", c), i.hooks.run("complete", c)
-                                    }, d.postMessage(JSON.stringify({
-                                        language: c.language,
-                                        code: c.code,
-                                        immediateClose: !0
-                                    }))
-                                } else c.highlightedCode = i.highlight(c.code, c.grammar, c.language), i.hooks.run("before-insert", c), c.element.innerHTML = c.highlightedCode, r && r.call(n), i.hooks.run("after-highlight", c), i.hooks.run("complete", c)
-                            },
-                            highlight: function(e, t, n) {
-                                var r = i.tokenize(e, t);
-                                return a.stringify(i.util.encode(r), n)
-                            },
-                            tokenize: function(e, t) {
-                                var n = i.Token,
-                                    a = [e],
-                                    r = t.rest;
-                                if (r) {
-                                    for (var o in r) t[o] = r[o];
-                                    delete t.rest
-                                }
-                                e: for (var o in t)
-                                    if (t.hasOwnProperty(o) && t[o]) {
-                                        var s = t[o];
-                                        s = "Array" === i.util.type(s) ? s : [s];
-                                        for (var l = 0; l < s.length; ++l) {
-                                            var c = s[l],
-                                                d = c.inside,
-                                                u = !!c.lookbehind,
-                                                p = !!c.greedy,
-                                                g = 0,
-                                                m = c.alias;
-                                            if (p && !c.pattern.global) {
-                                                var h = c.pattern.toString().match(/[imuy]*$/)[0];
-                                                c.pattern = RegExp(c.pattern.source, h + "g")
-                                            }
-                                            c = c.pattern || c;
-                                            for (var f = 0, b = 0; f < a.length; b += a[f].length, ++f) {
-                                                var S = a[f];
-                                                if (a.length > e.length) break e;
-                                                if (!(S instanceof n)) {
-                                                    c.lastIndex = 0;
-                                                    var E = 1;
-                                                    if (!(_ = c.exec(S)) && p && f != a.length - 1) {
-                                                        if (c.lastIndex = b, !(_ = c.exec(e))) break;
-                                                        for (var y = _.index + (u ? _[1].length : 0), v = _.index + _[0].length, k = f, w = b, T = a.length; T > k && v > w; ++k) y >= (w += a[k].length) && (++f, b = w);
-                                                        if (a[f] instanceof n || a[k - 1].greedy) continue;
-                                                        E = k - f, S = e.slice(b, w), _.index -= b
-                                                    }
-                                                    if (_) {
-                                                        u && (g = _[1].length);
-                                                        v = (y = _.index + g) + (_ = _[0].slice(g)).length;
-                                                        var _, A = S.slice(0, y),
-                                                            C = S.slice(v),
-                                                            x = [f, E];
-                                                        A && x.push(A);
-                                                        var I = new n(o, d ? i.tokenize(_, d) : _, m, _, p);
-                                                        x.push(I), C && x.push(C), Array.prototype.splice.apply(a, x)
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                return a
-                            },
-                            hooks: {
-                                all: {},
-                                add: function(e, t) {
-                                    var n = i.hooks.all;
-                                    n[e] = n[e] || [], n[e].push(t)
-                                },
-                                run: function(e, t) {
-                                    var n = i.hooks.all[e];
-                                    if (n && n.length)
-                                        for (var a, r = 0; a = n[r++];) a(t)
-                                }
-                            }
-                        },
-                        a = i.Token = function(e, t, n, i, a) {
-                            this.type = e, this.content = t, this.alias = n, this.length = 0 | (i || "").length, this.greedy = !!a
-                        };
-                    if (a.stringify = function(e, t, n) {
-                            if ("string" == typeof e) return e;
-                            if ("Array" === i.util.type(e)) return e.map(function(n) {
-                                return a.stringify(n, t, e)
-                            }).join("");
-                            var r = {
-                                type: e.type,
-                                content: a.stringify(e.content, t, n),
-                                tag: "span",
-                                classes: ["token", e.type],
-                                attributes: {},
-                                language: t,
-                                parent: n
-                            };
-                            if ("comment" == r.type && (r.attributes.spellcheck = "true"), e.alias) {
-                                var o = "Array" === i.util.type(e.alias) ? e.alias : [e.alias];
-                                Array.prototype.push.apply(r.classes, o)
-                            }
-                            i.hooks.run("wrap", r);
-                            var s = Object.keys(r.attributes).map(function(e) {
-                                return e + '="' + (r.attributes[e] || "").replace(/"/g, "&quot;") + '"'
-                            }).join(" ");
-                            return "<" + r.tag + ' class="' + r.classes.join(" ") + '"' + (s ? " " + s : "") + ">" + r.content + "</" + r.tag + ">"
-                        }, !t.document) return t.addEventListener ? (t.addEventListener("message", function(e) {
-                        var n = JSON.parse(e.data),
-                            a = n.language,
-                            r = n.code,
-                            o = n.immediateClose;
-                        t.postMessage(i.highlight(r, i.languages[a], a)), o && t.close()
-                    }, !1), t.Prism) : t.Prism;
-                    var r = document.currentScript || [].slice.call(document.getElementsByTagName("script")).pop();
-                    return r && (i.filename = r.src, document.addEventListener && !r.hasAttribute("data-manual") && ("loading" !== document.readyState ? window.requestAnimationFrame ? window.requestAnimationFrame(i.highlightAll) : window.setTimeout(i.highlightAll, 16) : document.addEventListener("DOMContentLoaded", i.highlightAll))), t.Prism
-                }();
-            e.exports && (e.exports = n), void 0 !== B && (B.Prism = n), n.languages.markup = {
-                    comment: /<!--[\w\W]*?-->/,
-                    prolog: /<\?[\w\W]+?\?>/,
-                    doctype: /<!DOCTYPE[\w\W]+?>/i,
-                    cdata: /<!\[CDATA\[[\w\W]*?]]>/i,
-                    tag: {
-                        pattern: /<\/?(?!\d)[^\s>\/=$<]+(?:\s+[^\s>\/=]+(?:=(?:("|')(?:\\\1|\\?(?!\1)[\w\W])*\1|[^\s'">=]+))?)*\s*\/?>/i,
-                        inside: {
-                            tag: {
-                                pattern: /^<\/?[^\s>\/]+/i,
-                                inside: {
-                                    punctuation: /^<\/?/,
-                                    namespace: /^[^\s>\/:]+:/
-                                }
-                            },
-                            "attr-value": {
-                                pattern: /=(?:('|")[\w\W]*?(\1)|[^\s>]+)/i,
-                                inside: {
-                                    punctuation: /[=>"']/
-                                }
-                            },
-                            punctuation: /\/?>/,
-                            "attr-name": {
-                                pattern: /[^\s>\/]+/,
-                                inside: {
-                                    namespace: /^[^\s>\/:]+:/
-                                }
-                            }
-                        }
-                    },
-                    entity: /&#?[\da-z]{1,8};/i
-                }, n.hooks.add("wrap", function(e) {
-                    "entity" === e.type && (e.attributes.title = e.content.replace(/&amp;/, "&"))
-                }), n.languages.xml = n.languages.markup, n.languages.html = n.languages.markup, n.languages.mathml = n.languages.markup, n.languages.svg = n.languages.markup, n.languages.css = {
-                    comment: /\/\*[\w\W]*?\*\//,
-                    atrule: {
-                        pattern: /@[\w-]+?.*?(;|(?=\s*\{))/i,
-                        inside: {
-                            rule: /@[\w-]+/
-                        }
-                    },
-                    url: /url\((?:(["'])(\\(?:\r\n|[\w\W])|(?!\1)[^\\\r\n])*\1|.*?)\)/i,
-                    selector: /[^\{\}\s][^\{\};]*?(?=\s*\{)/,
-                    string: {
-                        pattern: /("|')(\\(?:\r\n|[\w\W])|(?!\1)[^\\\r\n])*\1/,
-                        greedy: !0
-                    },
-                    property: /(\b|\B)[\w-]+(?=\s*:)/i,
-                    important: /\B!important\b/i,
-                    function: /[-a-z0-9]+(?=\()/i,
-                    punctuation: /[(){};:]/
-                }, n.languages.css.atrule.inside.rest = n.util.clone(n.languages.css), n.languages.markup && (n.languages.insertBefore("markup", "tag", {
-                    style: {
-                        pattern: /(<style[\w\W]*?>)[\w\W]*?(?=<\/style>)/i,
-                        lookbehind: !0,
-                        inside: n.languages.css,
-                        alias: "language-css"
+
+    var staticAccessors = { rules: { configurable: true } };
+
+    /**
+     * Expose Rules
+     */
+    staticAccessors.rules.get = function () {
+      return {
+        block: block$1,
+        inline: inline$1
+      };
+    };
+
+    /**
+     * Static Lex Method
+     */
+    Lexer.lex = function lex (src, options) {
+      var lexer = new Lexer(options);
+      return lexer.lex(src);
+    };
+
+    /**
+     * Static Lex Inline Method
+     */
+    Lexer.lexInline = function lexInline (src, options) {
+      var lexer = new Lexer(options);
+      return lexer.inlineTokens(src);
+    };
+
+    /**
+     * Preprocessing
+     */
+    Lexer.prototype.lex = function lex (src) {
+      src = src
+        .replace(/\r\n|\r/g, '\n')
+        .replace(/\t/g, '    ');
+
+      this.blockTokens(src, this.tokens, true);
+
+      this.inline(this.tokens);
+
+      return this.tokens;
+    };
+
+    /**
+     * Lexing
+     */
+    Lexer.prototype.blockTokens = function blockTokens (src, tokens, top) {
+      if ( tokens === void 0 ) tokens = [];
+      if ( top === void 0 ) top = true;
+
+      if (this.options.pedantic) {
+        src = src.replace(/^ +$/gm, '');
+      }
+      var token, i, l, lastToken;
+
+      while (src) {
+        // newline
+        if (token = this.tokenizer.space(src)) {
+          src = src.substring(token.raw.length);
+          if (token.type) {
+            tokens.push(token);
+          }
+          continue;
+        }
+
+        // code
+        if (token = this.tokenizer.code(src, tokens)) {
+          src = src.substring(token.raw.length);
+          if (token.type) {
+            tokens.push(token);
+          } else {
+            lastToken = tokens[tokens.length - 1];
+            lastToken.raw += '\n' + token.raw;
+            lastToken.text += '\n' + token.text;
+          }
+          continue;
+        }
+
+        // fences
+        if (token = this.tokenizer.fences(src)) {
+          src = src.substring(token.raw.length);
+          tokens.push(token);
+          continue;
+        }
+
+        // heading
+        if (token = this.tokenizer.heading(src)) {
+          src = src.substring(token.raw.length);
+          tokens.push(token);
+          continue;
+        }
+
+        // table no leading pipe (gfm)
+        if (token = this.tokenizer.nptable(src)) {
+          src = src.substring(token.raw.length);
+          tokens.push(token);
+          continue;
+        }
+
+        // hr
+        if (token = this.tokenizer.hr(src)) {
+          src = src.substring(token.raw.length);
+          tokens.push(token);
+          continue;
+        }
+
+        // blockquote
+        if (token = this.tokenizer.blockquote(src)) {
+          src = src.substring(token.raw.length);
+          token.tokens = this.blockTokens(token.text, [], top);
+          tokens.push(token);
+          continue;
+        }
+
+        // list
+        if (token = this.tokenizer.list(src)) {
+          src = src.substring(token.raw.length);
+          l = token.items.length;
+          for (i = 0; i < l; i++) {
+            token.items[i].tokens = this.blockTokens(token.items[i].text, [], false);
+          }
+          tokens.push(token);
+          continue;
+        }
+
+        // html
+        if (token = this.tokenizer.html(src)) {
+          src = src.substring(token.raw.length);
+          tokens.push(token);
+          continue;
+        }
+
+        // def
+        if (top && (token = this.tokenizer.def(src))) {
+          src = src.substring(token.raw.length);
+          if (!this.tokens.links[token.tag]) {
+            this.tokens.links[token.tag] = {
+              href: token.href,
+              title: token.title
+            };
+          }
+          continue;
+        }
+
+        // table (gfm)
+        if (token = this.tokenizer.table(src)) {
+          src = src.substring(token.raw.length);
+          tokens.push(token);
+          continue;
+        }
+
+        // lheading
+        if (token = this.tokenizer.lheading(src)) {
+          src = src.substring(token.raw.length);
+          tokens.push(token);
+          continue;
+        }
+
+        // top-level paragraph
+        if (top && (token = this.tokenizer.paragraph(src))) {
+          src = src.substring(token.raw.length);
+          tokens.push(token);
+          continue;
+        }
+
+        // text
+        if (token = this.tokenizer.text(src, tokens)) {
+          src = src.substring(token.raw.length);
+          if (token.type) {
+            tokens.push(token);
+          } else {
+            lastToken = tokens[tokens.length - 1];
+            lastToken.raw += '\n' + token.raw;
+            lastToken.text += '\n' + token.text;
+          }
+          continue;
+        }
+
+        if (src) {
+          var errMsg = 'Infinite loop on byte: ' + src.charCodeAt(0);
+          if (this.options.silent) {
+            console.error(errMsg);
+            break;
+          } else {
+            throw new Error(errMsg);
+          }
+        }
+      }
+
+      return tokens;
+    };
+
+    Lexer.prototype.inline = function inline (tokens) {
+      var i,
+        j,
+        k,
+        l2,
+        row,
+        token;
+
+      var l = tokens.length;
+      for (i = 0; i < l; i++) {
+        token = tokens[i];
+        switch (token.type) {
+          case 'paragraph':
+          case 'text':
+          case 'heading': {
+            token.tokens = [];
+            this.inlineTokens(token.text, token.tokens);
+            break;
+          }
+          case 'table': {
+            token.tokens = {
+              header: [],
+              cells: []
+            };
+
+            // header
+            l2 = token.header.length;
+            for (j = 0; j < l2; j++) {
+              token.tokens.header[j] = [];
+              this.inlineTokens(token.header[j], token.tokens.header[j]);
+            }
+
+            // cells
+            l2 = token.cells.length;
+            for (j = 0; j < l2; j++) {
+              row = token.cells[j];
+              token.tokens.cells[j] = [];
+              for (k = 0; k < row.length; k++) {
+                token.tokens.cells[j][k] = [];
+                this.inlineTokens(row[k], token.tokens.cells[j][k]);
+              }
+            }
+
+            break;
+          }
+          case 'blockquote': {
+            this.inline(token.tokens);
+            break;
+          }
+          case 'list': {
+            l2 = token.items.length;
+            for (j = 0; j < l2; j++) {
+              this.inline(token.items[j].tokens);
+            }
+            break;
+          }
+        }
+      }
+
+      return tokens;
+    };
+
+    /**
+     * Lexing/Compiling
+     */
+    Lexer.prototype.inlineTokens = function inlineTokens (src, tokens, inLink, inRawBlock) {
+      if ( tokens === void 0 ) tokens = [];
+      if ( inLink === void 0 ) inLink = false;
+      if ( inRawBlock === void 0 ) inRawBlock = false;
+
+      var token;
+
+      // String with links masked to avoid interference with em and strong
+      var maskedSrc = src;
+      var match;
+      var keepPrevChar, prevChar;
+
+      // Mask out reflinks
+      if (this.tokens.links) {
+        var links = Object.keys(this.tokens.links);
+        if (links.length > 0) {
+          while ((match = this.tokenizer.rules.inline.reflinkSearch.exec(maskedSrc)) != null) {
+            if (links.includes(match[0].slice(match[0].lastIndexOf('[') + 1, -1))) {
+              maskedSrc = maskedSrc.slice(0, match.index) + '[' + repeatString$1('a', match[0].length - 2) + ']' + maskedSrc.slice(this.tokenizer.rules.inline.reflinkSearch.lastIndex);
+            }
+          }
+        }
+      }
+      // Mask out other blocks
+      while ((match = this.tokenizer.rules.inline.blockSkip.exec(maskedSrc)) != null) {
+        maskedSrc = maskedSrc.slice(0, match.index) + '[' + repeatString$1('a', match[0].length - 2) + ']' + maskedSrc.slice(this.tokenizer.rules.inline.blockSkip.lastIndex);
+      }
+
+      while (src) {
+        if (!keepPrevChar) {
+          prevChar = '';
+        }
+        keepPrevChar = false;
+        // escape
+        if (token = this.tokenizer.escape(src)) {
+          src = src.substring(token.raw.length);
+          tokens.push(token);
+          continue;
+        }
+
+        // tag
+        if (token = this.tokenizer.tag(src, inLink, inRawBlock)) {
+          src = src.substring(token.raw.length);
+          inLink = token.inLink;
+          inRawBlock = token.inRawBlock;
+          tokens.push(token);
+          continue;
+        }
+
+        // link
+        if (token = this.tokenizer.link(src)) {
+          src = src.substring(token.raw.length);
+          if (token.type === 'link') {
+            token.tokens = this.inlineTokens(token.text, [], true, inRawBlock);
+          }
+          tokens.push(token);
+          continue;
+        }
+
+        // reflink, nolink
+        if (token = this.tokenizer.reflink(src, this.tokens.links)) {
+          src = src.substring(token.raw.length);
+          if (token.type === 'link') {
+            token.tokens = this.inlineTokens(token.text, [], true, inRawBlock);
+          }
+          tokens.push(token);
+          continue;
+        }
+
+        // strong
+        if (token = this.tokenizer.strong(src, maskedSrc, prevChar)) {
+          src = src.substring(token.raw.length);
+          token.tokens = this.inlineTokens(token.text, [], inLink, inRawBlock);
+          tokens.push(token);
+          continue;
+        }
+
+        // em
+        if (token = this.tokenizer.em(src, maskedSrc, prevChar)) {
+          src = src.substring(token.raw.length);
+          token.tokens = this.inlineTokens(token.text, [], inLink, inRawBlock);
+          tokens.push(token);
+          continue;
+        }
+
+        // code
+        if (token = this.tokenizer.codespan(src)) {
+          src = src.substring(token.raw.length);
+          tokens.push(token);
+          continue;
+        }
+
+        // br
+        if (token = this.tokenizer.br(src)) {
+          src = src.substring(token.raw.length);
+          tokens.push(token);
+          continue;
+        }
+
+        // del (gfm)
+        if (token = this.tokenizer.del(src)) {
+          src = src.substring(token.raw.length);
+          token.tokens = this.inlineTokens(token.text, [], inLink, inRawBlock);
+          tokens.push(token);
+          continue;
+        }
+
+        // autolink
+        if (token = this.tokenizer.autolink(src, mangle)) {
+          src = src.substring(token.raw.length);
+          tokens.push(token);
+          continue;
+        }
+
+        // url (gfm)
+        if (!inLink && (token = this.tokenizer.url(src, mangle))) {
+          src = src.substring(token.raw.length);
+          tokens.push(token);
+          continue;
+        }
+
+        // text
+        if (token = this.tokenizer.inlineText(src, inRawBlock, smartypants)) {
+          src = src.substring(token.raw.length);
+          prevChar = token.raw.slice(-1);
+          keepPrevChar = true;
+          tokens.push(token);
+          continue;
+        }
+
+        if (src) {
+          var errMsg = 'Infinite loop on byte: ' + src.charCodeAt(0);
+          if (this.options.silent) {
+            console.error(errMsg);
+            break;
+          } else {
+            throw new Error(errMsg);
+          }
+        }
+      }
+
+      return tokens;
+    };
+
+    Object.defineProperties( Lexer, staticAccessors );
+
+    return Lexer;
+  }());
+
+  var defaults$3 = defaults.defaults;
+
+  var cleanUrl$1 = helpers.cleanUrl;
+  var escape$2 = helpers.escape;
+
+  /**
+   * Renderer
+   */
+  var Renderer = /*@__PURE__*/(function () {
+    function Renderer(options) {
+      this.options = options || defaults$3;
+    }
+
+    Renderer.prototype.code = function code (code$1, infostring, escaped) {
+      var lang = (infostring || '').match(/\S*/)[0];
+      if (this.options.highlight) {
+        var out = this.options.highlight(code$1, lang);
+        if (out != null && out !== code$1) {
+          escaped = true;
+          code$1 = out;
+        }
+      }
+
+      code$1 = code$1.replace(/\n$/, '') + '\n';
+
+      if (!lang) {
+        return '<pre><code>'
+          + (escaped ? code$1 : escape$2(code$1, true))
+          + '</code></pre>\n';
+      }
+
+      return '<pre><code class="'
+        + this.options.langPrefix
+        + escape$2(lang, true)
+        + '">'
+        + (escaped ? code$1 : escape$2(code$1, true))
+        + '</code></pre>\n';
+    };
+
+    Renderer.prototype.blockquote = function blockquote (quote) {
+      return '<blockquote>\n' + quote + '</blockquote>\n';
+    };
+
+    Renderer.prototype.html = function html (html$1) {
+      return html$1;
+    };
+
+    Renderer.prototype.heading = function heading (text, level, raw, slugger) {
+      if (this.options.headerIds) {
+        return '<h'
+          + level
+          + ' id="'
+          + this.options.headerPrefix
+          + slugger.slug(raw)
+          + '">'
+          + text
+          + '</h'
+          + level
+          + '>\n';
+      }
+      // ignore IDs
+      return '<h' + level + '>' + text + '</h' + level + '>\n';
+    };
+
+    Renderer.prototype.hr = function hr () {
+      return this.options.xhtml ? '<hr/>\n' : '<hr>\n';
+    };
+
+    Renderer.prototype.list = function list (body, ordered, start) {
+      var type = ordered ? 'ol' : 'ul',
+        startatt = (ordered && start !== 1) ? (' start="' + start + '"') : '';
+      return '<' + type + startatt + '>\n' + body + '</' + type + '>\n';
+    };
+
+    Renderer.prototype.listitem = function listitem (text) {
+      return '<li>' + text + '</li>\n';
+    };
+
+    Renderer.prototype.checkbox = function checkbox (checked) {
+      return '<input '
+        + (checked ? 'checked="" ' : '')
+        + 'disabled="" type="checkbox"'
+        + (this.options.xhtml ? ' /' : '')
+        + '> ';
+    };
+
+    Renderer.prototype.paragraph = function paragraph (text) {
+      return '<p>' + text + '</p>\n';
+    };
+
+    Renderer.prototype.table = function table (header, body) {
+      if (body) { body = '<tbody>' + body + '</tbody>'; }
+
+      return '<table>\n'
+        + '<thead>\n'
+        + header
+        + '</thead>\n'
+        + body
+        + '</table>\n';
+    };
+
+    Renderer.prototype.tablerow = function tablerow (content) {
+      return '<tr>\n' + content + '</tr>\n';
+    };
+
+    Renderer.prototype.tablecell = function tablecell (content, flags) {
+      var type = flags.header ? 'th' : 'td';
+      var tag = flags.align
+        ? '<' + type + ' align="' + flags.align + '">'
+        : '<' + type + '>';
+      return tag + content + '</' + type + '>\n';
+    };
+
+    // span level renderer
+    Renderer.prototype.strong = function strong (text) {
+      return '<strong>' + text + '</strong>';
+    };
+
+    Renderer.prototype.em = function em (text) {
+      return '<em>' + text + '</em>';
+    };
+
+    Renderer.prototype.codespan = function codespan (text) {
+      return '<code>' + text + '</code>';
+    };
+
+    Renderer.prototype.br = function br () {
+      return this.options.xhtml ? '<br/>' : '<br>';
+    };
+
+    Renderer.prototype.del = function del (text) {
+      return '<del>' + text + '</del>';
+    };
+
+    Renderer.prototype.link = function link (href, title, text) {
+      href = cleanUrl$1(this.options.sanitize, this.options.baseUrl, href);
+      if (href === null) {
+        return text;
+      }
+      var out = '<a href="' + escape$2(href) + '"';
+      if (title) {
+        out += ' title="' + title + '"';
+      }
+      out += '>' + text + '</a>';
+      return out;
+    };
+
+    Renderer.prototype.image = function image (href, title, text) {
+      href = cleanUrl$1(this.options.sanitize, this.options.baseUrl, href);
+      if (href === null) {
+        return text;
+      }
+
+      var out = '<img src="' + href + '" alt="' + text + '"';
+      if (title) {
+        out += ' title="' + title + '"';
+      }
+      out += this.options.xhtml ? '/>' : '>';
+      return out;
+    };
+
+    Renderer.prototype.text = function text (text$1) {
+      return text$1;
+    };
+
+    return Renderer;
+  }());
+
+  /**
+   * TextRenderer
+   * returns only the textual part of the token
+   */
+  var TextRenderer = /*@__PURE__*/(function () {
+    function TextRenderer () {}
+
+    TextRenderer.prototype.strong = function strong (text) {
+      return text;
+    };
+
+    TextRenderer.prototype.em = function em (text) {
+      return text;
+    };
+
+    TextRenderer.prototype.codespan = function codespan (text) {
+      return text;
+    };
+
+    TextRenderer.prototype.del = function del (text) {
+      return text;
+    };
+
+    TextRenderer.prototype.html = function html (text) {
+      return text;
+    };
+
+    TextRenderer.prototype.text = function text (text$1) {
+      return text$1;
+    };
+
+    TextRenderer.prototype.link = function link (href, title, text) {
+      return '' + text;
+    };
+
+    TextRenderer.prototype.image = function image (href, title, text) {
+      return '' + text;
+    };
+
+    TextRenderer.prototype.br = function br () {
+      return '';
+    };
+
+    return TextRenderer;
+  }());
+
+  /**
+   * Slugger generates header id
+   */
+  var Slugger = /*@__PURE__*/(function () {
+    function Slugger() {
+      this.seen = {};
+    }
+
+    Slugger.prototype.serialize = function serialize (value) {
+      return value
+        .toLowerCase()
+        .trim()
+        // remove html tags
+        .replace(/<[!\/a-z].*?>/ig, '')
+        // remove unwanted chars
+        .replace(/[\u2000-\u206F\u2E00-\u2E7F\\'!"#$%&()*+,./:;<=>?@[\]^`{|}~]/g, '')
+        .replace(/\s/g, '-');
+    };
+
+    /**
+     * Finds the next safe (unique) slug to use
+     */
+    Slugger.prototype.getNextSafeSlug = function getNextSafeSlug (originalSlug, isDryRun) {
+      var slug = originalSlug;
+      var occurenceAccumulator = 0;
+      if (this.seen.hasOwnProperty(slug)) {
+        occurenceAccumulator = this.seen[originalSlug];
+        do {
+          occurenceAccumulator++;
+          slug = originalSlug + '-' + occurenceAccumulator;
+        } while (this.seen.hasOwnProperty(slug));
+      }
+      if (!isDryRun) {
+        this.seen[originalSlug] = occurenceAccumulator;
+        this.seen[slug] = 0;
+      }
+      return slug;
+    };
+
+    /**
+     * Convert string to unique id
+     * @param {object} options
+     * @param {boolean} options.dryrun Generates the next unique slug without updating the internal accumulator.
+     */
+    Slugger.prototype.slug = function slug (value, options) {
+      if ( options === void 0 ) options = {};
+
+      var slug = this.serialize(value);
+      return this.getNextSafeSlug(slug, options.dryrun);
+    };
+
+    return Slugger;
+  }());
+
+  var defaults$4 = defaults.defaults;
+
+  var unescape$1 = helpers.unescape;
+
+  /**
+   * Parsing & Compiling
+   */
+  var Parser = /*@__PURE__*/(function () {
+    function Parser(options) {
+      this.options = options || defaults$4;
+      this.options.renderer = this.options.renderer || new Renderer();
+      this.renderer = this.options.renderer;
+      this.renderer.options = this.options;
+      this.textRenderer = new TextRenderer();
+      this.slugger = new Slugger();
+    }
+
+    /**
+     * Static Parse Method
+     */
+    Parser.parse = function parse (tokens, options) {
+      var parser = new Parser(options);
+      return parser.parse(tokens);
+    };
+
+    /**
+     * Static Parse Inline Method
+     */
+    Parser.parseInline = function parseInline (tokens, options) {
+      var parser = new Parser(options);
+      return parser.parseInline(tokens);
+    };
+
+    /**
+     * Parse Loop
+     */
+    Parser.prototype.parse = function parse (tokens, top) {
+      if ( top === void 0 ) top = true;
+
+      var out = '',
+        i,
+        j,
+        k,
+        l2,
+        l3,
+        row,
+        cell,
+        header,
+        body,
+        token,
+        ordered,
+        start,
+        loose,
+        itemBody,
+        item,
+        checked,
+        task,
+        checkbox;
+
+      var l = tokens.length;
+      for (i = 0; i < l; i++) {
+        token = tokens[i];
+        switch (token.type) {
+          case 'space': {
+            continue;
+          }
+          case 'hr': {
+            out += this.renderer.hr();
+            continue;
+          }
+          case 'heading': {
+            out += this.renderer.heading(
+              this.parseInline(token.tokens),
+              token.depth,
+              unescape$1(this.parseInline(token.tokens, this.textRenderer)),
+              this.slugger);
+            continue;
+          }
+          case 'code': {
+            out += this.renderer.code(token.text,
+              token.lang,
+              token.escaped);
+            continue;
+          }
+          case 'table': {
+            header = '';
+
+            // header
+            cell = '';
+            l2 = token.header.length;
+            for (j = 0; j < l2; j++) {
+              cell += this.renderer.tablecell(
+                this.parseInline(token.tokens.header[j]),
+                { header: true, align: token.align[j] }
+              );
+            }
+            header += this.renderer.tablerow(cell);
+
+            body = '';
+            l2 = token.cells.length;
+            for (j = 0; j < l2; j++) {
+              row = token.tokens.cells[j];
+
+              cell = '';
+              l3 = row.length;
+              for (k = 0; k < l3; k++) {
+                cell += this.renderer.tablecell(
+                  this.parseInline(row[k]),
+                  { header: false, align: token.align[k] }
+                );
+              }
+
+              body += this.renderer.tablerow(cell);
+            }
+            out += this.renderer.table(header, body);
+            continue;
+          }
+          case 'blockquote': {
+            body = this.parse(token.tokens);
+            out += this.renderer.blockquote(body);
+            continue;
+          }
+          case 'list': {
+            ordered = token.ordered;
+            start = token.start;
+            loose = token.loose;
+            l2 = token.items.length;
+
+            body = '';
+            for (j = 0; j < l2; j++) {
+              item = token.items[j];
+              checked = item.checked;
+              task = item.task;
+
+              itemBody = '';
+              if (item.task) {
+                checkbox = this.renderer.checkbox(checked);
+                if (loose) {
+                  if (item.tokens.length > 0 && item.tokens[0].type === 'text') {
+                    item.tokens[0].text = checkbox + ' ' + item.tokens[0].text;
+                    if (item.tokens[0].tokens && item.tokens[0].tokens.length > 0 && item.tokens[0].tokens[0].type === 'text') {
+                      item.tokens[0].tokens[0].text = checkbox + ' ' + item.tokens[0].tokens[0].text;
                     }
-                }), n.languages.insertBefore("inside", "attr-value", {
-                    "style-attr": {
-                        pattern: /\s*style=("|').*?\1/i,
-                        inside: {
-                            "attr-name": {
-                                pattern: /^\s*style/i,
-                                inside: n.languages.markup.tag.inside
-                            },
-                            punctuation: /^\s*=\s*['"]|['"]\s*$/,
-                            "attr-value": {
-                                pattern: /.+/i,
-                                inside: n.languages.css
-                            }
-                        },
-                        alias: "language-css"
-                    }
-                }, n.languages.markup.tag)), n.languages.clike = {
-                    comment: [{
-                        pattern: /(^|[^\\])\/\*[\w\W]*?\*\//,
-                        lookbehind: !0
-                    }, {
-                        pattern: /(^|[^\\:])\/\/.*/,
-                        lookbehind: !0
-                    }],
-                    string: {
-                        pattern: /(["'])(\\(?:\r\n|[\s\S])|(?!\1)[^\\\r\n])*\1/,
-                        greedy: !0
-                    },
-                    "class-name": {
-                        pattern: /((?:\b(?:class|interface|extends|implements|trait|instanceof|new)\s+)|(?:catch\s+\())[a-z0-9_\.\\]+/i,
-                        lookbehind: !0,
-                        inside: {
-                            punctuation: /(\.|\\)/
-                        }
-                    },
-                    keyword: /\b(if|else|while|do|for|return|in|instanceof|function|new|try|throw|catch|finally|null|break|continue)\b/,
-                    boolean: /\b(true|false)\b/,
-                    function: /[a-z0-9_]+(?=\()/i,
-                    number: /\b-?(?:0x[\da-f]+|\d*\.?\d+(?:e[+-]?\d+)?)\b/i,
-                    operator: /--?|\+\+?|!=?=?|<=?|>=?|==?=?|&&?|\|\|?|\?|\*|\/|~|\^|%/,
-                    punctuation: /[{}[\];(),.:]/
-                }, n.languages.javascript = n.languages.extend("clike", {
-                    keyword: /\b(as|async|await|break|case|catch|class|const|continue|debugger|default|delete|do|else|enum|export|extends|finally|for|from|function|get|if|implements|import|in|instanceof|interface|let|new|null|of|package|private|protected|public|return|set|static|super|switch|this|throw|try|typeof|var|void|while|with|yield)\b/,
-                    number: /\b-?(0x[\dA-Fa-f]+|0b[01]+|0o[0-7]+|\d*\.?\d+([Ee][+-]?\d+)?|NaN|Infinity)\b/,
-                    function: /[_$a-zA-Z\xA0-\uFFFF][_$a-zA-Z0-9\xA0-\uFFFF]*(?=\()/i,
-                    operator: /--?|\+\+?|!=?=?|<=?|>=?|==?=?|&&?|\|\|?|\?|\*\*?|\/|~|\^|%|\.{3}/
-                }), n.languages.insertBefore("javascript", "keyword", {
-                    regex: {
-                        pattern: /(^|[^\/])\/(?!\/)(\[.+?]|\\.|[^\/\\\r\n])+\/[gimyu]{0,5}(?=\s*($|[\r\n,.;})]))/,
-                        lookbehind: !0,
-                        greedy: !0
-                    }
-                }), n.languages.insertBefore("javascript", "string", {
-                    "template-string": {
-                        pattern: /`(?:\\\\|\\?[^\\])*?`/,
-                        greedy: !0,
-                        inside: {
-                            interpolation: {
-                                pattern: /\$\{[^}]+\}/,
-                                inside: {
-                                    "interpolation-punctuation": {
-                                        pattern: /^\$\{|\}$/,
-                                        alias: "punctuation"
-                                    },
-                                    rest: n.languages.javascript
-                                }
-                            },
-                            string: /[\s\S]+/
-                        }
-                    }
-                }), n.languages.markup && n.languages.insertBefore("markup", "tag", {
-                    script: {
-                        pattern: /(<script[\w\W]*?>)[\w\W]*?(?=<\/script>)/i,
-                        lookbehind: !0,
-                        inside: n.languages.javascript,
-                        alias: "language-javascript"
-                    }
-                }), n.languages.js = n.languages.javascript, n.languages.abap = {
-                    comment: /^\*.*/m,
-                    string: /(`|')(\\?.)*?\1/m,
-                    "string-template": {
-                        pattern: /(\||\})(\\?.)*?(?=\||\{)/,
-                        lookbehind: !0,
-                        alias: "string"
-                    },
-                    "eol-comment": {
-                        pattern: /(^|\s)".*/m,
-                        lookbehind: !0,
-                        alias: "comment"
-                    },
-                    keyword: {
-                        pattern: /(\s|\.|^)(?:SCIENTIFIC_WITH_LEADING_ZERO|SCALE_PRESERVING_SCIENTIFIC|RMC_COMMUNICATION_FAILURE|END-ENHANCEMENT-SECTION|MULTIPLY-CORRESPONDING|SUBTRACT-CORRESPONDING|VERIFICATION-MESSAGE|DIVIDE-CORRESPONDING|ENHANCEMENT-SECTION|CURRENCY_CONVERSION|RMC_SYSTEM_FAILURE|START-OF-SELECTION|MOVE-CORRESPONDING|RMC_INVALID_STATUS|CUSTOMER-FUNCTION|END-OF-DEFINITION|ENHANCEMENT-POINT|SYSTEM-EXCEPTIONS|ADD-CORRESPONDING|SCALE_PRESERVING|SELECTION-SCREEN|CURSOR-SELECTION|END-OF-SELECTION|LOAD-OF-PROGRAM|SCROLL-BOUNDARY|SELECTION-TABLE|EXCEPTION-TABLE|IMPLEMENTATIONS|PARAMETER-TABLE|RIGHT-JUSTIFIED|UNIT_CONVERSION|AUTHORITY-CHECK|LIST-PROCESSING|SIGN_AS_POSTFIX|COL_BACKGROUND|IMPLEMENTATION|INTERFACE-POOL|TRANSFORMATION|IDENTIFICATION|ENDENHANCEMENT|LINE-SELECTION|INITIALIZATION|LEFT-JUSTIFIED|SELECT-OPTIONS|SELECTION-SETS|COMMUNICATION|CORRESPONDING|DECIMAL_SHIFT|PRINT-CONTROL|VALUE-REQUEST|CHAIN-REQUEST|FUNCTION-POOL|FIELD-SYMBOLS|FUNCTIONALITY|INVERTED-DATE|SELECTION-SET|CLASS-METHODS|OUTPUT-LENGTH|CLASS-CODING|COL_NEGATIVE|ERRORMESSAGE|FIELD-GROUPS|HELP-REQUEST|NO-EXTENSION|NO-TOPOFPAGE|REDEFINITION|DISPLAY-MODE|ENDINTERFACE|EXIT-COMMAND|FIELD-SYMBOL|NO-SCROLLING|SHORTDUMP-ID|ACCESSPOLICY|CLASS-EVENTS|COL_POSITIVE|DECLARATIONS|ENHANCEMENTS|FILTER-TABLE|SWITCHSTATES|SYNTAX-CHECK|TRANSPORTING|ASYNCHRONOUS|SYNTAX-TRACE|TOKENIZATION|USER-COMMAND|WITH-HEADING|ABAP-SOURCE|BREAK-POINT|CHAIN-INPUT|COMPRESSION|FIXED-POINT|NEW-SECTION|NON-UNICODE|OCCURRENCES|RESPONSIBLE|SYSTEM-CALL|TRACE-TABLE|ABBREVIATED|CHAR-TO-HEX|END-OF-FILE|ENDFUNCTION|ENVIRONMENT|ASSOCIATION|COL_HEADING|EDITOR-CALL|END-OF-PAGE|ENGINEERING|IMPLEMENTED|INTENSIFIED|RADIOBUTTON|SYSTEM-EXIT|TOP-OF-PAGE|TRANSACTION|APPLICATION|CONCATENATE|DESTINATION|ENHANCEMENT|IMMEDIATELY|NO-GROUPING|PRECOMPILED|REPLACEMENT|TITLE-LINES|ACTIVATION|BYTE-ORDER|CLASS-POOL|CONNECTION|CONVERSION|DEFINITION|DEPARTMENT|EXPIRATION|INHERITING|MESSAGE-ID|NO-HEADING|PERFORMING|QUEUE-ONLY|RIGHTSPACE|SCIENTIFIC|STATUSINFO|STRUCTURES|SYNCPOINTS|WITH-TITLE|ATTRIBUTES|BOUNDARIES|CLASS-DATA|COL_NORMAL|DD\/MM\/YYYY|DESCENDING|INTERFACES|LINE-COUNT|MM\/DD\/YYYY|NON-UNIQUE|PRESERVING|SELECTIONS|STATEMENTS|SUBROUTINE|TRUNCATION|TYPE-POOLS|ARITHMETIC|BACKGROUND|ENDPROVIDE|EXCEPTIONS|IDENTIFIER|INDEX-LINE|OBLIGATORY|PARAMETERS|PERCENTAGE|PUSHBUTTON|RESOLUTION|COMPONENTS|DEALLOCATE|DISCONNECT|DUPLICATES|FIRST-LINE|HEAD-LINES|NO-DISPLAY|OCCURRENCE|RESPECTING|RETURNCODE|SUBMATCHES|TRACE-FILE|ASCENDING|BYPASSING|ENDMODULE|EXCEPTION|EXCLUDING|EXPORTING|INCREMENT|MATCHCODE|PARAMETER|PARTIALLY|PREFERRED|REFERENCE|REPLACING|RETURNING|SELECTION|SEPARATED|SPECIFIED|STATEMENT|TIMESTAMP|TYPE-POOL|ACCEPTING|APPENDAGE|ASSIGNING|COL_GROUP|COMPARING|CONSTANTS|DANGEROUS|IMPORTING|INSTANCES|LEFTSPACE|LOG-POINT|QUICKINFO|READ-ONLY|SCROLLING|SQLSCRIPT|STEP-LOOP|TOP-LINES|TRANSLATE|APPENDING|AUTHORITY|CHARACTER|COMPONENT|CONDITION|DIRECTORY|DUPLICATE|MESSAGING|RECEIVING|SUBSCREEN|ACCORDING|COL_TOTAL|END-LINES|ENDMETHOD|ENDSELECT|EXPANDING|EXTENSION|INCLUDING|INFOTYPES|INTERFACE|INTERVALS|LINE-SIZE|PF-STATUS|PROCEDURE|PROTECTED|REQUESTED|RESUMABLE|RIGHTPLUS|SAP-SPOOL|SECONDARY|STRUCTURE|SUBSTRING|TABLEVIEW|NUMOFCHAR|ADJACENT|ANALYSIS|ASSIGNED|BACKWARD|CHANNELS|CHECKBOX|CONTINUE|CRITICAL|DATAINFO|DD\/MM\/YY|DURATION|ENCODING|ENDCLASS|FUNCTION|LEFTPLUS|LINEFEED|MM\/DD\/YY|OVERFLOW|RECEIVED|SKIPPING|SORTABLE|STANDARD|SUBTRACT|SUPPRESS|TABSTRIP|TITLEBAR|TRUNCATE|UNASSIGN|WHENEVER|ANALYZER|COALESCE|COMMENTS|CONDENSE|DECIMALS|DEFERRED|ENDWHILE|EXPLICIT|KEYWORDS|MESSAGES|POSITION|PRIORITY|RECEIVER|RENAMING|TIMEZONE|TRAILING|ALLOCATE|CENTERED|CIRCULAR|CONTROLS|CURRENCY|DELETING|DESCRIBE|DISTANCE|ENDCATCH|EXPONENT|EXTENDED|GENERATE|IGNORING|INCLUDES|INTERNAL|MAJOR-ID|MODIFIER|NEW-LINE|OPTIONAL|PROPERTY|ROLLBACK|STARTING|SUPPLIED|ABSTRACT|CHANGING|CONTEXTS|CREATING|CUSTOMER|DATABASE|DAYLIGHT|DEFINING|DISTINCT|DIVISION|ENABLING|ENDCHAIN|ESCAPING|HARMLESS|IMPLICIT|INACTIVE|LANGUAGE|MINOR-ID|MULTIPLY|NEW-PAGE|NO-TITLE|POS_HIGH|SEPARATE|TEXTPOOL|TRANSFER|SELECTOR|DBMAXLEN|ITERATOR|SELECTOR|ARCHIVE|BIT-XOR|BYTE-CO|COLLECT|COMMENT|CURRENT|DEFAULT|DISPLAY|ENDFORM|EXTRACT|LEADING|LISTBOX|LOCATOR|MEMBERS|METHODS|NESTING|POS_LOW|PROCESS|PROVIDE|RAISING|RESERVE|SECONDS|SUMMARY|VISIBLE|BETWEEN|BIT-AND|BYTE-CS|CLEANUP|COMPUTE|CONTROL|CONVERT|DATASET|ENDCASE|FORWARD|HEADERS|HOTSPOT|INCLUDE|INVERSE|KEEPING|NO-ZERO|OBJECTS|OVERLAY|PADDING|PATTERN|PROGRAM|REFRESH|SECTION|SUMMING|TESTING|VERSION|WINDOWS|WITHOUT|BIT-NOT|BYTE-CA|BYTE-NA|CASTING|CONTEXT|COUNTRY|DYNAMIC|ENABLED|ENDLOOP|EXECUTE|FRIENDS|HANDLER|HEADING|INITIAL|\*-INPUT|LOGFILE|MAXIMUM|MINIMUM|NO-GAPS|NO-SIGN|PRAGMAS|PRIMARY|PRIVATE|REDUCED|REPLACE|REQUEST|RESULTS|UNICODE|WARNING|ALIASES|BYTE-CN|BYTE-NS|CALLING|COL_KEY|COLUMNS|CONNECT|ENDEXEC|ENTRIES|EXCLUDE|FILTERS|FURTHER|HELP-ID|LOGICAL|MAPPING|MESSAGE|NAMETAB|OPTIONS|PACKAGE|PERFORM|RECEIVE|STATICS|VARYING|BINDING|CHARLEN|GREATER|XSTRLEN|ACCEPT|APPEND|DETAIL|ELSEIF|ENDING|ENDTRY|FORMAT|FRAMES|GIVING|HASHED|HEADER|IMPORT|INSERT|MARGIN|MODULE|NATIVE|OBJECT|OFFSET|REMOTE|RESUME|SAVING|SIMPLE|SUBMIT|TABBED|TOKENS|UNIQUE|UNPACK|UPDATE|WINDOW|YELLOW|ACTUAL|ASPECT|CENTER|CURSOR|DELETE|DIALOG|DIVIDE|DURING|ERRORS|EVENTS|EXTEND|FILTER|HANDLE|HAVING|IGNORE|LITTLE|MEMORY|NO-GAP|OCCURS|OPTION|PERSON|PLACES|PUBLIC|REDUCE|REPORT|RESULT|SINGLE|SORTED|SWITCH|SYNTAX|TARGET|VALUES|WRITER|ASSERT|BLOCKS|BOUNDS|BUFFER|CHANGE|COLUMN|COMMIT|CONCAT|COPIES|CREATE|DDMMYY|DEFINE|ENDIAN|ESCAPE|EXPAND|KERNEL|LAYOUT|LEGACY|LEVELS|MMDDYY|NUMBER|OUTPUT|RANGES|READER|RETURN|SCREEN|SEARCH|SELECT|SHARED|SOURCE|STABLE|STATIC|SUBKEY|SUFFIX|TABLES|UNWIND|YYMMDD|ASSIGN|BACKUP|BEFORE|BINARY|BIT-OR|BLANKS|CLIENT|CODING|COMMON|DEMAND|DYNPRO|EXCEPT|EXISTS|EXPORT|FIELDS|GLOBAL|GROUPS|LENGTH|LOCALE|MEDIUM|METHOD|MODIFY|NESTED|OTHERS|REJECT|SCROLL|SUPPLY|SYMBOL|ENDFOR|STRLEN|ALIGN|BEGIN|BOUND|ENDAT|ENTRY|EVENT|FINAL|FLUSH|GRANT|INNER|SHORT|USING|WRITE|AFTER|BLACK|BLOCK|CLOCK|COLOR|COUNT|DUMMY|EMPTY|ENDDO|ENDON|GREEN|INDEX|INOUT|LEAVE|LEVEL|LINES|MODIF|ORDER|OUTER|RANGE|RESET|RETRY|RIGHT|SMART|SPLIT|STYLE|TABLE|THROW|UNDER|UNTIL|UPPER|UTF-8|WHERE|ALIAS|BLANK|CLEAR|CLOSE|EXACT|FETCH|FIRST|FOUND|GROUP|LLANG|LOCAL|OTHER|REGEX|SPOOL|TITLE|TYPES|VALID|WHILE|ALPHA|BOXED|CATCH|CHAIN|CHECK|CLASS|COVER|ENDIF|EQUIV|FIELD|FLOOR|FRAME|INPUT|LOWER|MATCH|NODES|PAGES|PRINT|RAISE|ROUND|SHIFT|SPACE|SPOTS|STAMP|STATE|TASKS|TIMES|TRMAC|ULINE|UNION|VALUE|WIDTH|EQUAL|LOG10|TRUNC|BLOB|CASE|CEIL|CLOB|COND|EXIT|FILE|GAPS|HOLD|INCL|INTO|KEEP|KEYS|LAST|LINE|LONG|LPAD|MAIL|MODE|OPEN|PINK|READ|ROWS|TEST|THEN|ZERO|AREA|BACK|BADI|BYTE|CAST|EDIT|EXEC|FAIL|FIND|FKEQ|FONT|FREE|GKEQ|HIDE|INIT|ITNO|LATE|LOOP|MAIN|MARK|MOVE|NEXT|NULL|RISK|ROLE|UNIT|WAIT|ZONE|BASE|CALL|CODE|DATA|DATE|FKGE|GKGE|HIGH|KIND|LEFT|LIST|MASK|MESH|NAME|NODE|PACK|PAGE|POOL|SEND|SIGN|SIZE|SOME|STOP|TASK|TEXT|TIME|USER|VARY|WITH|WORD|BLUE|CONV|COPY|DEEP|ELSE|FORM|FROM|HINT|ICON|JOIN|LIKE|LOAD|ONLY|PART|SCAN|SKIP|SORT|TYPE|UNIX|VIEW|WHEN|WORK|ACOS|ASIN|ATAN|COSH|EACH|FRAC|LESS|RTTI|SINH|SQRT|TANH|AVG|BIT|DIV|ISO|LET|OUT|PAD|SQL|ALL|CI_|CPI|END|LOB|LPI|MAX|MIN|NEW|OLE|RUN|SET|\?TO|YES|ABS|ADD|AND|BIG|FOR|HDB|JOB|LOW|NOT|SAP|TRY|VIA|XML|ANY|GET|IDS|KEY|MOD|OFF|PUT|RAW|RED|REF|SUM|TAB|XSD|CNT|COS|EXP|LOG|SIN|TAN|XOR|AT|CO|CP|DO|GT|ID|IF|NS|OR|BT|CA|CS|GE|NA|NB|EQ|IN|LT|NE|NO|OF|ON|PF|TO|AS|BY|CN|IS|LE|NP|UP|E|I|M|O|Z|C|X)\b/i,
-                        lookbehind: !0
-                    },
-                    number: /\b\d+\b/,
-                    operator: {
-                        pattern: /(\s)(?:\*\*?|<[=>]?|>=?|\?=|[-+\/=])(?=\s)/,
-                        lookbehind: !0
-                    },
-                    "string-operator": {
-                        pattern: /(\s)&&?(?=\s)/,
-                        lookbehind: !0,
-                        alias: "keyword"
-                    },
-                    "token-operator": [{
-                        pattern: /(\w)(?:->?|=>|[~|{}])(?=\w)/,
-                        lookbehind: !0,
-                        alias: "punctuation"
-                    }, {
-                        pattern: /[|{}]/,
-                        alias: "punctuation"
-                    }],
-                    punctuation: /[,.:()]/
-                }, n.languages.actionscript = n.languages.extend("javascript", {
-                    keyword: /\b(?:as|break|case|catch|class|const|default|delete|do|else|extends|finally|for|function|if|implements|import|in|instanceof|interface|internal|is|native|new|null|package|private|protected|public|return|super|switch|this|throw|try|typeof|use|var|void|while|with|dynamic|each|final|get|include|namespace|native|override|set|static)\b/,
-                    operator: /\+\+|--|(?:[+\-*\/%^]|&&?|\|\|?|<<?|>>?>?|[!=]=?)=?|[~?@]/
-                }), n.languages.actionscript["class-name"].alias = "function", n.languages.markup && n.languages.insertBefore("actionscript", "string", {
-                    xml: {
-                        pattern: /(^|[^.])<\/?\w+(?:\s+[^\s>\/=]+=("|')(?:\\\1|\\?(?!\1)[\w\W])*\2)*\s*\/?>/,
-                        lookbehind: !0,
-                        inside: {
-                            rest: n.languages.markup
-                        }
-                    }
-                }), n.languages.ada = {
-                    comment: /--.*/,
-                    string: /"(?:""|[^"\r\f\n])*"/i,
-                    number: [{
-                        pattern: /\b[0-9](?:_?[0-9])*#[0-9A-F](?:_?[0-9A-F])*(?:\.[0-9A-F](?:_?[0-9A-F])*)?#(?:E[+-]?[0-9](?:_?[0-9])*)?/i
-                    }, {
-                        pattern: /\b[0-9](?:_?[0-9])*(?:\.[0-9](?:_?[0-9])*)?(?:E[+-]?[0-9](?:_?[0-9])*)?\b/i
-                    }],
-                    "attr-name": /\b'\w+/i,
-                    keyword: /\b(?:abort|abs|abstract|accept|access|aliased|all|and|array|at|begin|body|case|constant|declare|delay|delta|digits|do|else|new|return|elsif|end|entry|exception|exit|for|function|generic|goto|if|in|interface|is|limited|loop|mod|not|null|of|others|out|overriding|package|pragma|private|procedure|protected|raise|range|record|rem|renames|requeue|reverse|select|separate|some|subtype|synchronized|tagged|task|terminate|then|type|until|use|when|while|with|xor)\b/i,
-                    boolean: /\b(?:true|false)\b/i,
-                    operator: /<[=>]?|>=?|=>?|:=|\/=?|\*\*?|[&+-]/,
-                    punctuation: /\.\.?|[,;():]/,
-                    char: /'.'/,
-                    variable: /\b[a-z](?:[_a-z\d])*\b/i
-                }, n.languages.apacheconf = {
-                    comment: /#.*/,
-                    "directive-inline": {
-                        pattern: /^(\s*)\b(AcceptFilter|AcceptPathInfo|AccessFileName|Action|AddAlt|AddAltByEncoding|AddAltByType|AddCharset|AddDefaultCharset|AddDescription|AddEncoding|AddHandler|AddIcon|AddIconByEncoding|AddIconByType|AddInputFilter|AddLanguage|AddModuleInfo|AddOutputFilter|AddOutputFilterByType|AddType|Alias|AliasMatch|Allow|AllowCONNECT|AllowEncodedSlashes|AllowMethods|AllowOverride|AllowOverrideList|Anonymous|Anonymous_LogEmail|Anonymous_MustGiveEmail|Anonymous_NoUserID|Anonymous_VerifyEmail|AsyncRequestWorkerFactor|AuthBasicAuthoritative|AuthBasicFake|AuthBasicProvider|AuthBasicUseDigestAlgorithm|AuthDBDUserPWQuery|AuthDBDUserRealmQuery|AuthDBMGroupFile|AuthDBMType|AuthDBMUserFile|AuthDigestAlgorithm|AuthDigestDomain|AuthDigestNonceLifetime|AuthDigestProvider|AuthDigestQop|AuthDigestShmemSize|AuthFormAuthoritative|AuthFormBody|AuthFormDisableNoStore|AuthFormFakeBasicAuth|AuthFormLocation|AuthFormLoginRequiredLocation|AuthFormLoginSuccessLocation|AuthFormLogoutLocation|AuthFormMethod|AuthFormMimetype|AuthFormPassword|AuthFormProvider|AuthFormSitePassphrase|AuthFormSize|AuthFormUsername|AuthGroupFile|AuthLDAPAuthorizePrefix|AuthLDAPBindAuthoritative|AuthLDAPBindDN|AuthLDAPBindPassword|AuthLDAPCharsetConfig|AuthLDAPCompareAsUser|AuthLDAPCompareDNOnServer|AuthLDAPDereferenceAliases|AuthLDAPGroupAttribute|AuthLDAPGroupAttributeIsDN|AuthLDAPInitialBindAsUser|AuthLDAPInitialBindPattern|AuthLDAPMaxSubGroupDepth|AuthLDAPRemoteUserAttribute|AuthLDAPRemoteUserIsDN|AuthLDAPSearchAsUser|AuthLDAPSubGroupAttribute|AuthLDAPSubGroupClass|AuthLDAPUrl|AuthMerging|AuthName|AuthnCacheContext|AuthnCacheEnable|AuthnCacheProvideFor|AuthnCacheSOCache|AuthnCacheTimeout|AuthnzFcgiCheckAuthnProvider|AuthnzFcgiDefineProvider|AuthType|AuthUserFile|AuthzDBDLoginToReferer|AuthzDBDQuery|AuthzDBDRedirectQuery|AuthzDBMType|AuthzSendForbiddenOnFailure|BalancerGrowth|BalancerInherit|BalancerMember|BalancerPersist|BrowserMatch|BrowserMatchNoCase|BufferedLogs|BufferSize|CacheDefaultExpire|CacheDetailHeader|CacheDirLength|CacheDirLevels|CacheDisable|CacheEnable|CacheFile|CacheHeader|CacheIgnoreCacheControl|CacheIgnoreHeaders|CacheIgnoreNoLastMod|CacheIgnoreQueryString|CacheIgnoreURLSessionIdentifiers|CacheKeyBaseURL|CacheLastModifiedFactor|CacheLock|CacheLockMaxAge|CacheLockPath|CacheMaxExpire|CacheMaxFileSize|CacheMinExpire|CacheMinFileSize|CacheNegotiatedDocs|CacheQuickHandler|CacheReadSize|CacheReadTime|CacheRoot|CacheSocache|CacheSocacheMaxSize|CacheSocacheMaxTime|CacheSocacheMinTime|CacheSocacheReadSize|CacheSocacheReadTime|CacheStaleOnError|CacheStoreExpired|CacheStoreNoStore|CacheStorePrivate|CGIDScriptTimeout|CGIMapExtension|CharsetDefault|CharsetOptions|CharsetSourceEnc|CheckCaseOnly|CheckSpelling|ChrootDir|ContentDigest|CookieDomain|CookieExpires|CookieName|CookieStyle|CookieTracking|CoreDumpDirectory|CustomLog|Dav|DavDepthInfinity|DavGenericLockDB|DavLockDB|DavMinTimeout|DBDExptime|DBDInitSQL|DBDKeep|DBDMax|DBDMin|DBDParams|DBDPersist|DBDPrepareSQL|DBDriver|DefaultIcon|DefaultLanguage|DefaultRuntimeDir|DefaultType|Define|DeflateBufferSize|DeflateCompressionLevel|DeflateFilterNote|DeflateInflateLimitRequestBody|DeflateInflateRatioBurst|DeflateInflateRatioLimit|DeflateMemLevel|DeflateWindowSize|Deny|DirectoryCheckHandler|DirectoryIndex|DirectoryIndexRedirect|DirectorySlash|DocumentRoot|DTracePrivileges|DumpIOInput|DumpIOOutput|EnableExceptionHook|EnableMMAP|EnableSendfile|Error|ErrorDocument|ErrorLog|ErrorLogFormat|Example|ExpiresActive|ExpiresByType|ExpiresDefault|ExtendedStatus|ExtFilterDefine|ExtFilterOptions|FallbackResource|FileETag|FilterChain|FilterDeclare|FilterProtocol|FilterProvider|FilterTrace|ForceLanguagePriority|ForceType|ForensicLog|GprofDir|GracefulShutdownTimeout|Group|Header|HeaderName|HeartbeatAddress|HeartbeatListen|HeartbeatMaxServers|HeartbeatStorage|HeartbeatStorage|HostnameLookups|IdentityCheck|IdentityCheckTimeout|ImapBase|ImapDefault|ImapMenu|Include|IncludeOptional|IndexHeadInsert|IndexIgnore|IndexIgnoreReset|IndexOptions|IndexOrderDefault|IndexStyleSheet|InputSed|ISAPIAppendLogToErrors|ISAPIAppendLogToQuery|ISAPICacheFile|ISAPIFakeAsync|ISAPILogNotSupported|ISAPIReadAheadBuffer|KeepAlive|KeepAliveTimeout|KeptBodySize|LanguagePriority|LDAPCacheEntries|LDAPCacheTTL|LDAPConnectionPoolTTL|LDAPConnectionTimeout|LDAPLibraryDebug|LDAPOpCacheEntries|LDAPOpCacheTTL|LDAPReferralHopLimit|LDAPReferrals|LDAPRetries|LDAPRetryDelay|LDAPSharedCacheFile|LDAPSharedCacheSize|LDAPTimeout|LDAPTrustedClientCert|LDAPTrustedGlobalCert|LDAPTrustedMode|LDAPVerifyServerCert|LimitInternalRecursion|LimitRequestBody|LimitRequestFields|LimitRequestFieldSize|LimitRequestLine|LimitXMLRequestBody|Listen|ListenBackLog|LoadFile|LoadModule|LogFormat|LogLevel|LogMessage|LuaAuthzProvider|LuaCodeCache|LuaHookAccessChecker|LuaHookAuthChecker|LuaHookCheckUserID|LuaHookFixups|LuaHookInsertFilter|LuaHookLog|LuaHookMapToStorage|LuaHookTranslateName|LuaHookTypeChecker|LuaInherit|LuaInputFilter|LuaMapHandler|LuaOutputFilter|LuaPackageCPath|LuaPackagePath|LuaQuickHandler|LuaRoot|LuaScope|MaxConnectionsPerChild|MaxKeepAliveRequests|MaxMemFree|MaxRangeOverlaps|MaxRangeReversals|MaxRanges|MaxRequestWorkers|MaxSpareServers|MaxSpareThreads|MaxThreads|MergeTrailers|MetaDir|MetaFiles|MetaSuffix|MimeMagicFile|MinSpareServers|MinSpareThreads|MMapFile|ModemStandard|ModMimeUsePathInfo|MultiviewsMatch|Mutex|NameVirtualHost|NoProxy|NWSSLTrustedCerts|NWSSLUpgradeable|Options|Order|OutputSed|PassEnv|PidFile|PrivilegesMode|Protocol|ProtocolEcho|ProxyAddHeaders|ProxyBadHeader|ProxyBlock|ProxyDomain|ProxyErrorOverride|ProxyExpressDBMFile|ProxyExpressDBMType|ProxyExpressEnable|ProxyFtpDirCharset|ProxyFtpEscapeWildcards|ProxyFtpListOnWildcard|ProxyHTMLBufSize|ProxyHTMLCharsetOut|ProxyHTMLDocType|ProxyHTMLEnable|ProxyHTMLEvents|ProxyHTMLExtended|ProxyHTMLFixups|ProxyHTMLInterp|ProxyHTMLLinks|ProxyHTMLMeta|ProxyHTMLStripComments|ProxyHTMLURLMap|ProxyIOBufferSize|ProxyMaxForwards|ProxyPass|ProxyPassInherit|ProxyPassInterpolateEnv|ProxyPassMatch|ProxyPassReverse|ProxyPassReverseCookieDomain|ProxyPassReverseCookiePath|ProxyPreserveHost|ProxyReceiveBufferSize|ProxyRemote|ProxyRemoteMatch|ProxyRequests|ProxySCGIInternalRedirect|ProxySCGISendfile|ProxySet|ProxySourceAddress|ProxyStatus|ProxyTimeout|ProxyVia|ReadmeName|ReceiveBufferSize|Redirect|RedirectMatch|RedirectPermanent|RedirectTemp|ReflectorHeader|RemoteIPHeader|RemoteIPInternalProxy|RemoteIPInternalProxyList|RemoteIPProxiesHeader|RemoteIPTrustedProxy|RemoteIPTrustedProxyList|RemoveCharset|RemoveEncoding|RemoveHandler|RemoveInputFilter|RemoveLanguage|RemoveOutputFilter|RemoveType|RequestHeader|RequestReadTimeout|Require|RewriteBase|RewriteCond|RewriteEngine|RewriteMap|RewriteOptions|RewriteRule|RLimitCPU|RLimitMEM|RLimitNPROC|Satisfy|ScoreBoardFile|Script|ScriptAlias|ScriptAliasMatch|ScriptInterpreterSource|ScriptLog|ScriptLogBuffer|ScriptLogLength|ScriptSock|SecureListen|SeeRequestTail|SendBufferSize|ServerAdmin|ServerAlias|ServerLimit|ServerName|ServerPath|ServerRoot|ServerSignature|ServerTokens|Session|SessionCookieName|SessionCookieName2|SessionCookieRemove|SessionCryptoCipher|SessionCryptoDriver|SessionCryptoPassphrase|SessionCryptoPassphraseFile|SessionDBDCookieName|SessionDBDCookieName2|SessionDBDCookieRemove|SessionDBDDeleteLabel|SessionDBDInsertLabel|SessionDBDPerUser|SessionDBDSelectLabel|SessionDBDUpdateLabel|SessionEnv|SessionExclude|SessionHeader|SessionInclude|SessionMaxAge|SetEnv|SetEnvIf|SetEnvIfExpr|SetEnvIfNoCase|SetHandler|SetInputFilter|SetOutputFilter|SSIEndTag|SSIErrorMsg|SSIETag|SSILastModified|SSILegacyExprParser|SSIStartTag|SSITimeFormat|SSIUndefinedEcho|SSLCACertificateFile|SSLCACertificatePath|SSLCADNRequestFile|SSLCADNRequestPath|SSLCARevocationCheck|SSLCARevocationFile|SSLCARevocationPath|SSLCertificateChainFile|SSLCertificateFile|SSLCertificateKeyFile|SSLCipherSuite|SSLCompression|SSLCryptoDevice|SSLEngine|SSLFIPS|SSLHonorCipherOrder|SSLInsecureRenegotiation|SSLOCSPDefaultResponder|SSLOCSPEnable|SSLOCSPOverrideResponder|SSLOCSPResponderTimeout|SSLOCSPResponseMaxAge|SSLOCSPResponseTimeSkew|SSLOCSPUseRequestNonce|SSLOpenSSLConfCmd|SSLOptions|SSLPassPhraseDialog|SSLProtocol|SSLProxyCACertificateFile|SSLProxyCACertificatePath|SSLProxyCARevocationCheck|SSLProxyCARevocationFile|SSLProxyCARevocationPath|SSLProxyCheckPeerCN|SSLProxyCheckPeerExpire|SSLProxyCheckPeerName|SSLProxyCipherSuite|SSLProxyEngine|SSLProxyMachineCertificateChainFile|SSLProxyMachineCertificateFile|SSLProxyMachineCertificatePath|SSLProxyProtocol|SSLProxyVerify|SSLProxyVerifyDepth|SSLRandomSeed|SSLRenegBufferSize|SSLRequire|SSLRequireSSL|SSLSessionCache|SSLSessionCacheTimeout|SSLSessionTicketKeyFile|SSLSRPUnknownUserSeed|SSLSRPVerifierFile|SSLStaplingCache|SSLStaplingErrorCacheTimeout|SSLStaplingFakeTryLater|SSLStaplingForceURL|SSLStaplingResponderTimeout|SSLStaplingResponseMaxAge|SSLStaplingResponseTimeSkew|SSLStaplingReturnResponderErrors|SSLStaplingStandardCacheTimeout|SSLStrictSNIVHostCheck|SSLUserName|SSLUseStapling|SSLVerifyClient|SSLVerifyDepth|StartServers|StartThreads|Substitute|Suexec|SuexecUserGroup|ThreadLimit|ThreadsPerChild|ThreadStackSize|TimeOut|TraceEnable|TransferLog|TypesConfig|UnDefine|UndefMacro|UnsetEnv|Use|UseCanonicalName|UseCanonicalPhysicalPort|User|UserDir|VHostCGIMode|VHostCGIPrivs|VHostGroup|VHostPrivs|VHostSecure|VHostUser|VirtualDocumentRoot|VirtualDocumentRootIP|VirtualScriptAlias|VirtualScriptAliasIP|WatchdogInterval|XBitHack|xml2EncAlias|xml2EncDefault|xml2StartParse)\b/im,
-                        lookbehind: !0,
-                        alias: "property"
-                    },
-                    "directive-block": {
-                        pattern: /<\/?\b(AuthnProviderAlias|AuthzProviderAlias|Directory|DirectoryMatch|Else|ElseIf|Files|FilesMatch|If|IfDefine|IfModule|IfVersion|Limit|LimitExcept|Location|LocationMatch|Macro|Proxy|RequireAll|RequireAny|RequireNone|VirtualHost)\b *.*>/i,
-                        inside: {
-                            "directive-block": {
-                                pattern: /^<\/?\w+/,
-                                inside: {
-                                    punctuation: /^<\/?/
-                                },
-                                alias: "tag"
-                            },
-                            "directive-block-parameter": {
-                                pattern: /.*[^>]/,
-                                inside: {
-                                    punctuation: /:/,
-                                    string: {
-                                        pattern: /("|').*\1/,
-                                        inside: {
-                                            variable: /(\$|%)\{?(\w\.?(\+|\-|:)?)+\}?/
-                                        }
-                                    }
-                                },
-                                alias: "attr-value"
-                            },
-                            punctuation: />/
-                        },
-                        alias: "tag"
-                    },
-                    "directive-flags": {
-                        pattern: /\[(\w,?)+\]/,
-                        alias: "keyword"
-                    },
-                    string: {
-                        pattern: /("|').*\1/,
-                        inside: {
-                            variable: /(\$|%)\{?(\w\.?(\+|\-|:)?)+\}?/
-                        }
-                    },
-                    variable: /(\$|%)\{?(\w\.?(\+|\-|:)?)+\}?/,
-                    regex: /\^?.*\$|\^.*\$?/
-                }, n.languages.apl = {
-                    comment: /(?:⍝|#[! ]).*$/m,
-                    string: /'(?:[^'\r\n]|'')*'/,
-                    number: /¯?(?:\d*\.?\d+(?:e[+¯]?\d+)?|¯|∞)(?:j¯?(?:\d*\.?\d+(?:e[\+¯]?\d+)?|¯|∞))?/i,
-                    statement: /:[A-Z][a-z][A-Za-z]*\b/,
-                    "system-function": {
-                        pattern: /⎕[A-Z]+/i,
-                        alias: "function"
-                    },
-                    constant: /[⍬⌾#⎕⍞]/,
-                    function: /[-+×÷⌈⌊∣|⍳⍸?*⍟○!⌹<≤=>≥≠≡≢∊⍷∪∩~∨∧⍱⍲⍴,⍪⌽⊖⍉↑↓⊂⊃⌷⍋⍒⊤⊥⍕⍎⊣⊢⍁⍂≈⍯↗¤→]/,
-                    "monadic-operator": {
-                        pattern: /[\\\/⌿⍀¨⍨⌶&∥]/,
-                        alias: "operator"
-                    },
-                    "dyadic-operator": {
-                        pattern: /[.⍣⍠⍤∘⌸]/,
-                        alias: "operator"
-                    },
-                    assignment: {
-                        pattern: /←/,
-                        alias: "keyword"
-                    },
-                    punctuation: /[\[;\]()◇⋄]/,
-                    dfn: {
-                        pattern: /[{}⍺⍵⍶⍹∇⍫:]/,
-                        alias: "builtin"
-                    }
-                }, n.languages.applescript = {
-                    comment: [/\(\*(?:\(\*[\w\W]*?\*\)|[\w\W])*?\*\)/, /--.+/, /#.+/],
-                    string: /"(?:\\?.)*?"/,
-                    number: /\b-?\d*\.?\d+([Ee]-?\d+)?\b/,
-                    operator: [/[&=≠≤≥*+\-\/÷^]|[<>]=?/, /\b(?:(?:start|begin|end)s? with|(?:(?:does not|doesn't) contain|contains?)|(?:is|isn't|is not) (?:in|contained by)|(?:(?:is|isn't|is not) )?(?:greater|less) than(?: or equal)?(?: to)?|(?:(?:does not|doesn't) come|comes) (?:before|after)|(?:is|isn't|is not) equal(?: to)?|(?:(?:does not|doesn't) equal|equals|equal to|isn't|is not)|(?:a )?(?:ref(?: to)?|reference to)|(?:and|or|div|mod|as|not))\b/],
-                    keyword: /\b(?:about|above|after|against|apart from|around|aside from|at|back|before|beginning|behind|below|beneath|beside|between|but|by|considering|continue|copy|does|eighth|else|end|equal|error|every|exit|false|fifth|first|for|fourth|from|front|get|given|global|if|ignoring|in|instead of|into|is|it|its|last|local|me|middle|my|ninth|of|on|onto|out of|over|prop|property|put|repeat|return|returning|second|set|seventh|since|sixth|some|tell|tenth|that|the|then|third|through|thru|timeout|times|to|transaction|true|try|until|where|while|whose|with|without)\b/,
-                    class: {
-                        pattern: /\b(?:alias|application|boolean|class|constant|date|file|integer|list|number|POSIX file|real|record|reference|RGB color|script|text|centimetres|centimeters|feet|inches|kilometres|kilometers|metres|meters|miles|yards|square feet|square kilometres|square kilometers|square metres|square meters|square miles|square yards|cubic centimetres|cubic centimeters|cubic feet|cubic inches|cubic metres|cubic meters|cubic yards|gallons|litres|liters|quarts|grams|kilograms|ounces|pounds|degrees Celsius|degrees Fahrenheit|degrees Kelvin)\b/,
-                        alias: "builtin"
-                    },
-                    punctuation: /[{}():,¬«»《》]/
-                },
-                function(e) {
-                    
-                    var t = {
-                        pattern: /(^[ \t]*)\[(?!\[)(?:(["'$`])(?:(?!\2)[^\\]|\\.)*\2|\[(?:[^\]\\]|\\.)*\]|[^\]\\]|\\.)*\]/m,
-                        lookbehind: !0,
-                        inside: {
-                            quoted: {
-                                pattern: /([$`])(?:(?!\1)[^\\]|\\.)*\1/,
-                                inside: {
-                                    punctuation: /^[$`]|[$`]$/
-                                }
-                            },
-                            interpreted: {
-                                pattern: /'(?:[^'\\]|\\.)*'/,
-                                inside: {
-                                    punctuation: /^'|'$/
-                                }
-                            },
-                            string: /"(?:[^"\\]|\\.)*"/,
-                            variable: /\w+(?==)/,
-                            punctuation: /^\[|\]$|,/,
-                            operator: /=/,
-                            "attr-value": /(?!^\s+$).+/
-                        }
-                    };
-                    e.languages.asciidoc = {
-                        "comment-block": {
-                            pattern: /^(\/{4,})(?:\r?\n|\r)(?:[\s\S]*(?:\r?\n|\r))??\1/m,
-                            alias: "comment"
-                        },
-                        table: {
-                            pattern: /^\|={3,}(?:(?:\r?\n|\r).*)*?(?:\r?\n|\r)\|={3,}$/m,
-                            inside: {
-                                specifiers: {
-                                    pattern: /(?!\|)(?:(?:(?:\d+(?:\.\d+)?|\.\d+)[+*])?(?:[<^>](?:\.[<^>])?|\.[<^>])?[a-z]*)(?=\|)/,
-                                    alias: "attr-value"
-                                },
-                                punctuation: {
-                                    pattern: /(^|[^\\])[|!]=*/,
-                                    lookbehind: !0
-                                }
-                            }
-                        },
-                        "passthrough-block": {
-                            pattern: /^(\+{4,})(?:\r?\n|\r)(?:[\s\S]*(?:\r?\n|\r))??\1$/m,
-                            inside: {
-                                punctuation: /^\++|\++$/
-                            }
-                        },
-                        "literal-block": {
-                            pattern: /^(-{4,}|\.{4,})(?:\r?\n|\r)(?:[\s\S]*(?:\r?\n|\r))??\1$/m,
-                            inside: {
-                                punctuation: /^(?:-+|\.+)|(?:-+|\.+)$/
-                            }
-                        },
-                        "other-block": {
-                            pattern: /^(--|\*{4,}|_{4,}|={4,})(?:\r?\n|\r)(?:[\s\S]*(?:\r?\n|\r))??\1$/m,
-                            inside: {
-                                punctuation: /^(?:-+|\*+|_+|=+)|(?:-+|\*+|_+|=+)$/
-                            }
-                        },
-                        "list-punctuation": {
-                            pattern: /(^[ \t]*)(?:-|\*{1,5}|\.{1,5}|(?:[a-z]|\d+)\.|[xvi]+\))(?= )/im,
-                            lookbehind: !0,
-                            alias: "punctuation"
-                        },
-                        "list-label": {
-                            pattern: /(^[ \t]*)[a-z\d].+(?::{2,4}|;;)(?=\s)/im,
-                            lookbehind: !0,
-                            alias: "symbol"
-                        },
-                        "indented-block": {
-                            pattern: /((\r?\n|\r)\2)([ \t]+)\S.*(?:(?:\r?\n|\r)\3.+)*(?=\2{2}|$)/,
-                            lookbehind: !0
-                        },
-                        comment: /^\/\/.*/m,
-                        title: {
-                            pattern: /^.+(?:\r?\n|\r)(?:={3,}|-{3,}|~{3,}|\^{3,}|\+{3,})$|^={1,5} +.+|^\.(?![\s.]).*/m,
-                            alias: "important",
-                            inside: {
-                                punctuation: /^(?:\.|=+)|(?:=+|-+|~+|\^+|\++)$/
-                            }
-                        },
-                        "attribute-entry": {
-                            pattern: /^:[^:\r\n]+:(?: .*?(?: \+(?:\r?\n|\r).*?)*)?$/m,
-                            alias: "tag"
-                        },
-                        attributes: t,
-                        hr: {
-                            pattern: /^'{3,}$/m,
-                            alias: "punctuation"
-                        },
-                        "page-break": {
-                            pattern: /^<{3,}$/m,
-                            alias: "punctuation"
-                        },
-                        admonition: {
-                            pattern: /^(?:TIP|NOTE|IMPORTANT|WARNING|CAUTION):/m,
-                            alias: "keyword"
-                        },
-                        callout: [{
-                            pattern: /(^[ \t]*)<?\d*>/m,
-                            lookbehind: !0,
-                            alias: "symbol"
-                        }, {
-                            pattern: /<\d+>/,
-                            alias: "symbol"
-                        }],
-                        macro: {
-                            pattern: /\b[a-z\d][a-z\d-]*::?(?:(?:\S+)??\[(?:[^\]\\"]|(["'])(?:(?!\1)[^\\]|\\.)*\1|\\.)*\])/,
-                            inside: {
-                                function: /^[a-z\d-]+(?=:)/,
-                                punctuation: /^::?/,
-                                attributes: {
-                                    pattern: /(?:\[(?:[^\]\\"]|(["'])(?:(?!\1)[^\\]|\\.)*\1|\\.)*\])/,
-                                    inside: t.inside
-                                }
-                            }
-                        },
-                        inline: {
-                            pattern: /(^|[^\\])(?:(?:\B\[(?:[^\]\\"]|(["'])(?:(?!\2)[^\\]|\\.)*\2|\\.)*\])?(?:\b_(?!\s)(?: _|[^_\\\r\n]|\\.)+(?:(?:\r?\n|\r)(?: _|[^_\\\r\n]|\\.)+)*_\b|\B``(?!\s).+?(?:(?:\r?\n|\r).+?)*''\B|\B`(?!\s)(?: ['`]|.)+?(?:(?:\r?\n|\r)(?: ['`]|.)+?)*['`]\B|\B(['*+#])(?!\s)(?: \3|(?!\3)[^\\\r\n]|\\.)+(?:(?:\r?\n|\r)(?: \3|(?!\3)[^\\\r\n]|\\.)+)*\3\B)|(?:\[(?:[^\]\\"]|(["'])(?:(?!\4)[^\\]|\\.)*\4|\\.)*\])?(?:(__|\*\*|\+\+\+?|##|\$\$|[~^]).+?(?:(?:\r?\n|\r).+?)*\5|\{[^}\r\n]+\}|\[\[\[?.+?(?:(?:\r?\n|\r).+?)*\]?\]\]|<<.+?(?:(?:\r?\n|\r).+?)*>>|\(\(\(?.+?(?:(?:\r?\n|\r).+?)*\)?\)\)))/m,
-                            lookbehind: !0,
-                            inside: {
-                                attributes: t,
-                                url: {
-                                    pattern: /^(?:\[\[\[?.+?\]?\]\]|<<.+?>>)$/,
-                                    inside: {
-                                        punctuation: /^(?:\[\[\[?|<<)|(?:\]\]\]?|>>)$/
-                                    }
-                                },
-                                "attribute-ref": {
-                                    pattern: /^\{.+\}$/,
-                                    inside: {
-                                        variable: {
-                                            pattern: /(^\{)[a-z\d,+_-]+/,
-                                            lookbehind: !0
-                                        },
-                                        operator: /^[=?!#%@$]|!(?=[:}])/,
-                                        punctuation: /^\{|\}$|::?/
-                                    }
-                                },
-                                italic: {
-                                    pattern: /^(['_])[\s\S]+\1$/,
-                                    inside: {
-                                        punctuation: /^(?:''?|__?)|(?:''?|__?)$/
-                                    }
-                                },
-                                bold: {
-                                    pattern: /^\*[\s\S]+\*$/,
-                                    inside: {
-                                        punctuation: /^\*\*?|\*\*?$/
-                                    }
-                                },
-                                punctuation: /^(?:``?|\+{1,3}|##?|\$\$|[~^]|\(\(\(?)|(?:''?|\+{1,3}|##?|\$\$|[~^`]|\)?\)\))$/
-                            }
-                        },
-                        replacement: {
-                            pattern: /\((?:C|TM|R)\)/,
-                            alias: "builtin"
-                        },
-                        entity: /&#?[\da-z]{1,8};/i,
-                        "line-continuation": {
-                            pattern: /(^| )\+$/m,
-                            lookbehind: !0,
-                            alias: "punctuation"
-                        }
-                    }, t.inside.interpreted.inside.rest = {
-                        macro: e.languages.asciidoc.macro,
-                        inline: e.languages.asciidoc.inline,
-                        replacement: e.languages.asciidoc.replacement,
-                        entity: e.languages.asciidoc.entity
-                    }, e.languages.asciidoc["passthrough-block"].inside.rest = {
-                        macro: e.languages.asciidoc.macro
-                    }, e.languages.asciidoc["literal-block"].inside.rest = {
-                        callout: e.languages.asciidoc.callout
-                    }, e.languages.asciidoc.table.inside.rest = {
-                        "comment-block": e.languages.asciidoc["comment-block"],
-                        "passthrough-block": e.languages.asciidoc["passthrough-block"],
-                        "literal-block": e.languages.asciidoc["literal-block"],
-                        "other-block": e.languages.asciidoc["other-block"],
-                        "list-punctuation": e.languages.asciidoc["list-punctuation"],
-                        "indented-block": e.languages.asciidoc["indented-block"],
-                        comment: e.languages.asciidoc.comment,
-                        title: e.languages.asciidoc.title,
-                        "attribute-entry": e.languages.asciidoc["attribute-entry"],
-                        attributes: e.languages.asciidoc.attributes,
-                        hr: e.languages.asciidoc.hr,
-                        "page-break": e.languages.asciidoc["page-break"],
-                        admonition: e.languages.asciidoc.admonition,
-                        "list-label": e.languages.asciidoc["list-label"],
-                        callout: e.languages.asciidoc.callout,
-                        macro: e.languages.asciidoc.macro,
-                        inline: e.languages.asciidoc.inline,
-                        replacement: e.languages.asciidoc.replacement,
-                        entity: e.languages.asciidoc.entity,
-                        "line-continuation": e.languages.asciidoc["line-continuation"]
-                    }, e.languages.asciidoc["other-block"].inside.rest = {
-                        table: e.languages.asciidoc.table,
-                        "list-punctuation": e.languages.asciidoc["list-punctuation"],
-                        "indented-block": e.languages.asciidoc["indented-block"],
-                        comment: e.languages.asciidoc.comment,
-                        "attribute-entry": e.languages.asciidoc["attribute-entry"],
-                        attributes: e.languages.asciidoc.attributes,
-                        hr: e.languages.asciidoc.hr,
-                        "page-break": e.languages.asciidoc["page-break"],
-                        admonition: e.languages.asciidoc.admonition,
-                        "list-label": e.languages.asciidoc["list-label"],
-                        macro: e.languages.asciidoc.macro,
-                        inline: e.languages.asciidoc.inline,
-                        replacement: e.languages.asciidoc.replacement,
-                        entity: e.languages.asciidoc.entity,
-                        "line-continuation": e.languages.asciidoc["line-continuation"]
-                    }, e.languages.asciidoc.title.inside.rest = {
-                        macro: e.languages.asciidoc.macro,
-                        inline: e.languages.asciidoc.inline,
-                        replacement: e.languages.asciidoc.replacement,
-                        entity: e.languages.asciidoc.entity
-                    }, e.hooks.add("wrap", function(e) {
-                        "entity" === e.type && (e.attributes.title = e.content.replace(/&amp;/, "&"))
-                    })
-                }(n), n.languages.aspnet = n.languages.extend("markup", {
-                    "page-directive tag": {
-                        pattern: /<%\s*@.*%>/i,
-                        inside: {
-                            "page-directive tag": /<%\s*@\s*(?:Assembly|Control|Implements|Import|Master(?:Type)?|OutputCache|Page|PreviousPageType|Reference|Register)?|%>/i,
-                            rest: n.languages.markup.tag.inside
-                        }
-                    },
-                    "directive tag": {
-                        pattern: /<%.*%>/i,
-                        inside: {
-                            "directive tag": /<%\s*?[$=%#:]{0,2}|%>/i,
-                            rest: n.languages.csharp
-                        }
-                    }
-                }), n.languages.aspnet.tag.pattern = /<(?!%)\/?[^\s>\/]+(?:\s+[^\s>\/=]+(?:=(?:("|')(?:\\\1|\\?(?!\1)[\w\W])*\1|[^\s'">=]+))?)*\s*\/?>/i, n.languages.insertBefore("inside", "punctuation", {
-                    "directive tag": n.languages.aspnet["directive tag"]
-                }, n.languages.aspnet.tag.inside["attr-value"]), n.languages.insertBefore("aspnet", "comment", {
-                    "asp comment": /<%--[\w\W]*?--%>/
-                }), n.languages.insertBefore("aspnet", n.languages.javascript ? "script" : "tag", {
-                    "asp script": {
-                        pattern: /(<script(?=.*runat=['"]?server['"]?)[\w\W]*?>)[\w\W]*?(?=<\/script>)/i,
-                        lookbehind: !0,
-                        inside: n.languages.csharp || {}
-                    }
-                }), n.languages.autoit = {
-                    comment: [/;.*/, {
-                        pattern: /(^\s*)#(?:comments-start|cs)[\s\S]*?^\s*#(?:comments-end|ce)/m,
-                        lookbehind: !0
-                    }],
-                    url: {
-                        pattern: /(^\s*#include\s+)(?:<[^\r\n>]+>|"[^\r\n"]+")/m,
-                        lookbehind: !0
-                    },
-                    string: {
-                        pattern: /(["'])(?:\1\1|(?!\1)[^\r\n])*\1/,
-                        inside: {
-                            variable: /([%$@])\w+\1/
-                        }
-                    },
-                    directive: {
-                        pattern: /(^\s*)#\w+/m,
-                        lookbehind: !0,
-                        alias: "keyword"
-                    },
-                    function: /\b\w+(?=\()/,
-                    variable: /[$@]\w+/,
-                    keyword: /\b(?:Case|Const|Continue(?:Case|Loop)|Default|Dim|Do|Else(?:If)?|End(?:Func|If|Select|Switch|With)|Enum|Exit(?:Loop)?|For|Func|Global|If|In|Local|Next|Null|ReDim|Select|Static|Step|Switch|Then|To|Until|Volatile|WEnd|While|With)\b/i,
-                    number: /\b(?:0x[\da-f]+|\d+(?:\.\d+)?(?:e[+-]?\d+)?)\b/i,
-                    boolean: /\b(?:True|False)\b/i,
-                    operator: /<[=>]?|[-+*\/=&>]=?|[?^]|\b(?:And|Or|Not)\b/i,
-                    punctuation: /[\[\]().,:]/
-                }, n.languages.autohotkey = {
-                    comment: {
-                        pattern: /(^[^";\n]*("[^"\n]*?"[^"\n]*?)*)(;.*$|^\s*\/\*[\s\S]*\n\*\/)/m,
-                        lookbehind: !0
-                    },
-                    string: /"(([^"\n\r]|"")*)"/m,
-                    function: /[^\(\); \t,\n\+\*\-=\?>:\\\/<&%\[\]]+?(?=\()/m,
-                    tag: /^[ \t]*[^\s:]+?(?=:(?:[^:]|$))/m,
-                    variable: /%\w+%/,
-                    number: /\b-?(0x[\dA-Fa-f]+|\d*\.?\d+([Ee]-?\d+)?)\b/,
-                    operator: /\?|\/\/?=?|:=|\|[=|]?|&[=&]?|\+[=+]?|-[=-]?|\*[=*]?|<(?:<=?|>|=)?|>>?=?|[.^!=~]=?|\b(?:AND|NOT|OR)\b/,
-                    punctuation: /[\{}[\]\(\):,]/,
-                    boolean: /\b(true|false)\b/,
-                    selector: /\b(AutoTrim|BlockInput|Break|Click|ClipWait|Continue|Control|ControlClick|ControlFocus|ControlGet|ControlGetFocus|ControlGetPos|ControlGetText|ControlMove|ControlSend|ControlSendRaw|ControlSetText|CoordMode|Critical|DetectHiddenText|DetectHiddenWindows|Drive|DriveGet|DriveSpaceFree|EnvAdd|EnvDiv|EnvGet|EnvMult|EnvSet|EnvSub|EnvUpdate|Exit|ExitApp|FileAppend|FileCopy|FileCopyDir|FileCreateDir|FileCreateShortcut|FileDelete|FileEncoding|FileGetAttrib|FileGetShortcut|FileGetSize|FileGetTime|FileGetVersion|FileInstall|FileMove|FileMoveDir|FileRead|FileReadLine|FileRecycle|FileRecycleEmpty|FileRemoveDir|FileSelectFile|FileSelectFolder|FileSetAttrib|FileSetTime|FormatTime|GetKeyState|Gosub|Goto|GroupActivate|GroupAdd|GroupClose|GroupDeactivate|Gui|GuiControl|GuiControlGet|Hotkey|ImageSearch|IniDelete|IniRead|IniWrite|Input|InputBox|KeyWait|ListHotkeys|ListLines|ListVars|Loop|Menu|MouseClick|MouseClickDrag|MouseGetPos|MouseMove|MsgBox|OnExit|OutputDebug|Pause|PixelGetColor|PixelSearch|PostMessage|Process|Progress|Random|RegDelete|RegRead|RegWrite|Reload|Repeat|Return|Run|RunAs|RunWait|Send|SendEvent|SendInput|SendMessage|SendMode|SendPlay|SendRaw|SetBatchLines|SetCapslockState|SetControlDelay|SetDefaultMouseSpeed|SetEnv|SetFormat|SetKeyDelay|SetMouseDelay|SetNumlockState|SetScrollLockState|SetStoreCapslockMode|SetTimer|SetTitleMatchMode|SetWinDelay|SetWorkingDir|Shutdown|Sleep|Sort|SoundBeep|SoundGet|SoundGetWaveVolume|SoundPlay|SoundSet|SoundSetWaveVolume|SplashImage|SplashTextOff|SplashTextOn|SplitPath|StatusBarGetText|StatusBarWait|StringCaseSense|StringGetPos|StringLeft|StringLen|StringLower|StringMid|StringReplace|StringRight|StringSplit|StringTrimLeft|StringTrimRight|StringUpper|Suspend|SysGet|Thread|ToolTip|Transform|TrayTip|URLDownloadToFile|WinActivate|WinActivateBottom|WinClose|WinGet|WinGetActiveStats|WinGetActiveTitle|WinGetClass|WinGetPos|WinGetText|WinGetTitle|WinHide|WinKill|WinMaximize|WinMenuSelectItem|WinMinimize|WinMinimizeAll|WinMinimizeAllUndo|WinMove|WinRestore|WinSet|WinSetTitle|WinShow|WinWait|WinWaitActive|WinWaitClose|WinWaitNotActive)\b/i,
-                    constant: /\b(a_ahkpath|a_ahkversion|a_appdata|a_appdatacommon|a_autotrim|a_batchlines|a_caretx|a_carety|a_computername|a_controldelay|a_cursor|a_dd|a_ddd|a_dddd|a_defaultmousespeed|a_desktop|a_desktopcommon|a_detecthiddentext|a_detecthiddenwindows|a_endchar|a_eventinfo|a_exitreason|a_formatfloat|a_formatinteger|a_gui|a_guievent|a_guicontrol|a_guicontrolevent|a_guiheight|a_guiwidth|a_guix|a_guiy|a_hour|a_iconfile|a_iconhidden|a_iconnumber|a_icontip|a_index|a_ipaddress1|a_ipaddress2|a_ipaddress3|a_ipaddress4|a_isadmin|a_iscompiled|a_iscritical|a_ispaused|a_issuspended|a_isunicode|a_keydelay|a_language|a_lasterror|a_linefile|a_linenumber|a_loopfield|a_loopfileattrib|a_loopfiledir|a_loopfileext|a_loopfilefullpath|a_loopfilelongpath|a_loopfilename|a_loopfileshortname|a_loopfileshortpath|a_loopfilesize|a_loopfilesizekb|a_loopfilesizemb|a_loopfiletimeaccessed|a_loopfiletimecreated|a_loopfiletimemodified|a_loopreadline|a_loopregkey|a_loopregname|a_loopregsubkey|a_loopregtimemodified|a_loopregtype|a_mday|a_min|a_mm|a_mmm|a_mmmm|a_mon|a_mousedelay|a_msec|a_mydocuments|a_now|a_nowutc|a_numbatchlines|a_ostype|a_osversion|a_priorhotkey|programfiles|a_programfiles|a_programs|a_programscommon|a_screenheight|a_screenwidth|a_scriptdir|a_scriptfullpath|a_scriptname|a_sec|a_space|a_startmenu|a_startmenucommon|a_startup|a_startupcommon|a_stringcasesense|a_tab|a_temp|a_thisfunc|a_thishotkey|a_thislabel|a_thismenu|a_thismenuitem|a_thismenuitempos|a_tickcount|a_timeidle|a_timeidlephysical|a_timesincepriorhotkey|a_timesincethishotkey|a_titlematchmode|a_titlematchmodespeed|a_username|a_wday|a_windelay|a_windir|a_workingdir|a_yday|a_year|a_yweek|a_yyyy|clipboard|clipboardall|comspec|errorlevel)\b/i,
-                    builtin: /\b(abs|acos|asc|asin|atan|ceil|chr|class|cos|dllcall|exp|fileexist|Fileopen|floor|il_add|il_create|il_destroy|instr|substr|isfunc|islabel|IsObject|ln|log|lv_add|lv_delete|lv_deletecol|lv_getcount|lv_getnext|lv_gettext|lv_insert|lv_insertcol|lv_modify|lv_modifycol|lv_setimagelist|mod|onmessage|numget|numput|registercallback|regexmatch|regexreplace|round|sin|tan|sqrt|strlen|sb_seticon|sb_setparts|sb_settext|strsplit|tv_add|tv_delete|tv_getchild|tv_getcount|tv_getnext|tv_get|tv_getparent|tv_getprev|tv_getselection|tv_gettext|tv_modify|varsetcapacity|winactive|winexist|__New|__Call|__Get|__Set)\b/i,
-                    symbol: /\b(alt|altdown|altup|appskey|backspace|browser_back|browser_favorites|browser_forward|browser_home|browser_refresh|browser_search|browser_stop|bs|capslock|ctrl|ctrlbreak|ctrldown|ctrlup|del|delete|down|end|enter|esc|escape|f1|f10|f11|f12|f13|f14|f15|f16|f17|f18|f19|f2|f20|f21|f22|f23|f24|f3|f4|f5|f6|f7|f8|f9|home|ins|insert|joy1|joy10|joy11|joy12|joy13|joy14|joy15|joy16|joy17|joy18|joy19|joy2|joy20|joy21|joy22|joy23|joy24|joy25|joy26|joy27|joy28|joy29|joy3|joy30|joy31|joy32|joy4|joy5|joy6|joy7|joy8|joy9|joyaxes|joybuttons|joyinfo|joyname|joypov|joyr|joyu|joyv|joyx|joyy|joyz|lalt|launch_app1|launch_app2|launch_mail|launch_media|lbutton|lcontrol|lctrl|left|lshift|lwin|lwindown|lwinup|mbutton|media_next|media_play_pause|media_prev|media_stop|numlock|numpad0|numpad1|numpad2|numpad3|numpad4|numpad5|numpad6|numpad7|numpad8|numpad9|numpadadd|numpadclear|numpaddel|numpaddiv|numpaddot|numpaddown|numpadend|numpadenter|numpadhome|numpadins|numpadleft|numpadmult|numpadpgdn|numpadpgup|numpadright|numpadsub|numpadup|pgdn|pgup|printscreen|ralt|rbutton|rcontrol|rctrl|right|rshift|rwin|rwindown|rwinup|scrolllock|shift|shiftdown|shiftup|space|tab|up|volume_down|volume_mute|volume_up|wheeldown|wheelleft|wheelright|wheelup|xbutton1|xbutton2)\b/i,
-                    important: /#\b(AllowSameLineComments|ClipboardTimeout|CommentFlag|ErrorStdOut|EscapeChar|HotkeyInterval|HotkeyModifierTimeout|Hotstring|IfWinActive|IfWinExist|IfWinNotActive|IfWinNotExist|Include|IncludeAgain|InstallKeybdHook|InstallMouseHook|KeyHistory|LTrim|MaxHotkeysPerInterval|MaxMem|MaxThreads|MaxThreadsBuffer|MaxThreadsPerHotkey|NoEnv|NoTrayIcon|Persistent|SingleInstance|UseHook|WinActivateForce)\b/i,
-                    keyword: /\b(Abort|AboveNormal|Add|ahk_class|ahk_group|ahk_id|ahk_pid|All|Alnum|Alpha|AltSubmit|AltTab|AltTabAndMenu|AltTabMenu|AltTabMenuDismiss|AlwaysOnTop|AutoSize|Background|BackgroundTrans|BelowNormal|between|BitAnd|BitNot|BitOr|BitShiftLeft|BitShiftRight|BitXOr|Bold|Border|Button|ByRef|Checkbox|Checked|CheckedGray|Choose|ChooseString|Close|Color|ComboBox|Contains|ControlList|Count|Date|DateTime|Days|DDL|Default|DeleteAll|Delimiter|Deref|Destroy|Digit|Disable|Disabled|DropDownList|Edit|Eject|Else|Enable|Enabled|Error|Exist|Expand|ExStyle|FileSystem|First|Flash|Float|FloatFast|Focus|Font|for|global|Grid|Group|GroupBox|GuiClose|GuiContextMenu|GuiDropFiles|GuiEscape|GuiSize|Hdr|Hidden|Hide|High|HKCC|HKCR|HKCU|HKEY_CLASSES_ROOT|HKEY_CURRENT_CONFIG|HKEY_CURRENT_USER|HKEY_LOCAL_MACHINE|HKEY_USERS|HKLM|HKU|Hours|HScroll|Icon|IconSmall|ID|IDLast|If|IfEqual|IfExist|IfGreater|IfGreaterOrEqual|IfInString|IfLess|IfLessOrEqual|IfMsgBox|IfNotEqual|IfNotExist|IfNotInString|IfWinActive|IfWinExist|IfWinNotActive|IfWinNotExist|Ignore|ImageList|in|Integer|IntegerFast|Interrupt|is|italic|Join|Label|LastFound|LastFoundExist|Limit|Lines|List|ListBox|ListView|local|Lock|Logoff|Low|Lower|Lowercase|MainWindow|Margin|Maximize|MaximizeBox|MaxSize|Minimize|MinimizeBox|MinMax|MinSize|Minutes|MonthCal|Mouse|Move|Multi|NA|No|NoActivate|NoDefault|NoHide|NoIcon|NoMainWindow|norm|Normal|NoSort|NoSortHdr|NoStandard|Not|NoTab|NoTimers|Number|Off|Ok|On|OwnDialogs|Owner|Parse|Password|Picture|Pixel|Pos|Pow|Priority|ProcessName|Radio|Range|Read|ReadOnly|Realtime|Redraw|REG_BINARY|REG_DWORD|REG_EXPAND_SZ|REG_MULTI_SZ|REG_SZ|Region|Relative|Rename|Report|Resize|Restore|Retry|RGB|Screen|Seconds|Section|Serial|SetLabel|ShiftAltTab|Show|Single|Slider|SortDesc|Standard|static|Status|StatusBar|StatusCD|strike|Style|Submit|SysMenu|Tab2|TabStop|Text|Theme|Tile|ToggleCheck|ToggleEnable|ToolWindow|Top|Topmost|TransColor|Transparent|Tray|TreeView|TryAgain|Type|UnCheck|underline|Unicode|Unlock|UpDown|Upper|Uppercase|UseErrorLevel|Vis|VisFirst|Visible|VScroll|Wait|WaitClose|WantCtrlA|WantF2|WantReturn|While|Wrap|Xdigit|xm|xp|xs|Yes|ym|yp|ys)\b/i
-                },
-                function(e) {
-                    var t = {
-                        variable: [{
-                            pattern: /\$?\(\([\w\W]+?\)\)/,
-                            inside: {
-                                variable: [{
-                                    pattern: /(^\$\(\([\w\W]+)\)\)/,
-                                    lookbehind: !0
-                                }, /^\$\(\(/],
-                                number: /\b-?(?:0x[\dA-Fa-f]+|\d*\.?\d+(?:[Ee]-?\d+)?)\b/,
-                                operator: /--?|-=|\+\+?|\+=|!=?|~|\*\*?|\*=|\/=?|%=?|<<=?|>>=?|<=?|>=?|==?|&&?|&=|\^=?|\|\|?|\|=|\?|:/,
-                                punctuation: /\(\(?|\)\)?|,|;/
-                            }
-                        }, {
-                            pattern: /\$\([^)]+\)|`[^`]+`/,
-                            inside: {
-                                variable: /^\$\(|^`|\)$|`$/
-                            }
-                        }, /\$(?:[a-z0-9_#\?\*!@]+|\{[^}]+\})/i]
-                    };
-                    e.languages.bash = {
-                        shebang: {
-                            pattern: /^#!\s*\/bin\/bash|^#!\s*\/bin\/sh/,
-                            alias: "important"
-                        },
-                        comment: {
-                            pattern: /(^|[^"{\\])#.*/,
-                            lookbehind: !0
-                        },
-                        string: [{
-                            pattern: /((?:^|[^<])<<\s*)(?:"|')?(\w+?)(?:"|')?\s*\r?\n(?:[\s\S])*?\r?\n\2/g,
-                            lookbehind: !0,
-                            greedy: !0,
-                            inside: t
-                        }, {
-                            pattern: /(["'])(?:\\\\|\\?[^\\])*?\1/g,
-                            greedy: !0,
-                            inside: t
-                        }],
-                        variable: t.variable,
-                        function: {
-                            pattern: /(^|\s|;|\||&)(?:alias|apropos|apt-get|aptitude|aspell|awk|basename|bash|bc|bg|builtin|bzip2|cal|cat|cd|cfdisk|chgrp|chmod|chown|chroot|chkconfig|cksum|clear|cmp|comm|command|cp|cron|crontab|csplit|cut|date|dc|dd|ddrescue|df|diff|diff3|dig|dir|dircolors|dirname|dirs|dmesg|du|egrep|eject|enable|env|ethtool|eval|exec|expand|expect|export|expr|fdformat|fdisk|fg|fgrep|file|find|fmt|fold|format|free|fsck|ftp|fuser|gawk|getopts|git|grep|groupadd|groupdel|groupmod|groups|gzip|hash|head|help|hg|history|hostname|htop|iconv|id|ifconfig|ifdown|ifup|import|install|jobs|join|kill|killall|less|link|ln|locate|logname|logout|look|lpc|lpr|lprint|lprintd|lprintq|lprm|ls|lsof|make|man|mkdir|mkfifo|mkisofs|mknod|more|most|mount|mtools|mtr|mv|mmv|nano|netstat|nice|nl|nohup|notify-send|npm|nslookup|open|op|passwd|paste|pathchk|ping|pkill|popd|pr|printcap|printenv|printf|ps|pushd|pv|pwd|quota|quotacheck|quotactl|ram|rar|rcp|read|readarray|readonly|reboot|rename|renice|remsync|rev|rm|rmdir|rsync|screen|scp|sdiff|sed|seq|service|sftp|shift|shopt|shutdown|sleep|slocate|sort|source|split|ssh|stat|strace|su|sudo|sum|suspend|sync|tail|tar|tee|test|time|timeout|times|touch|top|traceroute|trap|tr|tsort|tty|type|ulimit|umask|umount|unalias|uname|unexpand|uniq|units|unrar|unshar|uptime|useradd|userdel|usermod|users|uuencode|uudecode|v|vdir|vi|vmstat|wait|watch|wc|wget|whereis|which|who|whoami|write|xargs|xdg-open|yes|zip)(?=$|\s|;|\||&)/,
-                            lookbehind: !0
-                        },
-                        keyword: {
-                            pattern: /(^|\s|;|\||&)(?:let|:|\.|if|then|else|elif|fi|for|break|continue|while|in|case|function|select|do|done|until|echo|exit|return|set|declare)(?=$|\s|;|\||&)/,
-                            lookbehind: !0
-                        },
-                        boolean: {
-                            pattern: /(^|\s|;|\||&)(?:true|false)(?=$|\s|;|\||&)/,
-                            lookbehind: !0
-                        },
-                        operator: /&&?|\|\|?|==?|!=?|<<<?|>>|<=?|>=?|=~/,
-                        punctuation: /\$?\(\(?|\)\)?|\.\.|[{}[\];]/
-                    };
-                    var n = t.variable[1].inside;
-                    n.function = e.languages.bash.function, n.keyword = e.languages.bash.keyword, n.boolean = e.languages.bash.boolean, n.operator = e.languages.bash.operator, n.punctuation = e.languages.bash.punctuation
-                }(n), n.languages.basic = {
-                    string: /"(?:""|[!#$%&'()*,\/:;<=>?^_ +\-.A-Z\d])*"/i,
-                    comment: {
-                        pattern: /(?:!|REM\b).+/i,
-                        inside: {
-                            keyword: /^REM/i
-                        }
-                    },
-                    number: /(?:\b|\B[.-])(?:\d+\.?\d*)(?:E[+-]?\d+)?/i,
-                    keyword: /\b(?:AS|BEEP|BLOAD|BSAVE|CALL(?: ABSOLUTE)?|CASE|CHAIN|CHDIR|CLEAR|CLOSE|CLS|COM|COMMON|CONST|DATA|DECLARE|DEF(?: FN| SEG|DBL|INT|LNG|SNG|STR)|DIM|DO|DOUBLE|ELSE|ELSEIF|END|ENVIRON|ERASE|ERROR|EXIT|FIELD|FILES|FOR|FUNCTION|GET|GOSUB|GOTO|IF|INPUT|INTEGER|IOCTL|KEY|KILL|LINE INPUT|LOCATE|LOCK|LONG|LOOP|LSET|MKDIR|NAME|NEXT|OFF|ON(?: COM| ERROR| KEY| TIMER)?|OPEN|OPTION BASE|OUT|POKE|PUT|READ|REDIM|REM|RESTORE|RESUME|RETURN|RMDIR|RSET|RUN|SHARED|SINGLE|SELECT CASE|SHELL|SLEEP|STATIC|STEP|STOP|STRING|SUB|SWAP|SYSTEM|THEN|TIMER|TO|TROFF|TRON|TYPE|UNLOCK|UNTIL|USING|VIEW PRINT|WAIT|WEND|WHILE|WRITE)(?:\$|\b)/i,
-                    function: /\b(?:ABS|ACCESS|ACOS|ANGLE|AREA|ARITHMETIC|ARRAY|ASIN|ASK|AT|ATN|BASE|BEGIN|BREAK|CAUSE|CEIL|CHR|CLIP|COLLATE|COLOR|CON|COS|COSH|COT|CSC|DATE|DATUM|DEBUG|DECIMAL|DEF|DEG|DEGREES|DELETE|DET|DEVICE|DISPLAY|DOT|ELAPSED|EPS|ERASABLE|EXLINE|EXP|EXTERNAL|EXTYPE|FILETYPE|FIXED|FP|GO|GRAPH|HANDLER|IDN|IMAGE|IN|INT|INTERNAL|IP|IS|KEYED|LBOUND|LCASE|LEFT|LEN|LENGTH|LET|LINE|LINES|LOG|LOG10|LOG2|LTRIM|MARGIN|MAT|MAX|MAXNUM|MID|MIN|MISSING|MOD|NATIVE|NUL|NUMERIC|OF|OPTION|ORD|ORGANIZATION|OUTIN|OUTPUT|PI|POINT|POINTER|POINTS|POS|PRINT|PROGRAM|PROMPT|RAD|RADIANS|RANDOMIZE|RECORD|RECSIZE|RECTYPE|RELATIVE|REMAINDER|REPEAT|REST|RETRY|REWRITE|RIGHT|RND|ROUND|RTRIM|SAME|SEC|SELECT|SEQUENTIAL|SET|SETTER|SGN|SIN|SINH|SIZE|SKIP|SQR|STANDARD|STATUS|STR|STREAM|STYLE|TAB|TAN|TANH|TEMPLATE|TEXT|THERE|TIME|TIMEOUT|TRACE|TRANSFORM|TRUNCATE|UBOUND|UCASE|USE|VAL|VARIABLE|VIEWPORT|WHEN|WINDOW|WITH|ZER|ZONEWIDTH)(?:\$|\b)/i,
-                    operator: /<[=>]?|>=?|[+\-*\/^=&]|\b(?:AND|EQV|IMP|NOT|OR|XOR)\b/i,
-                    punctuation: /[,;:()]/
-                },
-                function(e) {
-                    var t = /%%?[~:\w]+%?|!\S+!/,
-                        i = {
-                            pattern: /\/[a-z?]+(?=[ :]|$):?|-[a-z]\b|--[a-z-]+\b/im,
-                            alias: "attr-name",
-                            inside: {
-                                punctuation: /:/
-                            }
-                        },
-                        a = /"[^"]*"/,
-                        r = /(?:\b|-)\d+\b/;
-                    n.languages.batch = {
-                        comment: [/^::.*/m, {
-                            pattern: /((?:^|[&(])[ \t]*)rem\b(?:[^^&)\r\n]|\^(?:\r\n|[\s\S]))*/im,
-                            lookbehind: !0
-                        }],
-                        label: {
-                            pattern: /^:.*/m,
-                            alias: "property"
-                        },
-                        command: [{
-                            pattern: /((?:^|[&(])[ \t]*)for(?: ?\/[a-z?](?:[ :](?:"[^"]*"|\S+))?)* \S+ in \([^)]+\) do/im,
-                            lookbehind: !0,
-                            inside: {
-                                keyword: /^for\b|\b(?:in|do)\b/i,
-                                string: a,
-                                parameter: i,
-                                variable: t,
-                                number: r,
-                                punctuation: /[()',]/
-                            }
-                        }, {
-                            pattern: /((?:^|[&(])[ \t]*)if(?: ?\/[a-z?](?:[ :](?:"[^"]*"|\S+))?)* (?:not )?(?:cmdextversion \d+|defined \w+|errorlevel \d+|exist \S+|(?:"[^"]*"|\S+)?(?:==| (?:equ|neq|lss|leq|gtr|geq) )(?:"[^"]*"|\S+))/im,
-                            lookbehind: !0,
-                            inside: {
-                                keyword: /^if\b|\b(?:not|cmdextversion|defined|errorlevel|exist)\b/i,
-                                string: a,
-                                parameter: i,
-                                variable: t,
-                                number: r,
-                                operator: /\^|==|\b(?:equ|neq|lss|leq|gtr|geq)\b/i
-                            }
-                        }, {
-                            pattern: /((?:^|[&()])[ \t]*)else\b/im,
-                            lookbehind: !0,
-                            inside: {
-                                keyword: /^else\b/i
-                            }
-                        }, {
-                            pattern: /((?:^|[&(])[ \t]*)set(?: ?\/[a-z](?:[ :](?:"[^"]*"|\S+))?)* (?:[^^&)\r\n]|\^(?:\r\n|[\s\S]))*/im,
-                            lookbehind: !0,
-                            inside: {
-                                keyword: /^set\b/i,
-                                string: a,
-                                parameter: i,
-                                variable: [t, /\w+(?=(?:[*\/%+\-&^|]|<<|>>)?=)/],
-                                number: r,
-                                operator: /[*\/%+\-&^|]=?|<<=?|>>=?|[!~_=]/,
-                                punctuation: /[()',]/
-                            }
-                        }, {
-                            pattern: /((?:^|[&(])[ \t]*@?)\w+\b(?:[^^&)\r\n]|\^(?:\r\n|[\s\S]))*/im,
-                            lookbehind: !0,
-                            inside: {
-                                keyword: /^\w+\b/i,
-                                string: a,
-                                parameter: i,
-                                label: {
-                                    pattern: /(^\s*):\S+/m,
-                                    lookbehind: !0,
-                                    alias: "property"
-                                },
-                                variable: t,
-                                number: r,
-                                operator: /\^/
-                            }
-                        }],
-                        operator: /[&@]/,
-                        punctuation: /[()']/
-                    }
-                }(), n.languages.c = n.languages.extend("clike", {
-                    keyword: /\b(asm|typeof|inline|auto|break|case|char|const|continue|default|do|double|else|enum|extern|float|for|goto|if|int|long|register|return|short|signed|sizeof|static|struct|switch|typedef|union|unsigned|void|volatile|while)\b/,
-                    operator: /\-[>-]?|\+\+?|!=?|<<?=?|>>?=?|==?|&&?|\|?\||[~^%?*\/]/,
-                    number: /\b-?(?:0x[\da-f]+|\d*\.?\d+(?:e[+-]?\d+)?)[ful]*\b/i
-                }), n.languages.insertBefore("c", "string", {
-                    macro: {
-                        pattern: /(^\s*)#\s*[a-z]+([^\r\n\\]|\\.|\\(?:\r\n?|\n))*/im,
-                        lookbehind: !0,
-                        alias: "property",
-                        inside: {
-                            string: {
-                                pattern: /(#\s*include\s*)(<.+?>|("|')(\\?.)+?\3)/,
-                                lookbehind: !0
-                            },
-                            directive: {
-                                pattern: /(#\s*)\b(define|elif|else|endif|error|ifdef|ifndef|if|import|include|line|pragma|undef|using)\b/,
-                                lookbehind: !0,
-                                alias: "keyword"
-                            }
-                        }
-                    },
-                    constant: /\b(__FILE__|__LINE__|__DATE__|__TIME__|__TIMESTAMP__|__func__|EOF|NULL|stdin|stdout|stderr)\b/
-                }), delete n.languages.c["class-name"], delete n.languages.c.boolean, n.languages.brainfuck = {
-                    pointer: {
-                        pattern: /<|>/,
-                        alias: "keyword"
-                    },
-                    increment: {
-                        pattern: /\+/,
-                        alias: "inserted"
-                    },
-                    decrement: {
-                        pattern: /-/,
-                        alias: "deleted"
-                    },
-                    branching: {
-                        pattern: /\[|\]/,
-                        alias: "important"
-                    },
-                    operator: /[.,]/,
-                    comment: /\S+/
-                }, n.languages.bro = {
-                    comment: {
-                        pattern: /(^|[^\\$])#.*/,
-                        lookbehind: !0,
-                        inside: {
-                            italic: /\b(TODO|FIXME|XXX)\b/
-                        }
-                    },
-                    string: {
-                        pattern: /(["'])(\\(?:\r\n|[\s\S])|(?!\1)[^\\\r\n])*\1/,
-                        greedy: !0
-                    },
-                    boolean: /\b(T|F)\b/,
-                    function: {
-                        pattern: /(?:function|hook|event) [a-zA-Z0-9_]+(::[a-zA-Z0-9_]+)?/,
-                        inside: {
-                            keyword: /^(?:function|hook|event)/
-                        }
-                    },
-                    variable: {
-                        pattern: /(?:global|local) [a-zA-Z0-9_]+/i,
-                        inside: {
-                            keyword: /(?:global|local)/
-                        }
-                    },
-                    builtin: /(@(load(-(sigs|plugin))?|unload|prefixes|ifn?def|else|(end)?if|DIR|FILENAME))|(&?(redef|priority|log|optional|default|add_func|delete_func|expire_func|read_expire|write_expire|create_expire|synchronized|persistent|rotate_interval|rotate_size|encrypt|raw_output|mergeable|group|error_handler|type_column))/,
-                    constant: {
-                        pattern: /const [a-zA-Z0-9_]+/i,
-                        inside: {
-                            keyword: /const/
-                        }
-                    },
-                    keyword: /\b(break|next|continue|alarm|using|of|add|delete|export|print|return|schedule|when|timeout|addr|any|bool|count|double|enum|file|int|interval|pattern|opaque|port|record|set|string|subnet|table|time|vector|for|if|else|in|module|function)\b/,
-                    operator: /--?|\+\+?|!=?=?|<=?|>=?|==?=?|&&|\|\|?|\?|\*|\/|~|\^|%/,
-                    number: /\b-?(?:0x[\da-f]+|\d*\.?\d+(?:e[+-]?\d+)?)\b/i,
-                    punctuation: /[{}[\];(),.:]/
-                }, n.languages.bison = n.languages.extend("c", {}), n.languages.insertBefore("bison", "comment", {
-                    bison: {
-                        pattern: /^[\s\S]*?%%[\s\S]*?%%/,
-                        inside: {
-                            c: {
-                                pattern: /%\{[\s\S]*?%\}|\{(?:\{[^}]*\}|[^{}])*\}/,
-                                inside: {
-                                    delimiter: {
-                                        pattern: /^%?\{|%?\}$/,
-                                        alias: "punctuation"
-                                    },
-                                    "bison-variable": {
-                                        pattern: /[$@](?:<[^\s>]+>)?[\w$]+/,
-                                        alias: "variable",
-                                        inside: {
-                                            punctuation: /<|>/
-                                        }
-                                    },
-                                    rest: n.languages.c
-                                }
-                            },
-                            comment: n.languages.c.comment,
-                            string: n.languages.c.string,
-                            property: /\S+(?=:)/,
-                            keyword: /%\w+/,
-                            number: {
-                                pattern: /(^|[^@])\b(?:0x[\da-f]+|\d+)/i,
-                                lookbehind: !0
-                            },
-                            punctuation: /%[%?]|[|:;\[\]<>]/
-                        }
-                    }
-                }), n.languages.csharp = n.languages.extend("clike", {
-                    keyword: /\b(abstract|as|async|await|base|bool|break|byte|case|catch|char|checked|class|const|continue|decimal|default|delegate|do|double|else|enum|event|explicit|extern|false|finally|fixed|float|for|foreach|goto|if|implicit|in|int|interface|internal|is|lock|long|namespace|new|null|object|operator|out|override|params|private|protected|public|readonly|ref|return|sbyte|sealed|short|sizeof|stackalloc|static|string|struct|switch|this|throw|true|try|typeof|uint|ulong|unchecked|unsafe|ushort|using|virtual|void|volatile|while|add|alias|ascending|async|await|descending|dynamic|from|get|global|group|into|join|let|orderby|partial|remove|select|set|value|var|where|yield)\b/,
-                    string: [/@("|')(\1\1|\\\1|\\?(?!\1)[\s\S])*\1/, /("|')(\\?.)*?\1/],
-                    number: /\b-?(0x[\da-f]+|\d*\.?\d+f?)\b/i
-                }), n.languages.insertBefore("csharp", "keyword", {
-                    "generic-method": {
-                        pattern: /[a-z0-9_]+\s*<[^>\r\n]+?>\s*(?=\()/i,
-                        alias: "function",
-                        inside: {
-                            keyword: n.languages.csharp.keyword,
-                            punctuation: /[<>(),.:]/
-                        }
-                    },
-                    preprocessor: {
-                        pattern: /(^\s*)#.*/m,
-                        lookbehind: !0,
-                        alias: "property",
-                        inside: {
-                            directive: {
-                                pattern: /(\s*#)\b(define|elif|else|endif|endregion|error|if|line|pragma|region|undef|warning)\b/,
-                                lookbehind: !0,
-                                alias: "keyword"
-                            }
-                        }
-                    }
-                }), n.languages.cpp = n.languages.extend("c", {
-                    keyword: /\b(alignas|alignof|asm|auto|bool|break|case|catch|char|char16_t|char32_t|class|compl|const|constexpr|const_cast|continue|decltype|default|delete|do|double|dynamic_cast|else|enum|explicit|export|extern|float|for|friend|goto|if|inline|int|long|mutable|namespace|new|noexcept|nullptr|operator|private|protected|public|register|reinterpret_cast|return|short|signed|sizeof|static|static_assert|static_cast|struct|switch|template|this|thread_local|throw|try|typedef|typeid|typename|union|unsigned|using|virtual|void|volatile|wchar_t|while)\b/,
-                    boolean: /\b(true|false)\b/,
-                    operator: /[-+]{1,2}|!=?|<{1,2}=?|>{1,2}=?|\->|:{1,2}|={1,2}|\^|~|%|&{1,2}|\|?\||\?|\*|\/|\b(and|and_eq|bitand|bitor|not|not_eq|or|or_eq|xor|xor_eq)\b/
-                }), n.languages.insertBefore("cpp", "keyword", {
-                    "class-name": {
-                        pattern: /(class\s+)[a-z0-9_]+/i,
-                        lookbehind: !0
-                    }
-                }),
-                function(e) {
-                    var t = /#(?!\{).+/,
-                        n = {
-                            pattern: /#\{[^}]+\}/,
-                            alias: "variable"
-                        };
-                    e.languages.coffeescript = e.languages.extend("javascript", {
-                        comment: t,
-                        string: [{
-                            pattern: /'(?:\\?[^\\])*?'/,
-                            greedy: !0
-                        }, {
-                            pattern: /"(?:\\?[^\\])*?"/,
-                            greedy: !0,
-                            inside: {
-                                interpolation: n
-                            }
-                        }],
-                        keyword: /\b(and|break|by|catch|class|continue|debugger|delete|do|each|else|extend|extends|false|finally|for|if|in|instanceof|is|isnt|let|loop|namespace|new|no|not|null|of|off|on|or|own|return|super|switch|then|this|throw|true|try|typeof|undefined|unless|until|when|while|window|with|yes|yield)\b/,
-                        "class-member": {
-                            pattern: /@(?!\d)\w+/,
-                            alias: "variable"
-                        }
-                    }), e.languages.insertBefore("coffeescript", "comment", {
-                        "multiline-comment": {
-                            pattern: /###[\s\S]+?###/,
-                            alias: "comment"
-                        },
-                        "block-regex": {
-                            pattern: /\/{3}[\s\S]*?\/{3}/,
-                            alias: "regex",
-                            inside: {
-                                comment: t,
-                                interpolation: n
-                            }
-                        }
-                    }), e.languages.insertBefore("coffeescript", "string", {
-                        "inline-javascript": {
-                            pattern: /`(?:\\?[\s\S])*?`/,
-                            inside: {
-                                delimiter: {
-                                    pattern: /^`|`$/,
-                                    alias: "punctuation"
-                                },
-                                rest: e.languages.javascript
-                            }
-                        },
-                        "multiline-string": [{
-                            pattern: /'''[\s\S]*?'''/,
-                            greedy: !0,
-                            alias: "string"
-                        }, {
-                            pattern: /"""[\s\S]*?"""/,
-                            greedy: !0,
-                            alias: "string",
-                            inside: {
-                                interpolation: n
-                            }
-                        }]
-                    }), e.languages.insertBefore("coffeescript", "keyword", {
-                        property: /(?!\d)\w+(?=\s*:(?!:))/
-                    }), delete e.languages.coffeescript["template-string"]
-                }(n),
-                function(e) {
-                    e.languages.ruby = e.languages.extend("clike", {
-                        comment: /#(?!\{[^\r\n]*?\}).*/,
-                        keyword: /\b(alias|and|BEGIN|begin|break|case|class|def|define_method|defined|do|each|else|elsif|END|end|ensure|false|for|if|in|module|new|next|nil|not|or|raise|redo|require|rescue|retry|return|self|super|then|throw|true|undef|unless|until|when|while|yield)\b/
+                  } else {
+                    item.tokens.unshift({
+                      type: 'text',
+                      text: checkbox
                     });
-                    var t = {
-                        pattern: /#\{[^}]+\}/,
-                        inside: {
-                            delimiter: {
-                                pattern: /^#\{|\}$/,
-                                alias: "tag"
-                            },
-                            rest: e.util.clone(e.languages.ruby)
-                        }
-                    };
-                    e.languages.insertBefore("ruby", "keyword", {
-                        regex: [{
-                            pattern: /%r([^a-zA-Z0-9\s\{\(\[<])(?:[^\\]|\\[\s\S])*?\1[gim]{0,3}/,
-                            inside: {
-                                interpolation: t
-                            }
-                        }, {
-                            pattern: /%r\((?:[^()\\]|\\[\s\S])*\)[gim]{0,3}/,
-                            inside: {
-                                interpolation: t
-                            }
-                        }, {
-                            pattern: /%r\{(?:[^#{}\\]|#(?:\{[^}]+\})?|\\[\s\S])*\}[gim]{0,3}/,
-                            inside: {
-                                interpolation: t
-                            }
-                        }, {
-                            pattern: /%r\[(?:[^\[\]\\]|\\[\s\S])*\][gim]{0,3}/,
-                            inside: {
-                                interpolation: t
-                            }
-                        }, {
-                            pattern: /%r<(?:[^<>\\]|\\[\s\S])*>[gim]{0,3}/,
-                            inside: {
-                                interpolation: t
-                            }
-                        }, {
-                            pattern: /(^|[^\/])\/(?!\/)(\[.+?]|\\.|[^\/\r\n])+\/[gim]{0,3}(?=\s*($|[\r\n,.;})]))/,
-                            lookbehind: !0
-                        }],
-                        variable: /[@$]+[a-zA-Z_][a-zA-Z_0-9]*(?:[?!]|\b)/,
-                        symbol: /:[a-zA-Z_][a-zA-Z_0-9]*(?:[?!]|\b)/
-                    }), e.languages.insertBefore("ruby", "number", {
-                        builtin: /\b(Array|Bignum|Binding|Class|Continuation|Dir|Exception|FalseClass|File|Stat|File|Fixnum|Float|Hash|Integer|IO|MatchData|Method|Module|NilClass|Numeric|Object|Proc|Range|Regexp|String|Struct|TMS|Symbol|ThreadGroup|Thread|Time|TrueClass)\b/,
-                        constant: /\b[A-Z][a-zA-Z_0-9]*(?:[?!]|\b)/
-                    }), e.languages.ruby.string = [{
-                        pattern: /%[qQiIwWxs]?([^a-zA-Z0-9\s\{\(\[<])(?:[^\\]|\\[\s\S])*?\1/,
-                        greedy: !0,
-                        inside: {
-                            interpolation: t
-                        }
-                    }, {
-                        pattern: /%[qQiIwWxs]?\((?:[^()\\]|\\[\s\S])*\)/,
-                        greedy: !0,
-                        inside: {
-                            interpolation: t
-                        }
-                    }, {
-                        pattern: /%[qQiIwWxs]?\{(?:[^#{}\\]|#(?:\{[^}]+\})?|\\[\s\S])*\}/,
-                        greedy: !0,
-                        inside: {
-                            interpolation: t
-                        }
-                    }, {
-                        pattern: /%[qQiIwWxs]?\[(?:[^\[\]\\]|\\[\s\S])*\]/,
-                        greedy: !0,
-                        inside: {
-                            interpolation: t
-                        }
-                    }, {
-                        pattern: /%[qQiIwWxs]?<(?:[^<>\\]|\\[\s\S])*>/,
-                        greedy: !0,
-                        inside: {
-                            interpolation: t
-                        }
-                    }, {
-                        pattern: /("|')(#\{[^}]+\}|\\(?:\r?\n|\r)|\\?.)*?\1/,
-                        greedy: !0,
-                        inside: {
-                            interpolation: t
-                        }
-                    }]
-                }(n), n.languages.css.selector = {
-                    pattern: /[^\{\}\s][^\{\}]*(?=\s*\{)/,
-                    inside: {
-                        "pseudo-element": /:(?:after|before|first-letter|first-line|selection)|::[-\w]+/,
-                        "pseudo-class": /:[-\w]+(?:\(.*\))?/,
-                        class: /\.[-:\.\w]+/,
-                        id: /#[-:\.\w]+/,
-                        attribute: /\[[^\]]+\]/
-                    }
-                }, n.languages.insertBefore("css", "function", {
-                    hexcode: /#[\da-f]{3,6}/i,
-                    entity: /\\[\da-f]{1,8}/i,
-                    number: /[\d%\.]+/
-                }), n.languages.d = n.languages.extend("clike", {
-                    string: [/\b[rx]"(\\.|[^\\"])*"[cwd]?/, /\bq"(?:\[[\s\S]*?\]|\([\s\S]*?\)|<[\s\S]*?>|\{[\s\S]*?\})"/, /\bq"([_a-zA-Z][_a-zA-Z\d]*)(?:\r?\n|\r)[\s\S]*?(?:\r?\n|\r)\1"/, /\bq"(.)[\s\S]*?\1"/, /'(?:\\'|\\?[^']+)'/, /(["`])(\\.|(?!\1)[^\\])*\1[cwd]?/],
-                    number: [/\b0x\.?[a-f\d_]+(?:(?!\.\.)\.[a-f\d_]*)?(?:p[+-]?[a-f\d_]+)?[ulfi]*/i, {
-                        pattern: /((?:\.\.)?)(?:\b0b\.?|\b|\.)\d[\d_]*(?:(?!\.\.)\.[\d_]*)?(?:e[+-]?\d[\d_]*)?[ulfi]*/i,
-                        lookbehind: !0
-                    }],
-                    keyword: /\$|\b(?:abstract|alias|align|asm|assert|auto|body|bool|break|byte|case|cast|catch|cdouble|cent|cfloat|char|class|const|continue|creal|dchar|debug|default|delegate|delete|deprecated|do|double|else|enum|export|extern|false|final|finally|float|for|foreach|foreach_reverse|function|goto|idouble|if|ifloat|immutable|import|inout|int|interface|invariant|ireal|lazy|long|macro|mixin|module|new|nothrow|null|out|override|package|pragma|private|protected|public|pure|real|ref|return|scope|shared|short|static|struct|super|switch|synchronized|template|this|throw|true|try|typedef|typeid|typeof|ubyte|ucent|uint|ulong|union|unittest|ushort|version|void|volatile|wchar|while|with|__(?:(?:FILE|MODULE|LINE|FUNCTION|PRETTY_FUNCTION|DATE|EOF|TIME|TIMESTAMP|VENDOR|VERSION)__|gshared|traits|vector|parameters)|string|wstring|dstring|size_t|ptrdiff_t)\b/,
-                    operator: /\|[|=]?|&[&=]?|\+[+=]?|-[-=]?|\.?\.\.|=[>=]?|!(?:i[ns]\b|<>?=?|>=?|=)?|\bi[ns]\b|(?:<[<>]?|>>?>?|\^\^|[*\/%^~])=?/
-                }), n.languages.d.comment = [/^\s*#!.+/, {
-                    pattern: /(^|[^\\])\/\+(?:\/\+[\w\W]*?\+\/|[\w\W])*?\+\//,
-                    lookbehind: !0
-                }].concat(n.languages.d.comment), n.languages.insertBefore("d", "comment", {
-                    "token-string": {
-                        pattern: /\bq\{(?:|\{[^}]*\}|[^}])*\}/,
-                        alias: "string"
-                    }
-                }), n.languages.insertBefore("d", "keyword", {
-                    property: /\B@\w*/
-                }), n.languages.insertBefore("d", "function", {
-                    register: {
-                        pattern: /\b(?:[ABCD][LHX]|E[ABCD]X|E?(?:BP|SP|DI|SI)|[ECSDGF]S|CR[0234]|DR[012367]|TR[3-7]|X?MM[0-7]|R[ABCD]X|[BS]PL|R[BS]P|[DS]IL|R[DS]I|R(?:[89]|1[0-5])[BWD]?|XMM(?:[89]|1[0-5])|YMM(?:1[0-5]|\d))\b|\bST(?:\([0-7]\)|\b)/,
-                        alias: "variable"
-                    }
-                }), n.languages.dart = n.languages.extend("clike", {
-                    string: [/r?("""|''')[\s\S]*?\1/, /r?("|')(\\?.)*?\1/],
-                    keyword: [/\b(?:async|sync|yield)\*/, /\b(?:abstract|assert|async|await|break|case|catch|class|const|continue|default|deferred|do|dynamic|else|enum|export|external|extends|factory|final|finally|for|get|if|implements|import|in|library|new|null|operator|part|rethrow|return|set|static|super|switch|this|throw|try|typedef|var|void|while|with|yield)\b/],
-                    operator: /\bis!|\b(?:as|is)\b|\+\+|--|&&|\|\||<<=?|>>=?|~(?:\/=?)?|[+\-*\/%&^|=!<>]=?|\?/
-                }), n.languages.insertBefore("dart", "function", {
-                    metadata: {
-                        pattern: /@\w+/,
-                        alias: "symbol"
-                    }
-                }), n.languages.diff = {
-                    coord: [/^(?:\*{3}|-{3}|\+{3}).*$/m, /^@@.*@@$/m, /^\d+.*$/m],
-                    deleted: /^[-<].*$/m,
-                    inserted: /^[+>].*$/m,
-                    diff: {
-                        pattern: /^!(?!!).+$/m,
-                        alias: "important"
-                    }
-                }, n.languages.docker = {
-                    keyword: {
-                        pattern: /(^\s*)(?:ONBUILD|FROM|MAINTAINER|RUN|EXPOSE|ENV|ADD|COPY|VOLUME|USER|WORKDIR|CMD|LABEL|ENTRYPOINT)(?=\s)/im,
-                        lookbehind: !0
-                    },
-                    string: /("|')(?:(?!\1)[^\\\r\n]|\\(?:\r\n|[\s\S]))*?\1/,
-                    comment: /#.*/,
-                    punctuation: /---|\.\.\.|[:[\]{}\-,|>?]/
-                }, n.languages.eiffel = {
-                    string: [/"([^[]*)\[[\s\S]+?\]\1"/, /"([^{]*)\{[\s\S]+?\}\1"/, /"(?:%\s+%|%"|.)*?"/],
-                    comment: /--.*/,
-                    char: /'(?:%'|.)+?'/,
-                    keyword: /\b(?:across|agent|alias|all|and|attached|as|assign|attribute|check|class|convert|create|Current|debug|deferred|detachable|do|else|elseif|end|ensure|expanded|export|external|feature|from|frozen|if|implies|inherit|inspect|invariant|like|local|loop|not|note|obsolete|old|once|or|Precursor|redefine|rename|require|rescue|Result|retry|select|separate|some|then|undefine|until|variant|Void|when|xor)\b/i,
-                    boolean: /\b(?:True|False)\b/i,
-                    number: [/\b0[xcb][\da-f](?:_*[\da-f])*\b/i, /(?:\d(?:_*\d)*)?\.(?:(?:\d(?:_*\d)*)?[eE][+-]?)?\d(?:_*\d)*|\d(?:_*\d)*\.?/],
-                    punctuation: /:=|<<|>>|\(\||\|\)|->|\.(?=\w)|[{}[\];(),:?]/,
-                    operator: /\\\\|\|\.\.\||\.\.|\/[~\/=]?|[><]=?|[-+*^=~]/
-                }, n.languages.elixir = {
-                    comment: {
-                        pattern: /(^|[^#])#(?![{#]).*/m,
-                        lookbehind: !0
-                    },
-                    regex: /~[rR](?:("""|'''|[\/|"'])(?:\\.|(?!\1)[^\\])+\1|\((?:\\\)|[^)])+\)|\[(?:\\\]|[^\]])+\]|\{(?:\\\}|[^}])+\}|<(?:\\>|[^>])+>)[uismxfr]*/,
-                    string: [{
-                        pattern: /~[cCsSwW](?:("""|'''|[\/|"'])(?:\\.|(?!\1)[^\\])+\1|\((?:\\\)|[^)])+\)|\[(?:\\\]|[^\]])+\]|\{(?:\\\}|#\{[^}]+\}|[^}])+\}|<(?:\\>|[^>])+>)[csa]?/,
-                        inside: {}
-                    }, {
-                        pattern: /("""|''')[\s\S]*?\1/,
-                        inside: {}
-                    }, {
-                        pattern: /("|')(?:\\[\s\S]|(?!\1)[^\\])*\1/,
-                        inside: {}
-                    }],
-                    atom: {
-                        pattern: /(^|[^:]):\w+/,
-                        lookbehind: !0,
-                        alias: "symbol"
-                    },
-                    "attr-name": /\w+:(?!:)/,
-                    capture: {
-                        pattern: /(^|[^&])&(?:[^&\s\d()][^\s()]*|(?=\())/,
-                        lookbehind: !0,
-                        alias: "function"
-                    },
-                    argument: {
-                        pattern: /(^|[^&])&\d+/,
-                        lookbehind: !0,
-                        alias: "variable"
-                    },
-                    attribute: {
-                        pattern: /@[\S]+/,
-                        alias: "variable"
-                    },
-                    number: /\b(?:0[box][a-f\d_]+|\d[\d_]*)(?:\.[\d_]+)?(?:e[+-]?[\d_]+)?\b/i,
-                    keyword: /\b(?:after|alias|and|case|catch|cond|def(?:callback|exception|impl|module|p|protocol|struct)?|do|else|end|fn|for|if|import|not|or|require|rescue|try|unless|use|when)\b/,
-                    boolean: /\b(?:true|false|nil)\b/,
-                    operator: [/\bin\b|&&?|\|[|>]?|\\\\|::|\.\.\.?|\+\+?|-[->]?|<[-=>]|>=|!==?|\B!|=(?:==?|[>~])?|[*\/^]/, {
-                        pattern: /([^<])<(?!<)/,
-                        lookbehind: !0
-                    }, {
-                        pattern: /([^>])>(?!>)/,
-                        lookbehind: !0
-                    }],
-                    punctuation: /<<|>>|[.,%\[\]{}()]/
-                }, n.languages.elixir.string.forEach(function(e) {
-                    e.inside = {
-                        interpolation: {
-                            pattern: /#\{[^}]+\}/,
-                            inside: {
-                                delimiter: {
-                                    pattern: /^#\{|\}$/,
-                                    alias: "punctuation"
-                                },
-                                rest: n.util.clone(n.languages.elixir)
-                            }
-                        }
-                    }
-                }), n.languages.erlang = {
-                    comment: /%.+/,
-                    string: /"(?:\\?.)*?"/,
-                    "quoted-function": {
-                        pattern: /'(?:\\.|[^'\\])+'(?=\()/,
-                        alias: "function"
-                    },
-                    "quoted-atom": {
-                        pattern: /'(?:\\.|[^'\\])+'/,
-                        alias: "atom"
-                    },
-                    boolean: /\b(?:true|false)\b/,
-                    keyword: /\b(?:fun|when|case|of|end|if|receive|after|try|catch)\b/,
-                    number: [/\$\\?./, /\d+#[a-z0-9]+/i, /(?:\b|-)\d*\.?\d+([Ee][+-]?\d+)?\b/],
-                    function: /\b[a-z][\w@]*(?=\()/,
-                    variable: {
-                        pattern: /(^|[^@])(?:\b|\?)[A-Z_][\w@]*/,
-                        lookbehind: !0
-                    },
-                    operator: [/[=\/<>:]=|=[:\/]=|\+\+?|--?|[=*\/!]|\b(?:bnot|div|rem|band|bor|bxor|bsl|bsr|not|and|or|xor|orelse|andalso)\b/, {
-                        pattern: /(^|[^<])<(?!<)/,
-                        lookbehind: !0
-                    }, {
-                        pattern: /(^|[^>])>(?!>)/,
-                        lookbehind: !0
-                    }],
-                    atom: /\b[a-z][\w@]*/,
-                    punctuation: /[()[\]{}:;,.#|]|<<|>>/
-                }, n.languages.fsharp = n.languages.extend("clike", {
-                    comment: [{
-                        pattern: /(^|[^\\])\(\*[\w\W]*?\*\)/,
-                        lookbehind: !0
-                    }, {
-                        pattern: /(^|[^\\:])\/\/.*/,
-                        lookbehind: !0
-                    }],
-                    keyword: /\b(?:let|return|use|yield)(?:!\B|\b)|\b(abstract|and|as|assert|base|begin|class|default|delegate|do|done|downcast|downto|elif|else|end|exception|extern|false|finally|for|fun|function|global|if|in|inherit|inline|interface|internal|lazy|match|member|module|mutable|namespace|new|not|null|of|open|or|override|private|public|rec|select|static|struct|then|to|true|try|type|upcast|val|void|when|while|with|asr|land|lor|lsl|lsr|lxor|mod|sig|atomic|break|checked|component|const|constraint|constructor|continue|eager|event|external|fixed|functor|include|method|mixin|object|parallel|process|protected|pure|sealed|tailcall|trait|virtual|volatile)\b/,
-                    string: /(?:"""[\s\S]*?"""|@"(?:""|[^"])*"|("|')(?:\\\1|\\?(?!\1)[\s\S])*\1)B?/,
-                    number: [/\b-?0x[\da-fA-F]+(un|lf|LF)?\b/, /\b-?0b[01]+(y|uy)?\b/, /\b-?(\d*\.?\d+|\d+\.)([fFmM]|[eE][+-]?\d+)?\b/, /\b-?\d+(y|uy|s|us|l|u|ul|L|UL|I)?\b/]
-                }), n.languages.insertBefore("fsharp", "keyword", {
-                    preprocessor: {
-                        pattern: /^[^\r\n\S]*#.*/m,
-                        alias: "property",
-                        inside: {
-                            directive: {
-                                pattern: /(\s*#)\b(else|endif|if|light|line|nowarn)\b/,
-                                lookbehind: !0,
-                                alias: "keyword"
-                            }
-                        }
-                    }
-                }), n.languages.fortran = {
-                    "quoted-number": {
-                        pattern: /[BOZ](['"])[A-F0-9]+\1/i,
-                        alias: "number"
-                    },
-                    string: {
-                        pattern: /(?:\w+_)?(['"])(?:\1\1|&(?:\r\n?|\n)(?:\s*!.+(?:\r\n?|\n))?|(?!\1).)*(?:\1|&)/,
-                        inside: {
-                            comment: {
-                                pattern: /(&(?:\r\n?|\n)\s*)!.*/,
-                                lookbehind: !0
-                            }
-                        }
-                    },
-                    comment: /!.*/,
-                    boolean: /\.(?:TRUE|FALSE)\.(?:_\w+)?/i,
-                    number: /(?:\b|[+-])(?:\d+(?:\.\d*)?|\.\d+)(?:[ED][+-]?\d+)?(?:_\w+)?/i,
-                    keyword: [/\b(?:INTEGER|REAL|DOUBLE ?PRECISION|COMPLEX|CHARACTER|LOGICAL)\b/i, /\b(?:END ?)?(?:BLOCK ?DATA|DO|FILE|FORALL|FUNCTION|IF|INTERFACE|MODULE(?! PROCEDURE)|PROGRAM|SELECT|SUBROUTINE|TYPE|WHERE)\b/i, /\b(?:ALLOCATABLE|ALLOCATE|BACKSPACE|CALL|CASE|CLOSE|COMMON|CONTAINS|CONTINUE|CYCLE|DATA|DEALLOCATE|DIMENSION|DO|END|EQUIVALENCE|EXIT|EXTERNAL|FORMAT|GO ?TO|IMPLICIT(?: NONE)?|INQUIRE|INTENT|INTRINSIC|MODULE PROCEDURE|NAMELIST|NULLIFY|OPEN|OPTIONAL|PARAMETER|POINTER|PRINT|PRIVATE|PUBLIC|READ|RETURN|REWIND|SAVE|SELECT|STOP|TARGET|WHILE|WRITE)\b/i, /\b(?:ASSIGNMENT|DEFAULT|ELEMENTAL|ELSE|ELSEWHERE|ELSEIF|ENTRY|IN|INCLUDE|INOUT|KIND|NULL|ONLY|OPERATOR|OUT|PURE|RECURSIVE|RESULT|SEQUENCE|STAT|THEN|USE)\b/i],
-                    operator: [/\*\*|\/\/|=>|[=\/]=|[<>]=?|::|[+\-*=%]|\.(?:EQ|NE|LT|LE|GT|GE|NOT|AND|OR|EQV|NEQV)\.|\.[A-Z]+\./i, {
-                        pattern: /(^|(?!\().)\/(?!\))/,
-                        lookbehind: !0
-                    }],
-                    punctuation: /\(\/|\/\)|[(),;:&]/
-                }, n.languages.gherkin = {
-                    pystring: {
-                        pattern: /("""|''')[\s\S]+?\1/,
-                        alias: "string"
-                    },
-                    comment: {
-                        pattern: /((^|\r?\n|\r)[ \t]*)#.*/,
-                        lookbehind: !0
-                    },
-                    tag: {
-                        pattern: /((^|\r?\n|\r)[ \t]*)@\S*/,
-                        lookbehind: !0
-                    },
-                    feature: {
-                        pattern: /((^|\r?\n|\r)[ \t]*)(Ability|Ahoy matey!|Arwedd|Aspekt|Besigheid Behoefte|Business Need|Caracteristica|Característica|Egenskab|Egenskap|Eiginleiki|Feature|Fīča|Fitur|Fonctionnalité|Fonksyonalite|Funcionalidade|Funcionalitat|Functionalitate|Funcţionalitate|Funcționalitate|Functionaliteit|Fungsi|Funkcia|Funkcija|Funkcionalitāte|Funkcionalnost|Funkcja|Funksie|Funktionalität|Funktionalitéit|Funzionalità|Hwaet|Hwæt|Jellemző|Karakteristik|laH|Lastnost|Mak|Mogucnost|Mogućnost|Moznosti|Možnosti|OH HAI|Omadus|Ominaisuus|Osobina|Özellik|perbogh|poQbogh malja'|Potrzeba biznesowa|Požadavek|Požiadavka|Pretty much|Qap|Qu'meH 'ut|Savybė|Tính năng|Trajto|Vermoë|Vlastnosť|Właściwość|Značilnost|Δυνατότητα|Λειτουργία|Могућност|Мөмкинлек|Особина|Свойство|Үзенчәлеклелек|Функционал|Функционалност|Функция|Функціонал|תכונה|خاصية|خصوصیت|صلاحیت|کاروبار کی ضرورت|وِیژگی|रूप लेख|ਖਾਸੀਅਤ|ਨਕਸ਼ ਨੁਹਾਰ|ਮੁਹਾਂਦਰਾ|గుణము|ಹೆಚ್ಚಳ|ความต้องการทางธุรกิจ|ความสามารถ|โครงหลัก|기능|フィーチャ|功能|機能):([^:]+(?:\r?\n|\r|$))*/,
-                        lookbehind: !0,
-                        inside: {
-                            important: {
-                                pattern: /(:)[^\r\n]+/,
-                                lookbehind: !0
-                            },
-                            keyword: /[^:\r\n]+:/
-                        }
-                    },
-                    scenario: {
-                        pattern: /((^|\r?\n|\r)[ \t]*)(Abstract Scenario|Abstrakt Scenario|Achtergrond|Aer|Ær|Agtergrond|All y'all|Antecedentes|Antecedents|Atburðarás|Atburðarásir|Awww, look mate|B4|Background|Baggrund|Bakgrund|Bakgrunn|Bakgrunnur|Beispiele|Beispiller|Bối cảnh|Cefndir|Cenario|Cenário|Cenario de Fundo|Cenário de Fundo|Cenarios|Cenários|Contesto|Context|Contexte|Contexto|Conto|Contoh|Contone|Dæmi|Dasar|Dead men tell no tales|Delineacao do Cenario|Delineação do Cenário|Dis is what went down|Dữ liệu|Dyagram senaryo|Dyagram Senaryo|Egzanp|Ejemplos|Eksempler|Ekzemploj|Enghreifftiau|Esbozo do escenario|Escenari|Escenario|Esempi|Esquema de l'escenari|Esquema del escenario|Esquema do Cenario|Esquema do Cenário|Examples|EXAMPLZ|Exempel|Exemple|Exemples|Exemplos|First off|Fono|Forgatókönyv|Forgatókönyv vázlat|Fundo|Geçmiş|ghantoH|Grundlage|Hannergrond|Háttér|Heave to|Istorik|Juhtumid|Keadaan|Khung kịch bản|Khung tình huống|Kịch bản|Koncept|Konsep skenario|Kontèks|Kontekst|Kontekstas|Konteksts|Kontext|Konturo de la scenaro|Latar Belakang|lut|lut chovnatlh|lutmey|Lýsing Atburðarásar|Lýsing Dæma|Menggariskan Senario|MISHUN|MISHUN SRSLY|mo'|Náčrt Scenára|Náčrt Scénáře|Náčrt Scenáru|Oris scenarija|Örnekler|Osnova|Osnova Scenára|Osnova scénáře|Osnutek|Ozadje|Paraugs|Pavyzdžiai|Példák|Piemēri|Plan du scénario|Plan du Scénario|Plan senaryo|Plan Senaryo|Plang vum Szenario|Pozadí|Pozadie|Pozadina|Príklady|Příklady|Primer|Primeri|Primjeri|Przykłady|Raamstsenaarium|Reckon it's like|Rerefons|Scenár|Scénář|Scenarie|Scenarij|Scenarijai|Scenarijaus šablonas|Scenariji|Scenārijs|Scenārijs pēc parauga|Scenarijus|Scenario|Scénario|Scenario Amlinellol|Scenario Outline|Scenario Template|Scenariomal|Scenariomall|Scenarios|Scenariu|Scenariusz|Scenaro|Schema dello scenario|Se ðe|Se the|Se þe|Senario|Senaryo|Senaryo deskripsyon|Senaryo Deskripsyon|Senaryo taslağı|Shiver me timbers|Situācija|Situai|Situasie|Situasie Uiteensetting|Skenario|Skenario konsep|Skica|Structura scenariu|Structură scenariu|Struktura scenarija|Stsenaarium|Swa|Swa hwaer swa|Swa hwær swa|Szablon scenariusza|Szenario|Szenariogrundriss|Tapaukset|Tapaus|Tapausaihio|Taust|Tausta|Template Keadaan|Template Senario|Template Situai|The thing of it is|Tình huống|Variantai|Voorbeelde|Voorbeelden|Wharrimean is|Yo\-ho\-ho|You'll wanna|Założenia|Παραδείγματα|Περιγραφή Σεναρίου|Σενάρια|Σενάριο|Υπόβαθρο|Кереш|Контекст|Концепт|Мисаллар|Мисоллар|Основа|Передумова|Позадина|Предистория|Предыстория|Приклади|Пример|Примери|Примеры|Рамка на сценарий|Скица|Структура сценарија|Структура сценария|Структура сценарію|Сценарий|Сценарий структураси|Сценарийның төзелеше|Сценарији|Сценарио|Сценарій|Тарих|Үрнәкләр|דוגמאות|רקע|תבנית תרחיש|תרחיש|الخلفية|الگوی سناریو|امثلة|پس منظر|زمینه|سناریو|سيناريو|سيناريو مخطط|مثالیں|منظر نامے کا خاکہ|منظرنامہ|نمونه ها|उदाहरण|परिदृश्य|परिदृश्य रूपरेखा|पृष्ठभूमि|ਉਦਾਹਰਨਾਂ|ਪਟਕਥਾ|ਪਟਕਥਾ ਢਾਂਚਾ|ਪਟਕਥਾ ਰੂਪ ਰੇਖਾ|ਪਿਛੋਕੜ|ఉదాహరణలు|కథనం|నేపథ్యం|సన్నివేశం|ಉದಾಹರಣೆಗಳು|ಕಥಾಸಾರಾಂಶ|ವಿವರಣೆ|ಹಿನ್ನೆಲೆ|โครงสร้างของเหตุการณ์|ชุดของตัวอย่าง|ชุดของเหตุการณ์|แนวคิด|สรุปเหตุการณ์|เหตุการณ์|배경|시나리오|시나리오 개요|예|サンプル|シナリオ|シナリオアウトライン|シナリオテンプレ|シナリオテンプレート|テンプレ|例|例子|剧本|剧本大纲|劇本|劇本大綱|场景|场景大纲|場景|場景大綱|背景):[^:\r\n]*/,
-                        lookbehind: !0,
-                        inside: {
-                            important: {
-                                pattern: /(:)[^\r\n]*/,
-                                lookbehind: !0
-                            },
-                            keyword: /[^:\r\n]+:/
-                        }
-                    },
-                    "table-body": {
-                        pattern: /((?:\r?\n|\r)[ \t]*\|.+\|[^\r\n]*)+/,
-                        lookbehind: !0,
-                        inside: {
-                            outline: {
-                                pattern: /<[^>]+?>/,
-                                alias: "variable"
-                            },
-                            td: {
-                                pattern: /\s*[^\s|][^|]*/,
-                                alias: "string"
-                            },
-                            punctuation: /\|/
-                        }
-                    },
-                    "table-head": {
-                        pattern: /((?:\r?\n|\r)[ \t]*\|.+\|[^\r\n]*)/,
-                        inside: {
-                            th: {
-                                pattern: /\s*[^\s|][^|]*/,
-                                alias: "variable"
-                            },
-                            punctuation: /\|/
-                        }
-                    },
-                    atrule: {
-                        pattern: /((?:\r?\n|\r)[ \t]+)('ach|'a|'ej|7|a|A také|A taktiež|A tiež|A zároveň|Aber|Ac|Adott|Akkor|Ak|Aleshores|Ale|Ali|Allora|Alors|Als|Ama|Amennyiben|Amikor|Ampak|an|AN|Ananging|And y'all|And|Angenommen|Anrhegedig a|An|Apabila|Atès|Atesa|Atunci|Avast!|Aye|A|awer|Bagi|Banjur|Bet|Biết|Blimey!|Buh|But at the end of the day I reckon|But y'all|But|BUT|Cal|Când|Cando|Cand|Ce|Cuando|Če|Ða ðe|Ða|Dadas|Dada|Dados|Dado|DaH ghu' bejlu'|dann|Dann|Dano|Dan|Dar|Dat fiind|Data|Date fiind|Date|Dati fiind|Dati|Daţi fiind|Dați fiind|Dato|DEN|Den youse gotta|Dengan|De|Diberi|Diyelim ki|Donada|Donat|Donitaĵo|Do|Dun|Duota|Ðurh|Eeldades|Ef|Eğer ki|Entao|Então|Entón|Entonces|En|Epi|E|És|Etant donnée|Etant donné|Et|Étant données|Étant donnée|Étant donné|Etant données|Etant donnés|Étant donnés|Fakat|Gangway!|Gdy|Gegeben seien|Gegeben sei|Gegeven|Gegewe|ghu' noblu'|Gitt|Given y'all|Given|Givet|Givun|Ha|Cho|I CAN HAZ|In|Ir|It's just unbelievable|I|Ja|Jeśli|Jeżeli|Kadar|Kada|Kad|Kai|Kaj|Když|Keď|Kemudian|Ketika|Khi|Kiedy|Ko|Kuid|Kui|Kun|Lan|latlh|Le sa a|Let go and haul|Le|Lè sa a|Lè|Logo|Lorsqu'<|Lorsque|mä|Maar|Mais|Mając|Majd|Maka|Manawa|Mas|Ma|Menawa|Men|Mutta|Nalikaning|Nalika|Nanging|Når|När|Nato|Nhưng|Niin|Njuk|O zaman|Og|Och|Oletetaan|Onda|Ond|Oraz|Pak|Pero|Però|Podano|Pokiaľ|Pokud|Potem|Potom|Privzeto|Pryd|qaSDI'|Quando|Quand|Quan|Så|Sed|Se|Siis|Sipoze ke|Sipoze Ke|Sipoze|Si|Şi|Și|Soit|Stel|Tada|Tad|Takrat|Tak|Tapi|Ter|Tetapi|Tha the|Tha|Then y'all|Then|Thì|Thurh|Toda|Too right|ugeholl|Und|Un|Và|vaj|Vendar|Ve|wann|Wanneer|WEN|Wenn|When y'all|When|Wtedy|Wun|Y'know|Yeah nah|Yna|Youse know like when|Youse know when youse got|Y|Za predpokladu|Za předpokladu|Zadani|Zadano|Zadan|Zadate|Zadato|Zakładając|Zaradi|Zatati|Þa þe|Þa|Þá|Þegar|Þurh|Αλλά|Δεδομένου|Και|Όταν|Τότε|А також|Агар|Але|Али|Аммо|А|Әгәр|Әйтик|Әмма|Бирок|Ва|Вә|Дадено|Дано|Допустим|Если|Задате|Задати|Задато|И|І|К тому же|Када|Кад|Когато|Когда|Коли|Ләкин|Лекин|Нәтиҗәдә|Нехай|Но|Онда|Припустимо, що|Припустимо|Пусть|Также|Та|Тогда|Тоді|То|Унда|Һәм|Якщо|אבל|אזי|אז|בהינתן|וגם|כאשר|آنگاه|اذاً|اگر|اما|اور|با فرض|بالفرض|بفرض|پھر|تب|ثم|جب|عندما|فرض کیا|لكن|لیکن|متى|هنگامی|و|अगर|और|कदा|किन्तु|चूंकि|जब|तथा|तदा|तब|परन्तु|पर|यदि|ਅਤੇ|ਜਦੋਂ|ਜਿਵੇਂ ਕਿ|ਜੇਕਰ|ਤਦ|ਪਰ|అప్పుడు|ఈ పరిస్థితిలో|కాని|చెప్పబడినది|మరియు|ಆದರೆ|ನಂತರ|ನೀಡಿದ|ಮತ್ತು|ಸ್ಥಿತಿಯನ್ನು|กำหนดให้|ดังนั้น|แต่|เมื่อ|และ|그러면<|그리고<|단<|만약<|만일<|먼저<|조건<|하지만<|かつ<|しかし<|ただし<|ならば<|もし<|並且<|但し<|但是<|假如<|假定<|假設<|假设<|前提<|同时<|同時<|并且<|当<|當<|而且<|那么<|那麼<)(?=[ \t]+)/,
-                        lookbehind: !0
-                    },
-                    string: {
-                        pattern: /("(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*')/,
-                        inside: {
-                            outline: {
-                                pattern: /<[^>]+?>/,
-                                alias: "variable"
-                            }
-                        }
-                    },
-                    outline: {
-                        pattern: /<[^>]+?>/,
-                        alias: "variable"
-                    }
-                }, n.languages.git = {
-                    comment: /^#.*/m,
-                    deleted: /^[-–].*/m,
-                    inserted: /^\+.*/m,
-                    string: /("|')(\\?.)*?\1/m,
-                    command: {
-                        pattern: /^.*\$ git .*$/m,
-                        inside: {
-                            parameter: /\s(--|-)\w+/m
-                        }
-                    },
-                    coord: /^@@.*@@$/m,
-                    commit_sha1: /^commit \w{40}$/m
-                }, n.languages.glsl = n.languages.extend("clike", {
-                    comment: [/\/\*[\w\W]*?\*\//, /\/\/(?:\\(?:\r\n|[\s\S])|.)*/],
-                    number: /\b(?:0x[\da-f]+|(?:\.\d+|\d+\.?\d*)(?:e[+-]?\d+)?)[ulf]*\b/i,
-                    keyword: /\b(?:attribute|const|uniform|varying|buffer|shared|coherent|volatile|restrict|readonly|writeonly|atomic_uint|layout|centroid|flat|smooth|noperspective|patch|sample|break|continue|do|for|while|switch|case|default|if|else|subroutine|in|out|inout|float|double|int|void|bool|true|false|invariant|precise|discard|return|d?mat[234](?:x[234])?|[ibdu]?vec[234]|uint|lowp|mediump|highp|precision|[iu]?sampler[123]D|[iu]?samplerCube|sampler[12]DShadow|samplerCubeShadow|[iu]?sampler[12]DArray|sampler[12]DArrayShadow|[iu]?sampler2DRect|sampler2DRectShadow|[iu]?samplerBuffer|[iu]?sampler2DMS(?:Array)?|[iu]?samplerCubeArray|samplerCubeArrayShadow|[iu]?image[123]D|[iu]?image2DRect|[iu]?imageCube|[iu]?imageBuffer|[iu]?image[12]DArray|[iu]?imageCubeArray|[iu]?image2DMS(?:Array)?|struct|common|partition|active|asm|class|union|enum|typedef|template|this|resource|goto|inline|noinline|public|static|extern|external|interface|long|short|half|fixed|unsigned|superp|input|output|hvec[234]|fvec[234]|sampler3DRect|filter|sizeof|cast|namespace|using)\b/
-                }), n.languages.insertBefore("glsl", "comment", {
-                    preprocessor: {
-                        pattern: /(^[ \t]*)#(?:(?:define|undef|if|ifdef|ifndef|else|elif|endif|error|pragma|extension|version|line)\b)?/m,
-                        lookbehind: !0,
-                        alias: "builtin"
-                    }
-                }), n.languages.go = n.languages.extend("clike", {
-                    keyword: /\b(break|case|chan|const|continue|default|defer|else|fallthrough|for|func|go(to)?|if|import|interface|map|package|range|return|select|struct|switch|type|var)\b/,
-                    builtin: /\b(bool|byte|complex(64|128)|error|float(32|64)|rune|string|u?int(8|16|32|64|)|uintptr|append|cap|close|complex|copy|delete|imag|len|make|new|panic|print(ln)?|real|recover)\b/,
-                    boolean: /\b(_|iota|nil|true|false)\b/,
-                    operator: /[*\/%^!=]=?|\+[=+]?|-[=-]?|\|[=|]?|&(?:=|&|\^=?)?|>(?:>=?|=)?|<(?:<=?|=|-)?|:=|\.\.\./,
-                    number: /\b(-?(0x[a-f\d]+|(\d+\.?\d*|\.\d+)(e[-+]?\d+)?)i?)\b/i,
-                    string: /("|'|`)(\\?.|\r|\n)*?\1/
-                }), delete n.languages.go["class-name"], n.languages.graphql = {
-                    comment: /#.*/,
-                    string: {
-                        pattern: /"(?:\\.|[^\\"])*"/,
-                        greedy: !0
-                    },
-                    number: /(?:\B-|\b)\d+(?:\.\d+)?(?:[eE][+-]?\d+)?\b/,
-                    boolean: /\b(?:true|false)\b/,
-                    variable: /\$[a-z_]\w*/i,
-                    directive: {
-                        pattern: /@[a-z_]\w*/i,
-                        alias: "function"
-                    },
-                    "attr-name": /[a-z_]\w*(?=\s*:)/i,
-                    keyword: [{
-                        pattern: /(fragment\s+(?!on)[a-z_]\w*\s+|\.\.\.\s*)on\b/,
-                        lookbehind: !0
-                    }, /\b(?:query|fragment|mutation)\b/],
-                    operator: /!|=|\.{3}/,
-                    punctuation: /[!(){}\[\]:=,]/
-                }, n.languages.groovy = n.languages.extend("clike", {
-                    keyword: /\b(as|def|in|abstract|assert|boolean|break|byte|case|catch|char|class|const|continue|default|do|double|else|enum|extends|final|finally|float|for|goto|if|implements|import|instanceof|int|interface|long|native|new|package|private|protected|public|return|short|static|strictfp|super|switch|synchronized|this|throw|throws|trait|transient|try|void|volatile|while)\b/,
-                    string: [{
-                        pattern: /("""|''')[\W\w]*?\1|(\$\/)(\$\/\$|[\W\w])*?\/\$/,
-                        greedy: !0
-                    }, {
-                        pattern: /("|'|\/)(?:\\?.)*?\1/,
-                        greedy: !0
-                    }],
-                    number: /\b(?:0b[01_]+|0x[\da-f_]+(?:\.[\da-f_p\-]+)?|[\d_]+(?:\.[\d_]+)?(?:e[+-]?[\d]+)?)[glidf]?\b/i,
-                    operator: {
-                        pattern: /(^|[^.])(~|==?~?|\?[.:]?|\*(?:[.=]|\*=?)?|\.[@&]|\.\.<|\.{1,2}(?!\.)|-[-=>]?|\+[+=]?|!=?|<(?:<=?|=>?)?|>(?:>>?=?|=)?|&[&=]?|\|[|=]?|\/=?|\^=?|%=?)/,
-                        lookbehind: !0
-                    },
-                    punctuation: /\.+|[{}[\];(),:$]/
-                }), n.languages.insertBefore("groovy", "string", {
-                    shebang: {
-                        pattern: /#!.+/,
-                        alias: "comment"
-                    }
-                }), n.languages.insertBefore("groovy", "punctuation", {
-                    "spock-block": /\b(setup|given|when|then|and|cleanup|expect|where):/
-                }), n.languages.insertBefore("groovy", "function", {
-                    annotation: {
-                        alias: "punctuation",
-                        pattern: /(^|[^.])@\w+/,
-                        lookbehind: !0
-                    }
-                }), n.hooks.add("wrap", function(e) {
-                    if ("groovy" === e.language && "string" === e.type) {
-                        var t = e.content[0];
-                        if ("'" != t) {
-                            var i = /([^\\])(\$(\{.*?\}|[\w\.]+))/;
-                            "$" === t && (i = /([^\$])(\$(\{.*?\}|[\w\.]+))/), e.content = e.content.replace(/&lt;/g, "<").replace(/&amp;/g, "&"), e.content = n.highlight(e.content, {
-                                expression: {
-                                    pattern: i,
-                                    lookbehind: !0,
-                                    inside: n.languages.groovy
-                                }
-                            }), e.classes.push("/" === t ? "regex" : "gstring")
-                        }
-                    }
-                }),
-                function(e) {
-                    e.languages.haml = {
-                        "multiline-comment": {
-                            pattern: /((?:^|\r?\n|\r)([\t ]*))(?:\/|-#).*((?:\r?\n|\r)\2[\t ]+.+)*/,
-                            lookbehind: !0,
-                            alias: "comment"
-                        },
-                        "multiline-code": [{
-                            pattern: /((?:^|\r?\n|\r)([\t ]*)(?:[~-]|[&!]?=)).*,[\t ]*((?:\r?\n|\r)\2[\t ]+.*,[\t ]*)*((?:\r?\n|\r)\2[\t ]+.+)/,
-                            lookbehind: !0,
-                            inside: {
-                                rest: e.languages.ruby
-                            }
-                        }, {
-                            pattern: /((?:^|\r?\n|\r)([\t ]*)(?:[~-]|[&!]?=)).*\|[\t ]*((?:\r?\n|\r)\2[\t ]+.*\|[\t ]*)*/,
-                            lookbehind: !0,
-                            inside: {
-                                rest: e.languages.ruby
-                            }
-                        }],
-                        filter: {
-                            pattern: /((?:^|\r?\n|\r)([\t ]*)):[\w-]+((?:\r?\n|\r)(?:\2[\t ]+.+|\s*?(?=\r?\n|\r)))+/,
-                            lookbehind: !0,
-                            inside: {
-                                "filter-name": {
-                                    pattern: /^:[\w-]+/,
-                                    alias: "variable"
-                                }
-                            }
-                        },
-                        markup: {
-                            pattern: /((?:^|\r?\n|\r)[\t ]*)<.+/,
-                            lookbehind: !0,
-                            inside: {
-                                rest: e.languages.markup
-                            }
-                        },
-                        doctype: {
-                            pattern: /((?:^|\r?\n|\r)[\t ]*)!!!(?: .+)?/,
-                            lookbehind: !0
-                        },
-                        tag: {
-                            pattern: /((?:^|\r?\n|\r)[\t ]*)[%.#][\w\-#.]*[\w\-](?:\([^)]+\)|\{(?:\{[^}]+\}|[^}])+\}|\[[^\]]+\])*[\/<>]*/,
-                            lookbehind: !0,
-                            inside: {
-                                attributes: [{
-                                    pattern: /(^|[^#])\{(?:\{[^}]+\}|[^}])+\}/,
-                                    lookbehind: !0,
-                                    inside: {
-                                        rest: e.languages.ruby
-                                    }
-                                }, {
-                                    pattern: /\([^)]+\)/,
-                                    inside: {
-                                        "attr-value": {
-                                            pattern: /(=\s*)(?:"(?:\\?.)*?"|[^)\s]+)/,
-                                            lookbehind: !0
-                                        },
-                                        "attr-name": /[\w:-]+(?=\s*!?=|\s*[,)])/,
-                                        punctuation: /[=(),]/
-                                    }
-                                }, {
-                                    pattern: /\[[^\]]+\]/,
-                                    inside: {
-                                        rest: e.languages.ruby
-                                    }
-                                }],
-                                punctuation: /[<>]/
-                            }
-                        },
-                        code: {
-                            pattern: /((?:^|\r?\n|\r)[\t ]*(?:[~-]|[&!]?=)).+/,
-                            lookbehind: !0,
-                            inside: {
-                                rest: e.languages.ruby
-                            }
-                        },
-                        interpolation: {
-                            pattern: /#\{[^}]+\}/,
-                            inside: {
-                                delimiter: {
-                                    pattern: /^#\{|\}$/,
-                                    alias: "punctuation"
-                                },
-                                rest: e.languages.ruby
-                            }
-                        },
-                        punctuation: {
-                            pattern: /((?:^|\r?\n|\r)[\t ]*)[~=\-&!]+/,
-                            lookbehind: !0
-                        }
-                    };
-                    for (var t = ["css", {
-                            filter: "coffee",
-                            language: "coffeescript"
-                        }, "erb", "javascript", "less", "markdown", "ruby", "scss", "textile"], n = {}, i = 0, a = t.length; a > i; i++) {
-                        var r = t[i];
-                        r = "string" == typeof r ? {
-                            filter: r,
-                            language: r
-                        } : r, e.languages[r.language] && (n["filter-" + r.filter] = {
-                            pattern: RegExp("((?:^|\\r?\\n|\\r)([\\t ]*)):{{filter_name}}((?:\\r?\\n|\\r)(?:\\2[\\t ]+.+|\\s*?(?=\\r?\\n|\\r)))+".replace("{{filter_name}}", r.filter)),
-                            lookbehind: !0,
-                            inside: {
-                                "filter-name": {
-                                    pattern: /^:[\w-]+/,
-                                    alias: "variable"
-                                },
-                                rest: e.languages[r.language]
-                            }
-                        })
-                    }
-                    e.languages.insertBefore("haml", "filter", n)
-                }(n),
-                function(e) {
-                    var t = /\{\{\{[\w\W]+?\}\}\}|\{\{[\w\W]+?\}\}/g;
-                    e.languages.handlebars = e.languages.extend("markup", {
-                        handlebars: {
-                            pattern: t,
-                            inside: {
-                                delimiter: {
-                                    pattern: /^\{\{\{?|\}\}\}?$/i,
-                                    alias: "punctuation"
-                                },
-                                string: /(["'])(\\?.)*?\1/,
-                                number: /\b-?(0x[\dA-Fa-f]+|\d*\.?\d+([Ee][+-]?\d+)?)\b/,
-                                boolean: /\b(true|false)\b/,
-                                block: {
-                                    pattern: /^(\s*~?\s*)[#\/]\S+?(?=\s*~?\s*$|\s)/i,
-                                    lookbehind: !0,
-                                    alias: "keyword"
-                                },
-                                brackets: {
-                                    pattern: /\[[^\]]+\]/,
-                                    inside: {
-                                        punctuation: /\[|\]/,
-                                        variable: /[\w\W]+/
-                                    }
-                                },
-                                punctuation: /[!"#%&'()*+,.\/;<=>@\[\\\]^`{|}~]/,
-                                variable: /[^!"#%&'()*+,.\/;<=>@\[\\\]^`{|}~\s]+/
-                            }
-                        }
-                    }), e.languages.insertBefore("handlebars", "tag", {
-                        "handlebars-comment": {
-                            pattern: /\{\{![\w\W]*?\}\}/,
-                            alias: ["handlebars", "comment"]
-                        }
-                    }), e.hooks.add("before-highlight", function(e) {
-                        "handlebars" === e.language && (e.tokenStack = [], e.backupCode = e.code, e.code = e.code.replace(t, function(t) {
-                            return e.tokenStack.push(t), "___HANDLEBARS" + e.tokenStack.length + "___"
-                        }))
-                    }), e.hooks.add("before-insert", function(e) {
-                        "handlebars" === e.language && (e.code = e.backupCode, delete e.backupCode)
-                    }), e.hooks.add("after-highlight", function(t) {
-                        if ("handlebars" === t.language) {
-                            for (var n, i = 0; n = t.tokenStack[i]; i++) t.highlightedCode = t.highlightedCode.replace("___HANDLEBARS" + (i + 1) + "___", e.highlight(n, t.grammar, "handlebars").replace(/\$/g, "$$$$"));
-                            t.element.innerHTML = t.highlightedCode
-                        }
-                    })
-                }(n), n.languages.haskell = {
-                    comment: {
-                        pattern: /(^|[^-!#$%*+=?&@|~.:<>^\\\/])(--[^-!#$%*+=?&@|~.:<>^\\\/].*|{-[\w\W]*?-})/m,
-                        lookbehind: !0
-                    },
-                    char: /'([^\\']|\\([abfnrtv\\"'&]|\^[A-Z@[\]\^_]|NUL|SOH|STX|ETX|EOT|ENQ|ACK|BEL|BS|HT|LF|VT|FF|CR|SO|SI|DLE|DC1|DC2|DC3|DC4|NAK|SYN|ETB|CAN|EM|SUB|ESC|FS|GS|RS|US|SP|DEL|\d+|o[0-7]+|x[0-9a-fA-F]+))'/,
-                    string: {
-                        pattern: /"([^\\"]|\\([abfnrtv\\"'&]|\^[A-Z@[\]\^_]|NUL|SOH|STX|ETX|EOT|ENQ|ACK|BEL|BS|HT|LF|VT|FF|CR|SO|SI|DLE|DC1|DC2|DC3|DC4|NAK|SYN|ETB|CAN|EM|SUB|ESC|FS|GS|RS|US|SP|DEL|\d+|o[0-7]+|x[0-9a-fA-F]+)|\\\s+\\)*"/,
-                        greedy: !0
-                    },
-                    keyword: /\b(case|class|data|deriving|do|else|if|in|infixl|infixr|instance|let|module|newtype|of|primitive|then|type|where)\b/,
-                    import_statement: {
-                        pattern: /(\r?\n|\r|^)\s*import\s+(qualified\s+)?([A-Z][_a-zA-Z0-9']*)(\.[A-Z][_a-zA-Z0-9']*)*(\s+as\s+([A-Z][_a-zA-Z0-9']*)(\.[A-Z][_a-zA-Z0-9']*)*)?(\s+hiding\b)?/m,
-                        inside: {
-                            keyword: /\b(import|qualified|as|hiding)\b/
-                        }
-                    },
-                    builtin: /\b(abs|acos|acosh|all|and|any|appendFile|approxRational|asTypeOf|asin|asinh|atan|atan2|atanh|basicIORun|break|catch|ceiling|chr|compare|concat|concatMap|const|cos|cosh|curry|cycle|decodeFloat|denominator|digitToInt|div|divMod|drop|dropWhile|either|elem|encodeFloat|enumFrom|enumFromThen|enumFromThenTo|enumFromTo|error|even|exp|exponent|fail|filter|flip|floatDigits|floatRadix|floatRange|floor|fmap|foldl|foldl1|foldr|foldr1|fromDouble|fromEnum|fromInt|fromInteger|fromIntegral|fromRational|fst|gcd|getChar|getContents|getLine|group|head|id|inRange|index|init|intToDigit|interact|ioError|isAlpha|isAlphaNum|isAscii|isControl|isDenormalized|isDigit|isHexDigit|isIEEE|isInfinite|isLower|isNaN|isNegativeZero|isOctDigit|isPrint|isSpace|isUpper|iterate|last|lcm|length|lex|lexDigits|lexLitChar|lines|log|logBase|lookup|map|mapM|mapM_|max|maxBound|maximum|maybe|min|minBound|minimum|mod|negate|not|notElem|null|numerator|odd|or|ord|otherwise|pack|pi|pred|primExitWith|print|product|properFraction|putChar|putStr|putStrLn|quot|quotRem|range|rangeSize|read|readDec|readFile|readFloat|readHex|readIO|readInt|readList|readLitChar|readLn|readOct|readParen|readSigned|reads|readsPrec|realToFrac|recip|rem|repeat|replicate|return|reverse|round|scaleFloat|scanl|scanl1|scanr|scanr1|seq|sequence|sequence_|show|showChar|showInt|showList|showLitChar|showParen|showSigned|showString|shows|showsPrec|significand|signum|sin|sinh|snd|sort|span|splitAt|sqrt|subtract|succ|sum|tail|take|takeWhile|tan|tanh|threadToIOResult|toEnum|toInt|toInteger|toLower|toRational|toUpper|truncate|uncurry|undefined|unlines|until|unwords|unzip|unzip3|userError|words|writeFile|zip|zip3|zipWith|zipWith3)\b/,
-                    number: /\b(\d+(\.\d+)?(e[+-]?\d+)?|0o[0-7]+|0x[0-9a-f]+)\b/i,
-                    operator: /\s\.\s|[-!#$%*+=?&@|~.:<>^\\\/]*\.[-!#$%*+=?&@|~.:<>^\\\/]+|[-!#$%*+=?&@|~.:<>^\\\/]+\.[-!#$%*+=?&@|~.:<>^\\\/]*|[-!#$%*+=?&@|~:<>^\\\/]+|`([A-Z][_a-zA-Z0-9']*\.)*[_a-z][_a-zA-Z0-9']*`/,
-                    hvariable: /\b([A-Z][_a-zA-Z0-9']*\.)*[_a-z][_a-zA-Z0-9']*\b/,
-                    constant: /\b([A-Z][_a-zA-Z0-9']*\.)*[A-Z][_a-zA-Z0-9']*\b/,
-                    punctuation: /[{}[\];(),.:]/
-                }, n.languages.haxe = n.languages.extend("clike", {
-                    string: {
-                        pattern: /(["'])(?:(?!\1)[^\\]|\\[\s\S])*\1/,
-                        inside: {
-                            interpolation: {
-                                pattern: /(^|[^\\])\$(?:\w+|\{[^}]+\})/,
-                                lookbehind: !0,
-                                inside: {
-                                    interpolation: {
-                                        pattern: /^\$\w*/,
-                                        alias: "variable"
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    keyword: /\bthis\b|\b(?:abstract|as|break|case|cast|catch|class|continue|default|do|dynamic|else|enum|extends|extern|from|for|function|if|implements|import|in|inline|interface|macro|new|null|override|public|private|return|static|super|switch|throw|to|try|typedef|using|var|while)(?!\.)\b/,
-                    operator: /\.{3}|\+\+?|-[->]?|[=!]=?|&&?|\|\|?|<[<=]?|>[>=]?|[*\/%~^]/
-                }), n.languages.insertBefore("haxe", "class-name", {
-                    regex: {
-                        pattern: /~\/(?:[^\/\\\r\n]|\\.)+\/[igmsu]*/
-                    }
-                }), n.languages.insertBefore("haxe", "keyword", {
-                    preprocessor: {
-                        pattern: /#\w+/,
-                        alias: "builtin"
-                    },
-                    metadata: {
-                        pattern: /@:?\w+/,
-                        alias: "symbol"
-                    },
-                    reification: {
-                        pattern: /\$(?:\w+|(?=\{))/,
-                        alias: "variable"
-                    }
-                }), n.languages.haxe.string.inside.interpolation.inside.rest = n.util.clone(n.languages.haxe), delete n.languages.haxe["class-name"], n.languages.http = {
-                    "request-line": {
-                        pattern: /^(POST|GET|PUT|DELETE|OPTIONS|PATCH|TRACE|CONNECT)\b\shttps?:\/\/\S+\sHTTP\/[0-9.]+/m,
-                        inside: {
-                            property: /^(POST|GET|PUT|DELETE|OPTIONS|PATCH|TRACE|CONNECT)\b/,
-                            "attr-name": /:\w+/
-                        }
-                    },
-                    "response-status": {
-                        pattern: /^HTTP\/1.[01] [0-9]+.*/m,
-                        inside: {
-                            property: {
-                                pattern: /(^HTTP\/1.[01] )[0-9]+.*/i,
-                                lookbehind: !0
-                            }
-                        }
-                    },
-                    "header-name": {
-                        pattern: /^[\w-]+:(?=.)/m,
-                        alias: "keyword"
-                    }
+                  }
+                } else {
+                  itemBody += checkbox;
+                }
+              }
+
+              itemBody += this.parse(item.tokens, loose);
+              body += this.renderer.listitem(itemBody, task, checked);
+            }
+
+            out += this.renderer.list(body, ordered, start);
+            continue;
+          }
+          case 'html': {
+            // TODO parse inline content if parameter markdown=1
+            out += this.renderer.html(token.text);
+            continue;
+          }
+          case 'paragraph': {
+            out += this.renderer.paragraph(this.parseInline(token.tokens));
+            continue;
+          }
+          case 'text': {
+            body = token.tokens ? this.parseInline(token.tokens) : token.text;
+            while (i + 1 < l && tokens[i + 1].type === 'text') {
+              token = tokens[++i];
+              body += '\n' + (token.tokens ? this.parseInline(token.tokens) : token.text);
+            }
+            out += top ? this.renderer.paragraph(body) : body;
+            continue;
+          }
+          default: {
+            var errMsg = 'Token with "' + token.type + '" type was not found.';
+            if (this.options.silent) {
+              console.error(errMsg);
+              return;
+            } else {
+              throw new Error(errMsg);
+            }
+          }
+        }
+      }
+
+      return out;
+    };
+
+    /**
+     * Parse Inline Tokens
+     */
+    Parser.prototype.parseInline = function parseInline (tokens, renderer) {
+      renderer = renderer || this.renderer;
+      var out = '',
+        i,
+        token;
+
+      var l = tokens.length;
+      for (i = 0; i < l; i++) {
+        token = tokens[i];
+        switch (token.type) {
+          case 'escape': {
+            out += renderer.text(token.text);
+            break;
+          }
+          case 'html': {
+            out += renderer.html(token.text);
+            break;
+          }
+          case 'link': {
+            out += renderer.link(token.href, token.title, this.parseInline(token.tokens, renderer));
+            break;
+          }
+          case 'image': {
+            out += renderer.image(token.href, token.title, token.text);
+            break;
+          }
+          case 'strong': {
+            out += renderer.strong(this.parseInline(token.tokens, renderer));
+            break;
+          }
+          case 'em': {
+            out += renderer.em(this.parseInline(token.tokens, renderer));
+            break;
+          }
+          case 'codespan': {
+            out += renderer.codespan(token.text);
+            break;
+          }
+          case 'br': {
+            out += renderer.br();
+            break;
+          }
+          case 'del': {
+            out += renderer.del(this.parseInline(token.tokens, renderer));
+            break;
+          }
+          case 'text': {
+            out += renderer.text(token.text);
+            break;
+          }
+          default: {
+            var errMsg = 'Token with "' + token.type + '" type was not found.';
+            if (this.options.silent) {
+              console.error(errMsg);
+              return;
+            } else {
+              throw new Error(errMsg);
+            }
+          }
+        }
+      }
+      return out;
+    };
+
+    return Parser;
+  }());
+
+  var merge$3 = helpers.merge;
+  var checkSanitizeDeprecation$1 = helpers.checkSanitizeDeprecation;
+  var escape$3 = helpers.escape;
+
+  var getDefaults = defaults.getDefaults;
+  var changeDefaults = defaults.changeDefaults;
+  var defaults$5 = defaults.defaults;
+
+  /**
+   * Marked
+   */
+  function marked(src, opt, callback) {
+    // throw error in case of non string input
+    if (typeof src === 'undefined' || src === null) {
+      throw new Error('marked(): input parameter is undefined or null');
+    }
+    if (typeof src !== 'string') {
+      throw new Error('marked(): input parameter is of type '
+        + Object.prototype.toString.call(src) + ', string expected');
+    }
+
+    if (typeof opt === 'function') {
+      callback = opt;
+      opt = null;
+    }
+
+    opt = merge$3({}, marked.defaults, opt || {});
+    checkSanitizeDeprecation$1(opt);
+
+    if (callback) {
+      var highlight = opt.highlight;
+      var tokens;
+
+      try {
+        tokens = Lexer.lex(src, opt);
+      } catch (e) {
+        return callback(e);
+      }
+
+      var done = function(err) {
+        var out;
+
+        if (!err) {
+          try {
+            out = Parser.parse(tokens, opt);
+          } catch (e) {
+            err = e;
+          }
+        }
+
+        opt.highlight = highlight;
+
+        return err
+          ? callback(err)
+          : callback(null, out);
+      };
+
+      if (!highlight || highlight.length < 3) {
+        return done();
+      }
+
+      delete opt.highlight;
+
+      if (!tokens.length) { return done(); }
+
+      var pending = 0;
+      marked.walkTokens(tokens, function(token) {
+        if (token.type === 'code') {
+          pending++;
+          setTimeout(function () {
+            highlight(token.text, token.lang, function(err, code) {
+              if (err) {
+                return done(err);
+              }
+              if (code != null && code !== token.text) {
+                token.text = code;
+                token.escaped = true;
+              }
+
+              pending--;
+              if (pending === 0) {
+                done();
+              }
+            });
+          }, 0);
+        }
+      });
+
+      if (pending === 0) {
+        done();
+      }
+
+      return;
+    }
+
+    try {
+      var tokens$1 = Lexer.lex(src, opt);
+      if (opt.walkTokens) {
+        marked.walkTokens(tokens$1, opt.walkTokens);
+      }
+      return Parser.parse(tokens$1, opt);
+    } catch (e) {
+      e.message += '\nPlease report this to https://github.com/markedjs/marked.';
+      if (opt.silent) {
+        return '<p>An error occurred:</p><pre>'
+          + escape$3(e.message + '', true)
+          + '</pre>';
+      }
+      throw e;
+    }
+  }
+
+  /**
+   * Options
+   */
+
+  marked.options =
+  marked.setOptions = function(opt) {
+    merge$3(marked.defaults, opt);
+    changeDefaults(marked.defaults);
+    return marked;
+  };
+
+  marked.getDefaults = getDefaults;
+
+  marked.defaults = defaults$5;
+
+  /**
+   * Use Extension
+   */
+
+  marked.use = function(extension) {
+    var opts = merge$3({}, extension);
+    if (extension.renderer) {
+      var renderer = marked.defaults.renderer || new Renderer();
+      var loop = function ( prop ) {
+        var prevRenderer = renderer[prop];
+        renderer[prop] = function () {
+          var args = [], len = arguments.length;
+          while ( len-- ) args[ len ] = arguments[ len ];
+
+          var ret = extension.renderer[prop].apply(renderer, args);
+          if (ret === false) {
+            ret = prevRenderer.apply(renderer, args);
+          }
+          return ret;
+        };
+      };
+
+      for (var prop in extension.renderer) loop( prop );
+      opts.renderer = renderer;
+    }
+    if (extension.tokenizer) {
+      var tokenizer = marked.defaults.tokenizer || new Tokenizer();
+      var loop$1 = function ( prop ) {
+        var prevTokenizer = tokenizer[prop$1];
+        tokenizer[prop$1] = function () {
+          var args = [], len = arguments.length;
+          while ( len-- ) args[ len ] = arguments[ len ];
+
+          var ret = extension.tokenizer[prop$1].apply(tokenizer, args);
+          if (ret === false) {
+            ret = prevTokenizer.apply(tokenizer, args);
+          }
+          return ret;
+        };
+      };
+
+      for (var prop$1 in extension.tokenizer) loop$1( prop );
+      opts.tokenizer = tokenizer;
+    }
+    if (extension.walkTokens) {
+      var walkTokens = marked.defaults.walkTokens;
+      opts.walkTokens = function (token) {
+        extension.walkTokens(token);
+        if (walkTokens) {
+          walkTokens(token);
+        }
+      };
+    }
+    marked.setOptions(opts);
+  };
+
+  /**
+   * Run callback for every token
+   */
+
+  marked.walkTokens = function(tokens, callback) {
+    for (var i$3 = 0, list$3 = tokens; i$3 < list$3.length; i$3 += 1) {
+      var token = list$3[i$3];
+
+      callback(token);
+      switch (token.type) {
+        case 'table': {
+          for (var i = 0, list = token.tokens.header; i < list.length; i += 1) {
+            var cell = list[i];
+
+            marked.walkTokens(cell, callback);
+          }
+          for (var i$2 = 0, list$2 = token.tokens.cells; i$2 < list$2.length; i$2 += 1) {
+            var row = list$2[i$2];
+
+            for (var i$1 = 0, list$1 = row; i$1 < list$1.length; i$1 += 1) {
+              var cell$1 = list$1[i$1];
+
+              marked.walkTokens(cell$1, callback);
+            }
+          }
+          break;
+        }
+        case 'list': {
+          marked.walkTokens(token.items, callback);
+          break;
+        }
+        default: {
+          if (token.tokens) {
+            marked.walkTokens(token.tokens, callback);
+          }
+        }
+      }
+    }
+  };
+
+  /**
+   * Parse Inline
+   */
+  marked.parseInline = function(src, opt) {
+    // throw error in case of non string input
+    if (typeof src === 'undefined' || src === null) {
+      throw new Error('marked.parseInline(): input parameter is undefined or null');
+    }
+    if (typeof src !== 'string') {
+      throw new Error('marked.parseInline(): input parameter is of type '
+        + Object.prototype.toString.call(src) + ', string expected');
+    }
+
+    opt = merge$3({}, marked.defaults, opt || {});
+    checkSanitizeDeprecation$1(opt);
+
+    try {
+      var tokens = Lexer.lexInline(src, opt);
+      if (opt.walkTokens) {
+        marked.walkTokens(tokens, opt.walkTokens);
+      }
+      return Parser.parseInline(tokens, opt);
+    } catch (e) {
+      e.message += '\nPlease report this to https://github.com/markedjs/marked.';
+      if (opt.silent) {
+        return '<p>An error occurred:</p><pre>'
+          + escape$3(e.message + '', true)
+          + '</pre>';
+      }
+      throw e;
+    }
+  };
+
+  /**
+   * Expose
+   */
+
+  marked.Parser = Parser;
+  marked.parser = Parser.parse;
+
+  marked.Renderer = Renderer;
+  marked.TextRenderer = TextRenderer;
+
+  marked.Lexer = Lexer;
+  marked.lexer = Lexer.lex;
+
+  marked.Tokenizer = Tokenizer;
+
+  marked.Slugger = Slugger;
+
+  marked.parse = marked;
+
+  var marked_1 = marked;
+
+  /**
+   * Render github corner
+   * @param  {Object} data URL for the View Source on Github link
+   * @param {String} cornerExternalLinkTarget value of the target attribute of the link
+   * @return {String} SVG element as string
+   */
+  function corner(data, cornerExternalLinkTarget) {
+    if (!data) {
+      return '';
+    }
+
+    if (!/\/\//.test(data)) {
+      data = 'https://github.com/' + data;
+    }
+
+    data = data.replace(/^git\+/, '');
+    // Double check
+    cornerExternalLinkTarget = cornerExternalLinkTarget || '_blank';
+
+    return (
+      "<a href=\"" + data + "\" target=\"" + cornerExternalLinkTarget + "\" class=\"github-corner\" aria-label=\"View source on Github\">" +
+      '<svg viewBox="0 0 250 250" aria-hidden="true">' +
+      '<path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path>' +
+      '<path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path>' +
+      '<path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path>' +
+      '</svg>' +
+      '</a>'
+    );
+  }
+
+  /**
+   * Renders main content
+   * @param {Object} config Configuration object
+   * @returns {String} HTML of the main content
+   */
+  function main(config) {
+    var name = config.name ? config.name : '';
+
+    var aside =
+      '<button class="sidebar-toggle" aria-label="Menu">' +
+      '<div class="sidebar-toggle-button">' +
+      '<span></span><span></span><span></span>' +
+      '</div>' +
+      '</button>' +
+      '<aside class="sidebar">' +
+      (config.name
+        ? ("<h1 class=\"app-name\"><a class=\"app-name-link\" data-nosearch>" + (config.logo ? ("<img alt=\"" + name + "\" src=" + (config.logo) + ">") : name) + "</a></h1>")
+        : '') +
+      '<div class="sidebar-nav"><!--sidebar--></div>' +
+      '</aside>';
+    return (
+      "<main>" + aside +
+      '<section class="content">' +
+      '<article class="markdown-section" id="main"><!--main--></article>' +
+      '</section>' +
+      '</main>'
+    );
+  }
+
+  /**
+   * Cover Page
+   * @returns {String} Cover page
+   */
+  function cover() {
+    var SL = ', 100%, 85%';
+    var bgc =
+      'linear-gradient(to left bottom, ' +
+      "hsl(" + (Math.floor(Math.random() * 255) + SL) + ") 0%," +
+      "hsl(" + (Math.floor(Math.random() * 255) + SL) + ") 100%)";
+
+    return (
+      "<section class=\"cover show\" style=\"background: " + bgc + "\">" +
+      '<div class="mask"></div>' +
+      '<div class="cover-main"><!--cover--></div>' +
+      '</section>'
+    );
+  }
+
+  /**
+   * Render tree
+   * @param  {Array} toc Array of TOC section links
+   * @param  {String} tpl TPL list
+   * @return {String} Rendered tree
+   */
+  function tree(toc, tpl) {
+    if ( tpl === void 0 ) tpl = '<ul class="app-sub-sidebar">{inner}</ul>';
+
+    if (!toc || !toc.length) {
+      return '';
+    }
+
+    var innerHTML = '';
+    toc.forEach(function (node) {
+      var title = node.title.replace(/(<([^>]+)>)/g, '');
+      innerHTML += "<li><a class=\"section-link\" href=\"" + (node.slug) + "\" title=\"" + title + "\">" + (node.title) + "</a></li>";
+      if (node.children) {
+        innerHTML += tree(node.children, tpl);
+      }
+    });
+    return tpl.replace('{inner}', innerHTML);
+  }
+
+  function helper(className, content) {
+    return ("<p class=\"" + className + "\">" + (content.slice(5).trim()) + "</p>");
+  }
+
+  function theme(color) {
+    return ("<style>:root{--theme-color: " + color + ";}</style>");
+  }
+
+  /**
+   * Gen toc tree
+   * @link https://github.com/killercup/grock/blob/5280ae63e16c5739e9233d9009bc235ed7d79a50/styles/solarized/assets/js/behavior.coffee#L54-L81
+   * @param  {Array} toc List of TOC elements
+   * @param  {Number} maxLevel Deep level
+   * @return {Array} Headlines
+   */
+  function genTree(toc, maxLevel) {
+    var headlines = [];
+    var last = {};
+
+    toc.forEach(function (headline) {
+      var level = headline.level || 1;
+      var len = level - 1;
+
+      if (level > maxLevel) {
+        return;
+      }
+
+      if (last[len]) {
+        last[len].children = (last[len].children || []).concat(headline);
+      } else {
+        headlines.push(headline);
+      }
+
+      last[level] = headline;
+    });
+
+    return headlines;
+  }
+
+  var cache$1 = {};
+  var re = /[\u2000-\u206F\u2E00-\u2E7F\\'!"#$%&()*+,./:;<=>?@[\]^`{|}~]/g;
+
+  function lower(string) {
+    return string.toLowerCase();
+  }
+
+  function slugify(str) {
+    if (typeof str !== 'string') {
+      return '';
+    }
+
+    var slug = str
+      .trim()
+      .replace(/[A-Z]+/g, lower)
+      .replace(/<[^>]+>/g, '')
+      .replace(re, '')
+      .replace(/\s/g, '-')
+      .replace(/-+/g, '-')
+      .replace(/^(\d)/, '_$1');
+    var count = cache$1[slug];
+
+    count = hasOwn.call(cache$1, slug) ? count + 1 : 0;
+    cache$1[slug] = count;
+
+    if (count) {
+      slug = slug + '-' + count;
+    }
+
+    return slug;
+  }
+
+  slugify.clear = function () {
+    cache$1 = {};
+  };
+
+  /* eslint-disable */
+
+  // =============================================================================
+  // DO NOT EDIT: This file is auto-generated by an /build/emoji.js
+  // =============================================================================
+
+  var emojiData = {
+    "baseURL": "https://github.githubassets.com/images/icons/emoji/",
+    "data": {
+      "100": "unicode/1f4af.png?v8",
+      "1234": "unicode/1f522.png?v8",
+      "+1": "unicode/1f44d.png?v8",
+      "-1": "unicode/1f44e.png?v8",
+      "1st_place_medal": "unicode/1f947.png?v8",
+      "2nd_place_medal": "unicode/1f948.png?v8",
+      "3rd_place_medal": "unicode/1f949.png?v8",
+      "8ball": "unicode/1f3b1.png?v8",
+      "a": "unicode/1f170.png?v8",
+      "ab": "unicode/1f18e.png?v8",
+      "abacus": "unicode/1f9ee.png?v8",
+      "abc": "unicode/1f524.png?v8",
+      "abcd": "unicode/1f521.png?v8",
+      "accept": "unicode/1f251.png?v8",
+      "accordion": "unicode/1fa97.png?v8",
+      "adhesive_bandage": "unicode/1fa79.png?v8",
+      "adult": "unicode/1f9d1.png?v8",
+      "aerial_tramway": "unicode/1f6a1.png?v8",
+      "afghanistan": "unicode/1f1e6-1f1eb.png?v8",
+      "airplane": "unicode/2708.png?v8",
+      "aland_islands": "unicode/1f1e6-1f1fd.png?v8",
+      "alarm_clock": "unicode/23f0.png?v8",
+      "albania": "unicode/1f1e6-1f1f1.png?v8",
+      "alembic": "unicode/2697.png?v8",
+      "algeria": "unicode/1f1e9-1f1ff.png?v8",
+      "alien": "unicode/1f47d.png?v8",
+      "ambulance": "unicode/1f691.png?v8",
+      "american_samoa": "unicode/1f1e6-1f1f8.png?v8",
+      "amphora": "unicode/1f3fa.png?v8",
+      "anatomical_heart": "unicode/1fac0.png?v8",
+      "anchor": "unicode/2693.png?v8",
+      "andorra": "unicode/1f1e6-1f1e9.png?v8",
+      "angel": "unicode/1f47c.png?v8",
+      "anger": "unicode/1f4a2.png?v8",
+      "angola": "unicode/1f1e6-1f1f4.png?v8",
+      "angry": "unicode/1f620.png?v8",
+      "anguilla": "unicode/1f1e6-1f1ee.png?v8",
+      "anguished": "unicode/1f627.png?v8",
+      "ant": "unicode/1f41c.png?v8",
+      "antarctica": "unicode/1f1e6-1f1f6.png?v8",
+      "antigua_barbuda": "unicode/1f1e6-1f1ec.png?v8",
+      "apple": "unicode/1f34e.png?v8",
+      "aquarius": "unicode/2652.png?v8",
+      "argentina": "unicode/1f1e6-1f1f7.png?v8",
+      "aries": "unicode/2648.png?v8",
+      "armenia": "unicode/1f1e6-1f1f2.png?v8",
+      "arrow_backward": "unicode/25c0.png?v8",
+      "arrow_double_down": "unicode/23ec.png?v8",
+      "arrow_double_up": "unicode/23eb.png?v8",
+      "arrow_down": "unicode/2b07.png?v8",
+      "arrow_down_small": "unicode/1f53d.png?v8",
+      "arrow_forward": "unicode/25b6.png?v8",
+      "arrow_heading_down": "unicode/2935.png?v8",
+      "arrow_heading_up": "unicode/2934.png?v8",
+      "arrow_left": "unicode/2b05.png?v8",
+      "arrow_lower_left": "unicode/2199.png?v8",
+      "arrow_lower_right": "unicode/2198.png?v8",
+      "arrow_right": "unicode/27a1.png?v8",
+      "arrow_right_hook": "unicode/21aa.png?v8",
+      "arrow_up": "unicode/2b06.png?v8",
+      "arrow_up_down": "unicode/2195.png?v8",
+      "arrow_up_small": "unicode/1f53c.png?v8",
+      "arrow_upper_left": "unicode/2196.png?v8",
+      "arrow_upper_right": "unicode/2197.png?v8",
+      "arrows_clockwise": "unicode/1f503.png?v8",
+      "arrows_counterclockwise": "unicode/1f504.png?v8",
+      "art": "unicode/1f3a8.png?v8",
+      "articulated_lorry": "unicode/1f69b.png?v8",
+      "artificial_satellite": "unicode/1f6f0.png?v8",
+      "artist": "unicode/1f9d1-1f3a8.png?v8",
+      "aruba": "unicode/1f1e6-1f1fc.png?v8",
+      "ascension_island": "unicode/1f1e6-1f1e8.png?v8",
+      "asterisk": "unicode/002a-20e3.png?v8",
+      "astonished": "unicode/1f632.png?v8",
+      "astronaut": "unicode/1f9d1-1f680.png?v8",
+      "athletic_shoe": "unicode/1f45f.png?v8",
+      "atm": "unicode/1f3e7.png?v8",
+      "atom": "atom.png?v8",
+      "atom_symbol": "unicode/269b.png?v8",
+      "australia": "unicode/1f1e6-1f1fa.png?v8",
+      "austria": "unicode/1f1e6-1f1f9.png?v8",
+      "auto_rickshaw": "unicode/1f6fa.png?v8",
+      "avocado": "unicode/1f951.png?v8",
+      "axe": "unicode/1fa93.png?v8",
+      "azerbaijan": "unicode/1f1e6-1f1ff.png?v8",
+      "b": "unicode/1f171.png?v8",
+      "baby": "unicode/1f476.png?v8",
+      "baby_bottle": "unicode/1f37c.png?v8",
+      "baby_chick": "unicode/1f424.png?v8",
+      "baby_symbol": "unicode/1f6bc.png?v8",
+      "back": "unicode/1f519.png?v8",
+      "bacon": "unicode/1f953.png?v8",
+      "badger": "unicode/1f9a1.png?v8",
+      "badminton": "unicode/1f3f8.png?v8",
+      "bagel": "unicode/1f96f.png?v8",
+      "baggage_claim": "unicode/1f6c4.png?v8",
+      "baguette_bread": "unicode/1f956.png?v8",
+      "bahamas": "unicode/1f1e7-1f1f8.png?v8",
+      "bahrain": "unicode/1f1e7-1f1ed.png?v8",
+      "balance_scale": "unicode/2696.png?v8",
+      "bald_man": "unicode/1f468-1f9b2.png?v8",
+      "bald_woman": "unicode/1f469-1f9b2.png?v8",
+      "ballet_shoes": "unicode/1fa70.png?v8",
+      "balloon": "unicode/1f388.png?v8",
+      "ballot_box": "unicode/1f5f3.png?v8",
+      "ballot_box_with_check": "unicode/2611.png?v8",
+      "bamboo": "unicode/1f38d.png?v8",
+      "banana": "unicode/1f34c.png?v8",
+      "bangbang": "unicode/203c.png?v8",
+      "bangladesh": "unicode/1f1e7-1f1e9.png?v8",
+      "banjo": "unicode/1fa95.png?v8",
+      "bank": "unicode/1f3e6.png?v8",
+      "bar_chart": "unicode/1f4ca.png?v8",
+      "barbados": "unicode/1f1e7-1f1e7.png?v8",
+      "barber": "unicode/1f488.png?v8",
+      "baseball": "unicode/26be.png?v8",
+      "basecamp": "basecamp.png?v8",
+      "basecampy": "basecampy.png?v8",
+      "basket": "unicode/1f9fa.png?v8",
+      "basketball": "unicode/1f3c0.png?v8",
+      "basketball_man": "unicode/26f9-2642.png?v8",
+      "basketball_woman": "unicode/26f9-2640.png?v8",
+      "bat": "unicode/1f987.png?v8",
+      "bath": "unicode/1f6c0.png?v8",
+      "bathtub": "unicode/1f6c1.png?v8",
+      "battery": "unicode/1f50b.png?v8",
+      "beach_umbrella": "unicode/1f3d6.png?v8",
+      "bear": "unicode/1f43b.png?v8",
+      "bearded_person": "unicode/1f9d4.png?v8",
+      "beaver": "unicode/1f9ab.png?v8",
+      "bed": "unicode/1f6cf.png?v8",
+      "bee": "unicode/1f41d.png?v8",
+      "beer": "unicode/1f37a.png?v8",
+      "beers": "unicode/1f37b.png?v8",
+      "beetle": "unicode/1fab2.png?v8",
+      "beginner": "unicode/1f530.png?v8",
+      "belarus": "unicode/1f1e7-1f1fe.png?v8",
+      "belgium": "unicode/1f1e7-1f1ea.png?v8",
+      "belize": "unicode/1f1e7-1f1ff.png?v8",
+      "bell": "unicode/1f514.png?v8",
+      "bell_pepper": "unicode/1fad1.png?v8",
+      "bellhop_bell": "unicode/1f6ce.png?v8",
+      "benin": "unicode/1f1e7-1f1ef.png?v8",
+      "bento": "unicode/1f371.png?v8",
+      "bermuda": "unicode/1f1e7-1f1f2.png?v8",
+      "beverage_box": "unicode/1f9c3.png?v8",
+      "bhutan": "unicode/1f1e7-1f1f9.png?v8",
+      "bicyclist": "unicode/1f6b4.png?v8",
+      "bike": "unicode/1f6b2.png?v8",
+      "biking_man": "unicode/1f6b4-2642.png?v8",
+      "biking_woman": "unicode/1f6b4-2640.png?v8",
+      "bikini": "unicode/1f459.png?v8",
+      "billed_cap": "unicode/1f9e2.png?v8",
+      "biohazard": "unicode/2623.png?v8",
+      "bird": "unicode/1f426.png?v8",
+      "birthday": "unicode/1f382.png?v8",
+      "bison": "unicode/1f9ac.png?v8",
+      "black_cat": "unicode/1f408-2b1b.png?v8",
+      "black_circle": "unicode/26ab.png?v8",
+      "black_flag": "unicode/1f3f4.png?v8",
+      "black_heart": "unicode/1f5a4.png?v8",
+      "black_joker": "unicode/1f0cf.png?v8",
+      "black_large_square": "unicode/2b1b.png?v8",
+      "black_medium_small_square": "unicode/25fe.png?v8",
+      "black_medium_square": "unicode/25fc.png?v8",
+      "black_nib": "unicode/2712.png?v8",
+      "black_small_square": "unicode/25aa.png?v8",
+      "black_square_button": "unicode/1f532.png?v8",
+      "blond_haired_man": "unicode/1f471-2642.png?v8",
+      "blond_haired_person": "unicode/1f471.png?v8",
+      "blond_haired_woman": "unicode/1f471-2640.png?v8",
+      "blonde_woman": "unicode/1f471-2640.png?v8",
+      "blossom": "unicode/1f33c.png?v8",
+      "blowfish": "unicode/1f421.png?v8",
+      "blue_book": "unicode/1f4d8.png?v8",
+      "blue_car": "unicode/1f699.png?v8",
+      "blue_heart": "unicode/1f499.png?v8",
+      "blue_square": "unicode/1f7e6.png?v8",
+      "blueberries": "unicode/1fad0.png?v8",
+      "blush": "unicode/1f60a.png?v8",
+      "boar": "unicode/1f417.png?v8",
+      "boat": "unicode/26f5.png?v8",
+      "bolivia": "unicode/1f1e7-1f1f4.png?v8",
+      "bomb": "unicode/1f4a3.png?v8",
+      "bone": "unicode/1f9b4.png?v8",
+      "book": "unicode/1f4d6.png?v8",
+      "bookmark": "unicode/1f516.png?v8",
+      "bookmark_tabs": "unicode/1f4d1.png?v8",
+      "books": "unicode/1f4da.png?v8",
+      "boom": "unicode/1f4a5.png?v8",
+      "boomerang": "unicode/1fa83.png?v8",
+      "boot": "unicode/1f462.png?v8",
+      "bosnia_herzegovina": "unicode/1f1e7-1f1e6.png?v8",
+      "botswana": "unicode/1f1e7-1f1fc.png?v8",
+      "bouncing_ball_man": "unicode/26f9-2642.png?v8",
+      "bouncing_ball_person": "unicode/26f9.png?v8",
+      "bouncing_ball_woman": "unicode/26f9-2640.png?v8",
+      "bouquet": "unicode/1f490.png?v8",
+      "bouvet_island": "unicode/1f1e7-1f1fb.png?v8",
+      "bow": "unicode/1f647.png?v8",
+      "bow_and_arrow": "unicode/1f3f9.png?v8",
+      "bowing_man": "unicode/1f647-2642.png?v8",
+      "bowing_woman": "unicode/1f647-2640.png?v8",
+      "bowl_with_spoon": "unicode/1f963.png?v8",
+      "bowling": "unicode/1f3b3.png?v8",
+      "bowtie": "bowtie.png?v8",
+      "boxing_glove": "unicode/1f94a.png?v8",
+      "boy": "unicode/1f466.png?v8",
+      "brain": "unicode/1f9e0.png?v8",
+      "brazil": "unicode/1f1e7-1f1f7.png?v8",
+      "bread": "unicode/1f35e.png?v8",
+      "breast_feeding": "unicode/1f931.png?v8",
+      "bricks": "unicode/1f9f1.png?v8",
+      "bride_with_veil": "unicode/1f470-2640.png?v8",
+      "bridge_at_night": "unicode/1f309.png?v8",
+      "briefcase": "unicode/1f4bc.png?v8",
+      "british_indian_ocean_territory": "unicode/1f1ee-1f1f4.png?v8",
+      "british_virgin_islands": "unicode/1f1fb-1f1ec.png?v8",
+      "broccoli": "unicode/1f966.png?v8",
+      "broken_heart": "unicode/1f494.png?v8",
+      "broom": "unicode/1f9f9.png?v8",
+      "brown_circle": "unicode/1f7e4.png?v8",
+      "brown_heart": "unicode/1f90e.png?v8",
+      "brown_square": "unicode/1f7eb.png?v8",
+      "brunei": "unicode/1f1e7-1f1f3.png?v8",
+      "bubble_tea": "unicode/1f9cb.png?v8",
+      "bucket": "unicode/1faa3.png?v8",
+      "bug": "unicode/1f41b.png?v8",
+      "building_construction": "unicode/1f3d7.png?v8",
+      "bulb": "unicode/1f4a1.png?v8",
+      "bulgaria": "unicode/1f1e7-1f1ec.png?v8",
+      "bullettrain_front": "unicode/1f685.png?v8",
+      "bullettrain_side": "unicode/1f684.png?v8",
+      "burkina_faso": "unicode/1f1e7-1f1eb.png?v8",
+      "burrito": "unicode/1f32f.png?v8",
+      "burundi": "unicode/1f1e7-1f1ee.png?v8",
+      "bus": "unicode/1f68c.png?v8",
+      "business_suit_levitating": "unicode/1f574.png?v8",
+      "busstop": "unicode/1f68f.png?v8",
+      "bust_in_silhouette": "unicode/1f464.png?v8",
+      "busts_in_silhouette": "unicode/1f465.png?v8",
+      "butter": "unicode/1f9c8.png?v8",
+      "butterfly": "unicode/1f98b.png?v8",
+      "cactus": "unicode/1f335.png?v8",
+      "cake": "unicode/1f370.png?v8",
+      "calendar": "unicode/1f4c6.png?v8",
+      "call_me_hand": "unicode/1f919.png?v8",
+      "calling": "unicode/1f4f2.png?v8",
+      "cambodia": "unicode/1f1f0-1f1ed.png?v8",
+      "camel": "unicode/1f42b.png?v8",
+      "camera": "unicode/1f4f7.png?v8",
+      "camera_flash": "unicode/1f4f8.png?v8",
+      "cameroon": "unicode/1f1e8-1f1f2.png?v8",
+      "camping": "unicode/1f3d5.png?v8",
+      "canada": "unicode/1f1e8-1f1e6.png?v8",
+      "canary_islands": "unicode/1f1ee-1f1e8.png?v8",
+      "cancer": "unicode/264b.png?v8",
+      "candle": "unicode/1f56f.png?v8",
+      "candy": "unicode/1f36c.png?v8",
+      "canned_food": "unicode/1f96b.png?v8",
+      "canoe": "unicode/1f6f6.png?v8",
+      "cape_verde": "unicode/1f1e8-1f1fb.png?v8",
+      "capital_abcd": "unicode/1f520.png?v8",
+      "capricorn": "unicode/2651.png?v8",
+      "car": "unicode/1f697.png?v8",
+      "card_file_box": "unicode/1f5c3.png?v8",
+      "card_index": "unicode/1f4c7.png?v8",
+      "card_index_dividers": "unicode/1f5c2.png?v8",
+      "caribbean_netherlands": "unicode/1f1e7-1f1f6.png?v8",
+      "carousel_horse": "unicode/1f3a0.png?v8",
+      "carpentry_saw": "unicode/1fa9a.png?v8",
+      "carrot": "unicode/1f955.png?v8",
+      "cartwheeling": "unicode/1f938.png?v8",
+      "cat": "unicode/1f431.png?v8",
+      "cat2": "unicode/1f408.png?v8",
+      "cayman_islands": "unicode/1f1f0-1f1fe.png?v8",
+      "cd": "unicode/1f4bf.png?v8",
+      "central_african_republic": "unicode/1f1e8-1f1eb.png?v8",
+      "ceuta_melilla": "unicode/1f1ea-1f1e6.png?v8",
+      "chad": "unicode/1f1f9-1f1e9.png?v8",
+      "chains": "unicode/26d3.png?v8",
+      "chair": "unicode/1fa91.png?v8",
+      "champagne": "unicode/1f37e.png?v8",
+      "chart": "unicode/1f4b9.png?v8",
+      "chart_with_downwards_trend": "unicode/1f4c9.png?v8",
+      "chart_with_upwards_trend": "unicode/1f4c8.png?v8",
+      "checkered_flag": "unicode/1f3c1.png?v8",
+      "cheese": "unicode/1f9c0.png?v8",
+      "cherries": "unicode/1f352.png?v8",
+      "cherry_blossom": "unicode/1f338.png?v8",
+      "chess_pawn": "unicode/265f.png?v8",
+      "chestnut": "unicode/1f330.png?v8",
+      "chicken": "unicode/1f414.png?v8",
+      "child": "unicode/1f9d2.png?v8",
+      "children_crossing": "unicode/1f6b8.png?v8",
+      "chile": "unicode/1f1e8-1f1f1.png?v8",
+      "chipmunk": "unicode/1f43f.png?v8",
+      "chocolate_bar": "unicode/1f36b.png?v8",
+      "chopsticks": "unicode/1f962.png?v8",
+      "christmas_island": "unicode/1f1e8-1f1fd.png?v8",
+      "christmas_tree": "unicode/1f384.png?v8",
+      "church": "unicode/26ea.png?v8",
+      "cinema": "unicode/1f3a6.png?v8",
+      "circus_tent": "unicode/1f3aa.png?v8",
+      "city_sunrise": "unicode/1f307.png?v8",
+      "city_sunset": "unicode/1f306.png?v8",
+      "cityscape": "unicode/1f3d9.png?v8",
+      "cl": "unicode/1f191.png?v8",
+      "clamp": "unicode/1f5dc.png?v8",
+      "clap": "unicode/1f44f.png?v8",
+      "clapper": "unicode/1f3ac.png?v8",
+      "classical_building": "unicode/1f3db.png?v8",
+      "climbing": "unicode/1f9d7.png?v8",
+      "climbing_man": "unicode/1f9d7-2642.png?v8",
+      "climbing_woman": "unicode/1f9d7-2640.png?v8",
+      "clinking_glasses": "unicode/1f942.png?v8",
+      "clipboard": "unicode/1f4cb.png?v8",
+      "clipperton_island": "unicode/1f1e8-1f1f5.png?v8",
+      "clock1": "unicode/1f550.png?v8",
+      "clock10": "unicode/1f559.png?v8",
+      "clock1030": "unicode/1f565.png?v8",
+      "clock11": "unicode/1f55a.png?v8",
+      "clock1130": "unicode/1f566.png?v8",
+      "clock12": "unicode/1f55b.png?v8",
+      "clock1230": "unicode/1f567.png?v8",
+      "clock130": "unicode/1f55c.png?v8",
+      "clock2": "unicode/1f551.png?v8",
+      "clock230": "unicode/1f55d.png?v8",
+      "clock3": "unicode/1f552.png?v8",
+      "clock330": "unicode/1f55e.png?v8",
+      "clock4": "unicode/1f553.png?v8",
+      "clock430": "unicode/1f55f.png?v8",
+      "clock5": "unicode/1f554.png?v8",
+      "clock530": "unicode/1f560.png?v8",
+      "clock6": "unicode/1f555.png?v8",
+      "clock630": "unicode/1f561.png?v8",
+      "clock7": "unicode/1f556.png?v8",
+      "clock730": "unicode/1f562.png?v8",
+      "clock8": "unicode/1f557.png?v8",
+      "clock830": "unicode/1f563.png?v8",
+      "clock9": "unicode/1f558.png?v8",
+      "clock930": "unicode/1f564.png?v8",
+      "closed_book": "unicode/1f4d5.png?v8",
+      "closed_lock_with_key": "unicode/1f510.png?v8",
+      "closed_umbrella": "unicode/1f302.png?v8",
+      "cloud": "unicode/2601.png?v8",
+      "cloud_with_lightning": "unicode/1f329.png?v8",
+      "cloud_with_lightning_and_rain": "unicode/26c8.png?v8",
+      "cloud_with_rain": "unicode/1f327.png?v8",
+      "cloud_with_snow": "unicode/1f328.png?v8",
+      "clown_face": "unicode/1f921.png?v8",
+      "clubs": "unicode/2663.png?v8",
+      "cn": "unicode/1f1e8-1f1f3.png?v8",
+      "coat": "unicode/1f9e5.png?v8",
+      "cockroach": "unicode/1fab3.png?v8",
+      "cocktail": "unicode/1f378.png?v8",
+      "coconut": "unicode/1f965.png?v8",
+      "cocos_islands": "unicode/1f1e8-1f1e8.png?v8",
+      "coffee": "unicode/2615.png?v8",
+      "coffin": "unicode/26b0.png?v8",
+      "coin": "unicode/1fa99.png?v8",
+      "cold_face": "unicode/1f976.png?v8",
+      "cold_sweat": "unicode/1f630.png?v8",
+      "collision": "unicode/1f4a5.png?v8",
+      "colombia": "unicode/1f1e8-1f1f4.png?v8",
+      "comet": "unicode/2604.png?v8",
+      "comoros": "unicode/1f1f0-1f1f2.png?v8",
+      "compass": "unicode/1f9ed.png?v8",
+      "computer": "unicode/1f4bb.png?v8",
+      "computer_mouse": "unicode/1f5b1.png?v8",
+      "confetti_ball": "unicode/1f38a.png?v8",
+      "confounded": "unicode/1f616.png?v8",
+      "confused": "unicode/1f615.png?v8",
+      "congo_brazzaville": "unicode/1f1e8-1f1ec.png?v8",
+      "congo_kinshasa": "unicode/1f1e8-1f1e9.png?v8",
+      "congratulations": "unicode/3297.png?v8",
+      "construction": "unicode/1f6a7.png?v8",
+      "construction_worker": "unicode/1f477.png?v8",
+      "construction_worker_man": "unicode/1f477-2642.png?v8",
+      "construction_worker_woman": "unicode/1f477-2640.png?v8",
+      "control_knobs": "unicode/1f39b.png?v8",
+      "convenience_store": "unicode/1f3ea.png?v8",
+      "cook": "unicode/1f9d1-1f373.png?v8",
+      "cook_islands": "unicode/1f1e8-1f1f0.png?v8",
+      "cookie": "unicode/1f36a.png?v8",
+      "cool": "unicode/1f192.png?v8",
+      "cop": "unicode/1f46e.png?v8",
+      "copyright": "unicode/00a9.png?v8",
+      "corn": "unicode/1f33d.png?v8",
+      "costa_rica": "unicode/1f1e8-1f1f7.png?v8",
+      "cote_divoire": "unicode/1f1e8-1f1ee.png?v8",
+      "couch_and_lamp": "unicode/1f6cb.png?v8",
+      "couple": "unicode/1f46b.png?v8",
+      "couple_with_heart": "unicode/1f491.png?v8",
+      "couple_with_heart_man_man": "unicode/1f468-2764-1f468.png?v8",
+      "couple_with_heart_woman_man": "unicode/1f469-2764-1f468.png?v8",
+      "couple_with_heart_woman_woman": "unicode/1f469-2764-1f469.png?v8",
+      "couplekiss": "unicode/1f48f.png?v8",
+      "couplekiss_man_man": "unicode/1f468-2764-1f48b-1f468.png?v8",
+      "couplekiss_man_woman": "unicode/1f469-2764-1f48b-1f468.png?v8",
+      "couplekiss_woman_woman": "unicode/1f469-2764-1f48b-1f469.png?v8",
+      "cow": "unicode/1f42e.png?v8",
+      "cow2": "unicode/1f404.png?v8",
+      "cowboy_hat_face": "unicode/1f920.png?v8",
+      "crab": "unicode/1f980.png?v8",
+      "crayon": "unicode/1f58d.png?v8",
+      "credit_card": "unicode/1f4b3.png?v8",
+      "crescent_moon": "unicode/1f319.png?v8",
+      "cricket": "unicode/1f997.png?v8",
+      "cricket_game": "unicode/1f3cf.png?v8",
+      "croatia": "unicode/1f1ed-1f1f7.png?v8",
+      "crocodile": "unicode/1f40a.png?v8",
+      "croissant": "unicode/1f950.png?v8",
+      "crossed_fingers": "unicode/1f91e.png?v8",
+      "crossed_flags": "unicode/1f38c.png?v8",
+      "crossed_swords": "unicode/2694.png?v8",
+      "crown": "unicode/1f451.png?v8",
+      "cry": "unicode/1f622.png?v8",
+      "crying_cat_face": "unicode/1f63f.png?v8",
+      "crystal_ball": "unicode/1f52e.png?v8",
+      "cuba": "unicode/1f1e8-1f1fa.png?v8",
+      "cucumber": "unicode/1f952.png?v8",
+      "cup_with_straw": "unicode/1f964.png?v8",
+      "cupcake": "unicode/1f9c1.png?v8",
+      "cupid": "unicode/1f498.png?v8",
+      "curacao": "unicode/1f1e8-1f1fc.png?v8",
+      "curling_stone": "unicode/1f94c.png?v8",
+      "curly_haired_man": "unicode/1f468-1f9b1.png?v8",
+      "curly_haired_woman": "unicode/1f469-1f9b1.png?v8",
+      "curly_loop": "unicode/27b0.png?v8",
+      "currency_exchange": "unicode/1f4b1.png?v8",
+      "curry": "unicode/1f35b.png?v8",
+      "cursing_face": "unicode/1f92c.png?v8",
+      "custard": "unicode/1f36e.png?v8",
+      "customs": "unicode/1f6c3.png?v8",
+      "cut_of_meat": "unicode/1f969.png?v8",
+      "cyclone": "unicode/1f300.png?v8",
+      "cyprus": "unicode/1f1e8-1f1fe.png?v8",
+      "czech_republic": "unicode/1f1e8-1f1ff.png?v8",
+      "dagger": "unicode/1f5e1.png?v8",
+      "dancer": "unicode/1f483.png?v8",
+      "dancers": "unicode/1f46f.png?v8",
+      "dancing_men": "unicode/1f46f-2642.png?v8",
+      "dancing_women": "unicode/1f46f-2640.png?v8",
+      "dango": "unicode/1f361.png?v8",
+      "dark_sunglasses": "unicode/1f576.png?v8",
+      "dart": "unicode/1f3af.png?v8",
+      "dash": "unicode/1f4a8.png?v8",
+      "date": "unicode/1f4c5.png?v8",
+      "de": "unicode/1f1e9-1f1ea.png?v8",
+      "deaf_man": "unicode/1f9cf-2642.png?v8",
+      "deaf_person": "unicode/1f9cf.png?v8",
+      "deaf_woman": "unicode/1f9cf-2640.png?v8",
+      "deciduous_tree": "unicode/1f333.png?v8",
+      "deer": "unicode/1f98c.png?v8",
+      "denmark": "unicode/1f1e9-1f1f0.png?v8",
+      "department_store": "unicode/1f3ec.png?v8",
+      "derelict_house": "unicode/1f3da.png?v8",
+      "desert": "unicode/1f3dc.png?v8",
+      "desert_island": "unicode/1f3dd.png?v8",
+      "desktop_computer": "unicode/1f5a5.png?v8",
+      "detective": "unicode/1f575.png?v8",
+      "diamond_shape_with_a_dot_inside": "unicode/1f4a0.png?v8",
+      "diamonds": "unicode/2666.png?v8",
+      "diego_garcia": "unicode/1f1e9-1f1ec.png?v8",
+      "disappointed": "unicode/1f61e.png?v8",
+      "disappointed_relieved": "unicode/1f625.png?v8",
+      "disguised_face": "unicode/1f978.png?v8",
+      "diving_mask": "unicode/1f93f.png?v8",
+      "diya_lamp": "unicode/1fa94.png?v8",
+      "dizzy": "unicode/1f4ab.png?v8",
+      "dizzy_face": "unicode/1f635.png?v8",
+      "djibouti": "unicode/1f1e9-1f1ef.png?v8",
+      "dna": "unicode/1f9ec.png?v8",
+      "do_not_litter": "unicode/1f6af.png?v8",
+      "dodo": "unicode/1f9a4.png?v8",
+      "dog": "unicode/1f436.png?v8",
+      "dog2": "unicode/1f415.png?v8",
+      "dollar": "unicode/1f4b5.png?v8",
+      "dolls": "unicode/1f38e.png?v8",
+      "dolphin": "unicode/1f42c.png?v8",
+      "dominica": "unicode/1f1e9-1f1f2.png?v8",
+      "dominican_republic": "unicode/1f1e9-1f1f4.png?v8",
+      "door": "unicode/1f6aa.png?v8",
+      "doughnut": "unicode/1f369.png?v8",
+      "dove": "unicode/1f54a.png?v8",
+      "dragon": "unicode/1f409.png?v8",
+      "dragon_face": "unicode/1f432.png?v8",
+      "dress": "unicode/1f457.png?v8",
+      "dromedary_camel": "unicode/1f42a.png?v8",
+      "drooling_face": "unicode/1f924.png?v8",
+      "drop_of_blood": "unicode/1fa78.png?v8",
+      "droplet": "unicode/1f4a7.png?v8",
+      "drum": "unicode/1f941.png?v8",
+      "duck": "unicode/1f986.png?v8",
+      "dumpling": "unicode/1f95f.png?v8",
+      "dvd": "unicode/1f4c0.png?v8",
+      "e-mail": "unicode/1f4e7.png?v8",
+      "eagle": "unicode/1f985.png?v8",
+      "ear": "unicode/1f442.png?v8",
+      "ear_of_rice": "unicode/1f33e.png?v8",
+      "ear_with_hearing_aid": "unicode/1f9bb.png?v8",
+      "earth_africa": "unicode/1f30d.png?v8",
+      "earth_americas": "unicode/1f30e.png?v8",
+      "earth_asia": "unicode/1f30f.png?v8",
+      "ecuador": "unicode/1f1ea-1f1e8.png?v8",
+      "egg": "unicode/1f95a.png?v8",
+      "eggplant": "unicode/1f346.png?v8",
+      "egypt": "unicode/1f1ea-1f1ec.png?v8",
+      "eight": "unicode/0038-20e3.png?v8",
+      "eight_pointed_black_star": "unicode/2734.png?v8",
+      "eight_spoked_asterisk": "unicode/2733.png?v8",
+      "eject_button": "unicode/23cf.png?v8",
+      "el_salvador": "unicode/1f1f8-1f1fb.png?v8",
+      "electric_plug": "unicode/1f50c.png?v8",
+      "electron": "electron.png?v8",
+      "elephant": "unicode/1f418.png?v8",
+      "elevator": "unicode/1f6d7.png?v8",
+      "elf": "unicode/1f9dd.png?v8",
+      "elf_man": "unicode/1f9dd-2642.png?v8",
+      "elf_woman": "unicode/1f9dd-2640.png?v8",
+      "email": "unicode/1f4e7.png?v8",
+      "end": "unicode/1f51a.png?v8",
+      "england": "unicode/1f3f4-e0067-e0062-e0065-e006e-e0067-e007f.png?v8",
+      "envelope": "unicode/2709.png?v8",
+      "envelope_with_arrow": "unicode/1f4e9.png?v8",
+      "equatorial_guinea": "unicode/1f1ec-1f1f6.png?v8",
+      "eritrea": "unicode/1f1ea-1f1f7.png?v8",
+      "es": "unicode/1f1ea-1f1f8.png?v8",
+      "estonia": "unicode/1f1ea-1f1ea.png?v8",
+      "ethiopia": "unicode/1f1ea-1f1f9.png?v8",
+      "eu": "unicode/1f1ea-1f1fa.png?v8",
+      "euro": "unicode/1f4b6.png?v8",
+      "european_castle": "unicode/1f3f0.png?v8",
+      "european_post_office": "unicode/1f3e4.png?v8",
+      "european_union": "unicode/1f1ea-1f1fa.png?v8",
+      "evergreen_tree": "unicode/1f332.png?v8",
+      "exclamation": "unicode/2757.png?v8",
+      "exploding_head": "unicode/1f92f.png?v8",
+      "expressionless": "unicode/1f611.png?v8",
+      "eye": "unicode/1f441.png?v8",
+      "eye_speech_bubble": "unicode/1f441-1f5e8.png?v8",
+      "eyeglasses": "unicode/1f453.png?v8",
+      "eyes": "unicode/1f440.png?v8",
+      "face_exhaling": "unicode/1f62e-1f4a8.png?v8",
+      "face_in_clouds": "unicode/1f636-1f32b.png?v8",
+      "face_with_head_bandage": "unicode/1f915.png?v8",
+      "face_with_spiral_eyes": "unicode/1f635-1f4ab.png?v8",
+      "face_with_thermometer": "unicode/1f912.png?v8",
+      "facepalm": "unicode/1f926.png?v8",
+      "facepunch": "unicode/1f44a.png?v8",
+      "factory": "unicode/1f3ed.png?v8",
+      "factory_worker": "unicode/1f9d1-1f3ed.png?v8",
+      "fairy": "unicode/1f9da.png?v8",
+      "fairy_man": "unicode/1f9da-2642.png?v8",
+      "fairy_woman": "unicode/1f9da-2640.png?v8",
+      "falafel": "unicode/1f9c6.png?v8",
+      "falkland_islands": "unicode/1f1eb-1f1f0.png?v8",
+      "fallen_leaf": "unicode/1f342.png?v8",
+      "family": "unicode/1f46a.png?v8",
+      "family_man_boy": "unicode/1f468-1f466.png?v8",
+      "family_man_boy_boy": "unicode/1f468-1f466-1f466.png?v8",
+      "family_man_girl": "unicode/1f468-1f467.png?v8",
+      "family_man_girl_boy": "unicode/1f468-1f467-1f466.png?v8",
+      "family_man_girl_girl": "unicode/1f468-1f467-1f467.png?v8",
+      "family_man_man_boy": "unicode/1f468-1f468-1f466.png?v8",
+      "family_man_man_boy_boy": "unicode/1f468-1f468-1f466-1f466.png?v8",
+      "family_man_man_girl": "unicode/1f468-1f468-1f467.png?v8",
+      "family_man_man_girl_boy": "unicode/1f468-1f468-1f467-1f466.png?v8",
+      "family_man_man_girl_girl": "unicode/1f468-1f468-1f467-1f467.png?v8",
+      "family_man_woman_boy": "unicode/1f468-1f469-1f466.png?v8",
+      "family_man_woman_boy_boy": "unicode/1f468-1f469-1f466-1f466.png?v8",
+      "family_man_woman_girl": "unicode/1f468-1f469-1f467.png?v8",
+      "family_man_woman_girl_boy": "unicode/1f468-1f469-1f467-1f466.png?v8",
+      "family_man_woman_girl_girl": "unicode/1f468-1f469-1f467-1f467.png?v8",
+      "family_woman_boy": "unicode/1f469-1f466.png?v8",
+      "family_woman_boy_boy": "unicode/1f469-1f466-1f466.png?v8",
+      "family_woman_girl": "unicode/1f469-1f467.png?v8",
+      "family_woman_girl_boy": "unicode/1f469-1f467-1f466.png?v8",
+      "family_woman_girl_girl": "unicode/1f469-1f467-1f467.png?v8",
+      "family_woman_woman_boy": "unicode/1f469-1f469-1f466.png?v8",
+      "family_woman_woman_boy_boy": "unicode/1f469-1f469-1f466-1f466.png?v8",
+      "family_woman_woman_girl": "unicode/1f469-1f469-1f467.png?v8",
+      "family_woman_woman_girl_boy": "unicode/1f469-1f469-1f467-1f466.png?v8",
+      "family_woman_woman_girl_girl": "unicode/1f469-1f469-1f467-1f467.png?v8",
+      "farmer": "unicode/1f9d1-1f33e.png?v8",
+      "faroe_islands": "unicode/1f1eb-1f1f4.png?v8",
+      "fast_forward": "unicode/23e9.png?v8",
+      "fax": "unicode/1f4e0.png?v8",
+      "fearful": "unicode/1f628.png?v8",
+      "feather": "unicode/1fab6.png?v8",
+      "feelsgood": "feelsgood.png?v8",
+      "feet": "unicode/1f43e.png?v8",
+      "female_detective": "unicode/1f575-2640.png?v8",
+      "female_sign": "unicode/2640.png?v8",
+      "ferris_wheel": "unicode/1f3a1.png?v8",
+      "ferry": "unicode/26f4.png?v8",
+      "field_hockey": "unicode/1f3d1.png?v8",
+      "fiji": "unicode/1f1eb-1f1ef.png?v8",
+      "file_cabinet": "unicode/1f5c4.png?v8",
+      "file_folder": "unicode/1f4c1.png?v8",
+      "film_projector": "unicode/1f4fd.png?v8",
+      "film_strip": "unicode/1f39e.png?v8",
+      "finland": "unicode/1f1eb-1f1ee.png?v8",
+      "finnadie": "finnadie.png?v8",
+      "fire": "unicode/1f525.png?v8",
+      "fire_engine": "unicode/1f692.png?v8",
+      "fire_extinguisher": "unicode/1f9ef.png?v8",
+      "firecracker": "unicode/1f9e8.png?v8",
+      "firefighter": "unicode/1f9d1-1f692.png?v8",
+      "fireworks": "unicode/1f386.png?v8",
+      "first_quarter_moon": "unicode/1f313.png?v8",
+      "first_quarter_moon_with_face": "unicode/1f31b.png?v8",
+      "fish": "unicode/1f41f.png?v8",
+      "fish_cake": "unicode/1f365.png?v8",
+      "fishing_pole_and_fish": "unicode/1f3a3.png?v8",
+      "fist": "unicode/270a.png?v8",
+      "fist_left": "unicode/1f91b.png?v8",
+      "fist_oncoming": "unicode/1f44a.png?v8",
+      "fist_raised": "unicode/270a.png?v8",
+      "fist_right": "unicode/1f91c.png?v8",
+      "five": "unicode/0035-20e3.png?v8",
+      "flags": "unicode/1f38f.png?v8",
+      "flamingo": "unicode/1f9a9.png?v8",
+      "flashlight": "unicode/1f526.png?v8",
+      "flat_shoe": "unicode/1f97f.png?v8",
+      "flatbread": "unicode/1fad3.png?v8",
+      "fleur_de_lis": "unicode/269c.png?v8",
+      "flight_arrival": "unicode/1f6ec.png?v8",
+      "flight_departure": "unicode/1f6eb.png?v8",
+      "flipper": "unicode/1f42c.png?v8",
+      "floppy_disk": "unicode/1f4be.png?v8",
+      "flower_playing_cards": "unicode/1f3b4.png?v8",
+      "flushed": "unicode/1f633.png?v8",
+      "fly": "unicode/1fab0.png?v8",
+      "flying_disc": "unicode/1f94f.png?v8",
+      "flying_saucer": "unicode/1f6f8.png?v8",
+      "fog": "unicode/1f32b.png?v8",
+      "foggy": "unicode/1f301.png?v8",
+      "fondue": "unicode/1fad5.png?v8",
+      "foot": "unicode/1f9b6.png?v8",
+      "football": "unicode/1f3c8.png?v8",
+      "footprints": "unicode/1f463.png?v8",
+      "fork_and_knife": "unicode/1f374.png?v8",
+      "fortune_cookie": "unicode/1f960.png?v8",
+      "fountain": "unicode/26f2.png?v8",
+      "fountain_pen": "unicode/1f58b.png?v8",
+      "four": "unicode/0034-20e3.png?v8",
+      "four_leaf_clover": "unicode/1f340.png?v8",
+      "fox_face": "unicode/1f98a.png?v8",
+      "fr": "unicode/1f1eb-1f1f7.png?v8",
+      "framed_picture": "unicode/1f5bc.png?v8",
+      "free": "unicode/1f193.png?v8",
+      "french_guiana": "unicode/1f1ec-1f1eb.png?v8",
+      "french_polynesia": "unicode/1f1f5-1f1eb.png?v8",
+      "french_southern_territories": "unicode/1f1f9-1f1eb.png?v8",
+      "fried_egg": "unicode/1f373.png?v8",
+      "fried_shrimp": "unicode/1f364.png?v8",
+      "fries": "unicode/1f35f.png?v8",
+      "frog": "unicode/1f438.png?v8",
+      "frowning": "unicode/1f626.png?v8",
+      "frowning_face": "unicode/2639.png?v8",
+      "frowning_man": "unicode/1f64d-2642.png?v8",
+      "frowning_person": "unicode/1f64d.png?v8",
+      "frowning_woman": "unicode/1f64d-2640.png?v8",
+      "fu": "unicode/1f595.png?v8",
+      "fuelpump": "unicode/26fd.png?v8",
+      "full_moon": "unicode/1f315.png?v8",
+      "full_moon_with_face": "unicode/1f31d.png?v8",
+      "funeral_urn": "unicode/26b1.png?v8",
+      "gabon": "unicode/1f1ec-1f1e6.png?v8",
+      "gambia": "unicode/1f1ec-1f1f2.png?v8",
+      "game_die": "unicode/1f3b2.png?v8",
+      "garlic": "unicode/1f9c4.png?v8",
+      "gb": "unicode/1f1ec-1f1e7.png?v8",
+      "gear": "unicode/2699.png?v8",
+      "gem": "unicode/1f48e.png?v8",
+      "gemini": "unicode/264a.png?v8",
+      "genie": "unicode/1f9de.png?v8",
+      "genie_man": "unicode/1f9de-2642.png?v8",
+      "genie_woman": "unicode/1f9de-2640.png?v8",
+      "georgia": "unicode/1f1ec-1f1ea.png?v8",
+      "ghana": "unicode/1f1ec-1f1ed.png?v8",
+      "ghost": "unicode/1f47b.png?v8",
+      "gibraltar": "unicode/1f1ec-1f1ee.png?v8",
+      "gift": "unicode/1f381.png?v8",
+      "gift_heart": "unicode/1f49d.png?v8",
+      "giraffe": "unicode/1f992.png?v8",
+      "girl": "unicode/1f467.png?v8",
+      "globe_with_meridians": "unicode/1f310.png?v8",
+      "gloves": "unicode/1f9e4.png?v8",
+      "goal_net": "unicode/1f945.png?v8",
+      "goat": "unicode/1f410.png?v8",
+      "goberserk": "goberserk.png?v8",
+      "godmode": "godmode.png?v8",
+      "goggles": "unicode/1f97d.png?v8",
+      "golf": "unicode/26f3.png?v8",
+      "golfing": "unicode/1f3cc.png?v8",
+      "golfing_man": "unicode/1f3cc-2642.png?v8",
+      "golfing_woman": "unicode/1f3cc-2640.png?v8",
+      "gorilla": "unicode/1f98d.png?v8",
+      "grapes": "unicode/1f347.png?v8",
+      "greece": "unicode/1f1ec-1f1f7.png?v8",
+      "green_apple": "unicode/1f34f.png?v8",
+      "green_book": "unicode/1f4d7.png?v8",
+      "green_circle": "unicode/1f7e2.png?v8",
+      "green_heart": "unicode/1f49a.png?v8",
+      "green_salad": "unicode/1f957.png?v8",
+      "green_square": "unicode/1f7e9.png?v8",
+      "greenland": "unicode/1f1ec-1f1f1.png?v8",
+      "grenada": "unicode/1f1ec-1f1e9.png?v8",
+      "grey_exclamation": "unicode/2755.png?v8",
+      "grey_question": "unicode/2754.png?v8",
+      "grimacing": "unicode/1f62c.png?v8",
+      "grin": "unicode/1f601.png?v8",
+      "grinning": "unicode/1f600.png?v8",
+      "guadeloupe": "unicode/1f1ec-1f1f5.png?v8",
+      "guam": "unicode/1f1ec-1f1fa.png?v8",
+      "guard": "unicode/1f482.png?v8",
+      "guardsman": "unicode/1f482-2642.png?v8",
+      "guardswoman": "unicode/1f482-2640.png?v8",
+      "guatemala": "unicode/1f1ec-1f1f9.png?v8",
+      "guernsey": "unicode/1f1ec-1f1ec.png?v8",
+      "guide_dog": "unicode/1f9ae.png?v8",
+      "guinea": "unicode/1f1ec-1f1f3.png?v8",
+      "guinea_bissau": "unicode/1f1ec-1f1fc.png?v8",
+      "guitar": "unicode/1f3b8.png?v8",
+      "gun": "unicode/1f52b.png?v8",
+      "guyana": "unicode/1f1ec-1f1fe.png?v8",
+      "haircut": "unicode/1f487.png?v8",
+      "haircut_man": "unicode/1f487-2642.png?v8",
+      "haircut_woman": "unicode/1f487-2640.png?v8",
+      "haiti": "unicode/1f1ed-1f1f9.png?v8",
+      "hamburger": "unicode/1f354.png?v8",
+      "hammer": "unicode/1f528.png?v8",
+      "hammer_and_pick": "unicode/2692.png?v8",
+      "hammer_and_wrench": "unicode/1f6e0.png?v8",
+      "hamster": "unicode/1f439.png?v8",
+      "hand": "unicode/270b.png?v8",
+      "hand_over_mouth": "unicode/1f92d.png?v8",
+      "handbag": "unicode/1f45c.png?v8",
+      "handball_person": "unicode/1f93e.png?v8",
+      "handshake": "unicode/1f91d.png?v8",
+      "hankey": "unicode/1f4a9.png?v8",
+      "hash": "unicode/0023-20e3.png?v8",
+      "hatched_chick": "unicode/1f425.png?v8",
+      "hatching_chick": "unicode/1f423.png?v8",
+      "headphones": "unicode/1f3a7.png?v8",
+      "headstone": "unicode/1faa6.png?v8",
+      "health_worker": "unicode/1f9d1-2695.png?v8",
+      "hear_no_evil": "unicode/1f649.png?v8",
+      "heard_mcdonald_islands": "unicode/1f1ed-1f1f2.png?v8",
+      "heart": "unicode/2764.png?v8",
+      "heart_decoration": "unicode/1f49f.png?v8",
+      "heart_eyes": "unicode/1f60d.png?v8",
+      "heart_eyes_cat": "unicode/1f63b.png?v8",
+      "heart_on_fire": "unicode/2764-1f525.png?v8",
+      "heartbeat": "unicode/1f493.png?v8",
+      "heartpulse": "unicode/1f497.png?v8",
+      "hearts": "unicode/2665.png?v8",
+      "heavy_check_mark": "unicode/2714.png?v8",
+      "heavy_division_sign": "unicode/2797.png?v8",
+      "heavy_dollar_sign": "unicode/1f4b2.png?v8",
+      "heavy_exclamation_mark": "unicode/2757.png?v8",
+      "heavy_heart_exclamation": "unicode/2763.png?v8",
+      "heavy_minus_sign": "unicode/2796.png?v8",
+      "heavy_multiplication_x": "unicode/2716.png?v8",
+      "heavy_plus_sign": "unicode/2795.png?v8",
+      "hedgehog": "unicode/1f994.png?v8",
+      "helicopter": "unicode/1f681.png?v8",
+      "herb": "unicode/1f33f.png?v8",
+      "hibiscus": "unicode/1f33a.png?v8",
+      "high_brightness": "unicode/1f506.png?v8",
+      "high_heel": "unicode/1f460.png?v8",
+      "hiking_boot": "unicode/1f97e.png?v8",
+      "hindu_temple": "unicode/1f6d5.png?v8",
+      "hippopotamus": "unicode/1f99b.png?v8",
+      "hocho": "unicode/1f52a.png?v8",
+      "hole": "unicode/1f573.png?v8",
+      "honduras": "unicode/1f1ed-1f1f3.png?v8",
+      "honey_pot": "unicode/1f36f.png?v8",
+      "honeybee": "unicode/1f41d.png?v8",
+      "hong_kong": "unicode/1f1ed-1f1f0.png?v8",
+      "hook": "unicode/1fa9d.png?v8",
+      "horse": "unicode/1f434.png?v8",
+      "horse_racing": "unicode/1f3c7.png?v8",
+      "hospital": "unicode/1f3e5.png?v8",
+      "hot_face": "unicode/1f975.png?v8",
+      "hot_pepper": "unicode/1f336.png?v8",
+      "hotdog": "unicode/1f32d.png?v8",
+      "hotel": "unicode/1f3e8.png?v8",
+      "hotsprings": "unicode/2668.png?v8",
+      "hourglass": "unicode/231b.png?v8",
+      "hourglass_flowing_sand": "unicode/23f3.png?v8",
+      "house": "unicode/1f3e0.png?v8",
+      "house_with_garden": "unicode/1f3e1.png?v8",
+      "houses": "unicode/1f3d8.png?v8",
+      "hugs": "unicode/1f917.png?v8",
+      "hungary": "unicode/1f1ed-1f1fa.png?v8",
+      "hurtrealbad": "hurtrealbad.png?v8",
+      "hushed": "unicode/1f62f.png?v8",
+      "hut": "unicode/1f6d6.png?v8",
+      "ice_cream": "unicode/1f368.png?v8",
+      "ice_cube": "unicode/1f9ca.png?v8",
+      "ice_hockey": "unicode/1f3d2.png?v8",
+      "ice_skate": "unicode/26f8.png?v8",
+      "icecream": "unicode/1f366.png?v8",
+      "iceland": "unicode/1f1ee-1f1f8.png?v8",
+      "id": "unicode/1f194.png?v8",
+      "ideograph_advantage": "unicode/1f250.png?v8",
+      "imp": "unicode/1f47f.png?v8",
+      "inbox_tray": "unicode/1f4e5.png?v8",
+      "incoming_envelope": "unicode/1f4e8.png?v8",
+      "india": "unicode/1f1ee-1f1f3.png?v8",
+      "indonesia": "unicode/1f1ee-1f1e9.png?v8",
+      "infinity": "unicode/267e.png?v8",
+      "information_desk_person": "unicode/1f481.png?v8",
+      "information_source": "unicode/2139.png?v8",
+      "innocent": "unicode/1f607.png?v8",
+      "interrobang": "unicode/2049.png?v8",
+      "iphone": "unicode/1f4f1.png?v8",
+      "iran": "unicode/1f1ee-1f1f7.png?v8",
+      "iraq": "unicode/1f1ee-1f1f6.png?v8",
+      "ireland": "unicode/1f1ee-1f1ea.png?v8",
+      "isle_of_man": "unicode/1f1ee-1f1f2.png?v8",
+      "israel": "unicode/1f1ee-1f1f1.png?v8",
+      "it": "unicode/1f1ee-1f1f9.png?v8",
+      "izakaya_lantern": "unicode/1f3ee.png?v8",
+      "jack_o_lantern": "unicode/1f383.png?v8",
+      "jamaica": "unicode/1f1ef-1f1f2.png?v8",
+      "japan": "unicode/1f5fe.png?v8",
+      "japanese_castle": "unicode/1f3ef.png?v8",
+      "japanese_goblin": "unicode/1f47a.png?v8",
+      "japanese_ogre": "unicode/1f479.png?v8",
+      "jeans": "unicode/1f456.png?v8",
+      "jersey": "unicode/1f1ef-1f1ea.png?v8",
+      "jigsaw": "unicode/1f9e9.png?v8",
+      "jordan": "unicode/1f1ef-1f1f4.png?v8",
+      "joy": "unicode/1f602.png?v8",
+      "joy_cat": "unicode/1f639.png?v8",
+      "joystick": "unicode/1f579.png?v8",
+      "jp": "unicode/1f1ef-1f1f5.png?v8",
+      "judge": "unicode/1f9d1-2696.png?v8",
+      "juggling_person": "unicode/1f939.png?v8",
+      "kaaba": "unicode/1f54b.png?v8",
+      "kangaroo": "unicode/1f998.png?v8",
+      "kazakhstan": "unicode/1f1f0-1f1ff.png?v8",
+      "kenya": "unicode/1f1f0-1f1ea.png?v8",
+      "key": "unicode/1f511.png?v8",
+      "keyboard": "unicode/2328.png?v8",
+      "keycap_ten": "unicode/1f51f.png?v8",
+      "kick_scooter": "unicode/1f6f4.png?v8",
+      "kimono": "unicode/1f458.png?v8",
+      "kiribati": "unicode/1f1f0-1f1ee.png?v8",
+      "kiss": "unicode/1f48b.png?v8",
+      "kissing": "unicode/1f617.png?v8",
+      "kissing_cat": "unicode/1f63d.png?v8",
+      "kissing_closed_eyes": "unicode/1f61a.png?v8",
+      "kissing_heart": "unicode/1f618.png?v8",
+      "kissing_smiling_eyes": "unicode/1f619.png?v8",
+      "kite": "unicode/1fa81.png?v8",
+      "kiwi_fruit": "unicode/1f95d.png?v8",
+      "kneeling_man": "unicode/1f9ce-2642.png?v8",
+      "kneeling_person": "unicode/1f9ce.png?v8",
+      "kneeling_woman": "unicode/1f9ce-2640.png?v8",
+      "knife": "unicode/1f52a.png?v8",
+      "knot": "unicode/1faa2.png?v8",
+      "koala": "unicode/1f428.png?v8",
+      "koko": "unicode/1f201.png?v8",
+      "kosovo": "unicode/1f1fd-1f1f0.png?v8",
+      "kr": "unicode/1f1f0-1f1f7.png?v8",
+      "kuwait": "unicode/1f1f0-1f1fc.png?v8",
+      "kyrgyzstan": "unicode/1f1f0-1f1ec.png?v8",
+      "lab_coat": "unicode/1f97c.png?v8",
+      "label": "unicode/1f3f7.png?v8",
+      "lacrosse": "unicode/1f94d.png?v8",
+      "ladder": "unicode/1fa9c.png?v8",
+      "lady_beetle": "unicode/1f41e.png?v8",
+      "lantern": "unicode/1f3ee.png?v8",
+      "laos": "unicode/1f1f1-1f1e6.png?v8",
+      "large_blue_circle": "unicode/1f535.png?v8",
+      "large_blue_diamond": "unicode/1f537.png?v8",
+      "large_orange_diamond": "unicode/1f536.png?v8",
+      "last_quarter_moon": "unicode/1f317.png?v8",
+      "last_quarter_moon_with_face": "unicode/1f31c.png?v8",
+      "latin_cross": "unicode/271d.png?v8",
+      "latvia": "unicode/1f1f1-1f1fb.png?v8",
+      "laughing": "unicode/1f606.png?v8",
+      "leafy_green": "unicode/1f96c.png?v8",
+      "leaves": "unicode/1f343.png?v8",
+      "lebanon": "unicode/1f1f1-1f1e7.png?v8",
+      "ledger": "unicode/1f4d2.png?v8",
+      "left_luggage": "unicode/1f6c5.png?v8",
+      "left_right_arrow": "unicode/2194.png?v8",
+      "left_speech_bubble": "unicode/1f5e8.png?v8",
+      "leftwards_arrow_with_hook": "unicode/21a9.png?v8",
+      "leg": "unicode/1f9b5.png?v8",
+      "lemon": "unicode/1f34b.png?v8",
+      "leo": "unicode/264c.png?v8",
+      "leopard": "unicode/1f406.png?v8",
+      "lesotho": "unicode/1f1f1-1f1f8.png?v8",
+      "level_slider": "unicode/1f39a.png?v8",
+      "liberia": "unicode/1f1f1-1f1f7.png?v8",
+      "libra": "unicode/264e.png?v8",
+      "libya": "unicode/1f1f1-1f1fe.png?v8",
+      "liechtenstein": "unicode/1f1f1-1f1ee.png?v8",
+      "light_rail": "unicode/1f688.png?v8",
+      "link": "unicode/1f517.png?v8",
+      "lion": "unicode/1f981.png?v8",
+      "lips": "unicode/1f444.png?v8",
+      "lipstick": "unicode/1f484.png?v8",
+      "lithuania": "unicode/1f1f1-1f1f9.png?v8",
+      "lizard": "unicode/1f98e.png?v8",
+      "llama": "unicode/1f999.png?v8",
+      "lobster": "unicode/1f99e.png?v8",
+      "lock": "unicode/1f512.png?v8",
+      "lock_with_ink_pen": "unicode/1f50f.png?v8",
+      "lollipop": "unicode/1f36d.png?v8",
+      "long_drum": "unicode/1fa98.png?v8",
+      "loop": "unicode/27bf.png?v8",
+      "lotion_bottle": "unicode/1f9f4.png?v8",
+      "lotus_position": "unicode/1f9d8.png?v8",
+      "lotus_position_man": "unicode/1f9d8-2642.png?v8",
+      "lotus_position_woman": "unicode/1f9d8-2640.png?v8",
+      "loud_sound": "unicode/1f50a.png?v8",
+      "loudspeaker": "unicode/1f4e2.png?v8",
+      "love_hotel": "unicode/1f3e9.png?v8",
+      "love_letter": "unicode/1f48c.png?v8",
+      "love_you_gesture": "unicode/1f91f.png?v8",
+      "low_brightness": "unicode/1f505.png?v8",
+      "luggage": "unicode/1f9f3.png?v8",
+      "lungs": "unicode/1fac1.png?v8",
+      "luxembourg": "unicode/1f1f1-1f1fa.png?v8",
+      "lying_face": "unicode/1f925.png?v8",
+      "m": "unicode/24c2.png?v8",
+      "macau": "unicode/1f1f2-1f1f4.png?v8",
+      "macedonia": "unicode/1f1f2-1f1f0.png?v8",
+      "madagascar": "unicode/1f1f2-1f1ec.png?v8",
+      "mag": "unicode/1f50d.png?v8",
+      "mag_right": "unicode/1f50e.png?v8",
+      "mage": "unicode/1f9d9.png?v8",
+      "mage_man": "unicode/1f9d9-2642.png?v8",
+      "mage_woman": "unicode/1f9d9-2640.png?v8",
+      "magic_wand": "unicode/1fa84.png?v8",
+      "magnet": "unicode/1f9f2.png?v8",
+      "mahjong": "unicode/1f004.png?v8",
+      "mailbox": "unicode/1f4eb.png?v8",
+      "mailbox_closed": "unicode/1f4ea.png?v8",
+      "mailbox_with_mail": "unicode/1f4ec.png?v8",
+      "mailbox_with_no_mail": "unicode/1f4ed.png?v8",
+      "malawi": "unicode/1f1f2-1f1fc.png?v8",
+      "malaysia": "unicode/1f1f2-1f1fe.png?v8",
+      "maldives": "unicode/1f1f2-1f1fb.png?v8",
+      "male_detective": "unicode/1f575-2642.png?v8",
+      "male_sign": "unicode/2642.png?v8",
+      "mali": "unicode/1f1f2-1f1f1.png?v8",
+      "malta": "unicode/1f1f2-1f1f9.png?v8",
+      "mammoth": "unicode/1f9a3.png?v8",
+      "man": "unicode/1f468.png?v8",
+      "man_artist": "unicode/1f468-1f3a8.png?v8",
+      "man_astronaut": "unicode/1f468-1f680.png?v8",
+      "man_beard": "unicode/1f9d4-2642.png?v8",
+      "man_cartwheeling": "unicode/1f938-2642.png?v8",
+      "man_cook": "unicode/1f468-1f373.png?v8",
+      "man_dancing": "unicode/1f57a.png?v8",
+      "man_facepalming": "unicode/1f926-2642.png?v8",
+      "man_factory_worker": "unicode/1f468-1f3ed.png?v8",
+      "man_farmer": "unicode/1f468-1f33e.png?v8",
+      "man_feeding_baby": "unicode/1f468-1f37c.png?v8",
+      "man_firefighter": "unicode/1f468-1f692.png?v8",
+      "man_health_worker": "unicode/1f468-2695.png?v8",
+      "man_in_manual_wheelchair": "unicode/1f468-1f9bd.png?v8",
+      "man_in_motorized_wheelchair": "unicode/1f468-1f9bc.png?v8",
+      "man_in_tuxedo": "unicode/1f935-2642.png?v8",
+      "man_judge": "unicode/1f468-2696.png?v8",
+      "man_juggling": "unicode/1f939-2642.png?v8",
+      "man_mechanic": "unicode/1f468-1f527.png?v8",
+      "man_office_worker": "unicode/1f468-1f4bc.png?v8",
+      "man_pilot": "unicode/1f468-2708.png?v8",
+      "man_playing_handball": "unicode/1f93e-2642.png?v8",
+      "man_playing_water_polo": "unicode/1f93d-2642.png?v8",
+      "man_scientist": "unicode/1f468-1f52c.png?v8",
+      "man_shrugging": "unicode/1f937-2642.png?v8",
+      "man_singer": "unicode/1f468-1f3a4.png?v8",
+      "man_student": "unicode/1f468-1f393.png?v8",
+      "man_teacher": "unicode/1f468-1f3eb.png?v8",
+      "man_technologist": "unicode/1f468-1f4bb.png?v8",
+      "man_with_gua_pi_mao": "unicode/1f472.png?v8",
+      "man_with_probing_cane": "unicode/1f468-1f9af.png?v8",
+      "man_with_turban": "unicode/1f473-2642.png?v8",
+      "man_with_veil": "unicode/1f470-2642.png?v8",
+      "mandarin": "unicode/1f34a.png?v8",
+      "mango": "unicode/1f96d.png?v8",
+      "mans_shoe": "unicode/1f45e.png?v8",
+      "mantelpiece_clock": "unicode/1f570.png?v8",
+      "manual_wheelchair": "unicode/1f9bd.png?v8",
+      "maple_leaf": "unicode/1f341.png?v8",
+      "marshall_islands": "unicode/1f1f2-1f1ed.png?v8",
+      "martial_arts_uniform": "unicode/1f94b.png?v8",
+      "martinique": "unicode/1f1f2-1f1f6.png?v8",
+      "mask": "unicode/1f637.png?v8",
+      "massage": "unicode/1f486.png?v8",
+      "massage_man": "unicode/1f486-2642.png?v8",
+      "massage_woman": "unicode/1f486-2640.png?v8",
+      "mate": "unicode/1f9c9.png?v8",
+      "mauritania": "unicode/1f1f2-1f1f7.png?v8",
+      "mauritius": "unicode/1f1f2-1f1fa.png?v8",
+      "mayotte": "unicode/1f1fe-1f1f9.png?v8",
+      "meat_on_bone": "unicode/1f356.png?v8",
+      "mechanic": "unicode/1f9d1-1f527.png?v8",
+      "mechanical_arm": "unicode/1f9be.png?v8",
+      "mechanical_leg": "unicode/1f9bf.png?v8",
+      "medal_military": "unicode/1f396.png?v8",
+      "medal_sports": "unicode/1f3c5.png?v8",
+      "medical_symbol": "unicode/2695.png?v8",
+      "mega": "unicode/1f4e3.png?v8",
+      "melon": "unicode/1f348.png?v8",
+      "memo": "unicode/1f4dd.png?v8",
+      "men_wrestling": "unicode/1f93c-2642.png?v8",
+      "mending_heart": "unicode/2764-1fa79.png?v8",
+      "menorah": "unicode/1f54e.png?v8",
+      "mens": "unicode/1f6b9.png?v8",
+      "mermaid": "unicode/1f9dc-2640.png?v8",
+      "merman": "unicode/1f9dc-2642.png?v8",
+      "merperson": "unicode/1f9dc.png?v8",
+      "metal": "unicode/1f918.png?v8",
+      "metro": "unicode/1f687.png?v8",
+      "mexico": "unicode/1f1f2-1f1fd.png?v8",
+      "microbe": "unicode/1f9a0.png?v8",
+      "micronesia": "unicode/1f1eb-1f1f2.png?v8",
+      "microphone": "unicode/1f3a4.png?v8",
+      "microscope": "unicode/1f52c.png?v8",
+      "middle_finger": "unicode/1f595.png?v8",
+      "military_helmet": "unicode/1fa96.png?v8",
+      "milk_glass": "unicode/1f95b.png?v8",
+      "milky_way": "unicode/1f30c.png?v8",
+      "minibus": "unicode/1f690.png?v8",
+      "minidisc": "unicode/1f4bd.png?v8",
+      "mirror": "unicode/1fa9e.png?v8",
+      "mobile_phone_off": "unicode/1f4f4.png?v8",
+      "moldova": "unicode/1f1f2-1f1e9.png?v8",
+      "monaco": "unicode/1f1f2-1f1e8.png?v8",
+      "money_mouth_face": "unicode/1f911.png?v8",
+      "money_with_wings": "unicode/1f4b8.png?v8",
+      "moneybag": "unicode/1f4b0.png?v8",
+      "mongolia": "unicode/1f1f2-1f1f3.png?v8",
+      "monkey": "unicode/1f412.png?v8",
+      "monkey_face": "unicode/1f435.png?v8",
+      "monocle_face": "unicode/1f9d0.png?v8",
+      "monorail": "unicode/1f69d.png?v8",
+      "montenegro": "unicode/1f1f2-1f1ea.png?v8",
+      "montserrat": "unicode/1f1f2-1f1f8.png?v8",
+      "moon": "unicode/1f314.png?v8",
+      "moon_cake": "unicode/1f96e.png?v8",
+      "morocco": "unicode/1f1f2-1f1e6.png?v8",
+      "mortar_board": "unicode/1f393.png?v8",
+      "mosque": "unicode/1f54c.png?v8",
+      "mosquito": "unicode/1f99f.png?v8",
+      "motor_boat": "unicode/1f6e5.png?v8",
+      "motor_scooter": "unicode/1f6f5.png?v8",
+      "motorcycle": "unicode/1f3cd.png?v8",
+      "motorized_wheelchair": "unicode/1f9bc.png?v8",
+      "motorway": "unicode/1f6e3.png?v8",
+      "mount_fuji": "unicode/1f5fb.png?v8",
+      "mountain": "unicode/26f0.png?v8",
+      "mountain_bicyclist": "unicode/1f6b5.png?v8",
+      "mountain_biking_man": "unicode/1f6b5-2642.png?v8",
+      "mountain_biking_woman": "unicode/1f6b5-2640.png?v8",
+      "mountain_cableway": "unicode/1f6a0.png?v8",
+      "mountain_railway": "unicode/1f69e.png?v8",
+      "mountain_snow": "unicode/1f3d4.png?v8",
+      "mouse": "unicode/1f42d.png?v8",
+      "mouse2": "unicode/1f401.png?v8",
+      "mouse_trap": "unicode/1faa4.png?v8",
+      "movie_camera": "unicode/1f3a5.png?v8",
+      "moyai": "unicode/1f5ff.png?v8",
+      "mozambique": "unicode/1f1f2-1f1ff.png?v8",
+      "mrs_claus": "unicode/1f936.png?v8",
+      "muscle": "unicode/1f4aa.png?v8",
+      "mushroom": "unicode/1f344.png?v8",
+      "musical_keyboard": "unicode/1f3b9.png?v8",
+      "musical_note": "unicode/1f3b5.png?v8",
+      "musical_score": "unicode/1f3bc.png?v8",
+      "mute": "unicode/1f507.png?v8",
+      "mx_claus": "unicode/1f9d1-1f384.png?v8",
+      "myanmar": "unicode/1f1f2-1f1f2.png?v8",
+      "nail_care": "unicode/1f485.png?v8",
+      "name_badge": "unicode/1f4db.png?v8",
+      "namibia": "unicode/1f1f3-1f1e6.png?v8",
+      "national_park": "unicode/1f3de.png?v8",
+      "nauru": "unicode/1f1f3-1f1f7.png?v8",
+      "nauseated_face": "unicode/1f922.png?v8",
+      "nazar_amulet": "unicode/1f9ff.png?v8",
+      "neckbeard": "neckbeard.png?v8",
+      "necktie": "unicode/1f454.png?v8",
+      "negative_squared_cross_mark": "unicode/274e.png?v8",
+      "nepal": "unicode/1f1f3-1f1f5.png?v8",
+      "nerd_face": "unicode/1f913.png?v8",
+      "nesting_dolls": "unicode/1fa86.png?v8",
+      "netherlands": "unicode/1f1f3-1f1f1.png?v8",
+      "neutral_face": "unicode/1f610.png?v8",
+      "new": "unicode/1f195.png?v8",
+      "new_caledonia": "unicode/1f1f3-1f1e8.png?v8",
+      "new_moon": "unicode/1f311.png?v8",
+      "new_moon_with_face": "unicode/1f31a.png?v8",
+      "new_zealand": "unicode/1f1f3-1f1ff.png?v8",
+      "newspaper": "unicode/1f4f0.png?v8",
+      "newspaper_roll": "unicode/1f5de.png?v8",
+      "next_track_button": "unicode/23ed.png?v8",
+      "ng": "unicode/1f196.png?v8",
+      "ng_man": "unicode/1f645-2642.png?v8",
+      "ng_woman": "unicode/1f645-2640.png?v8",
+      "nicaragua": "unicode/1f1f3-1f1ee.png?v8",
+      "niger": "unicode/1f1f3-1f1ea.png?v8",
+      "nigeria": "unicode/1f1f3-1f1ec.png?v8",
+      "night_with_stars": "unicode/1f303.png?v8",
+      "nine": "unicode/0039-20e3.png?v8",
+      "ninja": "unicode/1f977.png?v8",
+      "niue": "unicode/1f1f3-1f1fa.png?v8",
+      "no_bell": "unicode/1f515.png?v8",
+      "no_bicycles": "unicode/1f6b3.png?v8",
+      "no_entry": "unicode/26d4.png?v8",
+      "no_entry_sign": "unicode/1f6ab.png?v8",
+      "no_good": "unicode/1f645.png?v8",
+      "no_good_man": "unicode/1f645-2642.png?v8",
+      "no_good_woman": "unicode/1f645-2640.png?v8",
+      "no_mobile_phones": "unicode/1f4f5.png?v8",
+      "no_mouth": "unicode/1f636.png?v8",
+      "no_pedestrians": "unicode/1f6b7.png?v8",
+      "no_smoking": "unicode/1f6ad.png?v8",
+      "non-potable_water": "unicode/1f6b1.png?v8",
+      "norfolk_island": "unicode/1f1f3-1f1eb.png?v8",
+      "north_korea": "unicode/1f1f0-1f1f5.png?v8",
+      "northern_mariana_islands": "unicode/1f1f2-1f1f5.png?v8",
+      "norway": "unicode/1f1f3-1f1f4.png?v8",
+      "nose": "unicode/1f443.png?v8",
+      "notebook": "unicode/1f4d3.png?v8",
+      "notebook_with_decorative_cover": "unicode/1f4d4.png?v8",
+      "notes": "unicode/1f3b6.png?v8",
+      "nut_and_bolt": "unicode/1f529.png?v8",
+      "o": "unicode/2b55.png?v8",
+      "o2": "unicode/1f17e.png?v8",
+      "ocean": "unicode/1f30a.png?v8",
+      "octocat": "octocat.png?v8",
+      "octopus": "unicode/1f419.png?v8",
+      "oden": "unicode/1f362.png?v8",
+      "office": "unicode/1f3e2.png?v8",
+      "office_worker": "unicode/1f9d1-1f4bc.png?v8",
+      "oil_drum": "unicode/1f6e2.png?v8",
+      "ok": "unicode/1f197.png?v8",
+      "ok_hand": "unicode/1f44c.png?v8",
+      "ok_man": "unicode/1f646-2642.png?v8",
+      "ok_person": "unicode/1f646.png?v8",
+      "ok_woman": "unicode/1f646-2640.png?v8",
+      "old_key": "unicode/1f5dd.png?v8",
+      "older_adult": "unicode/1f9d3.png?v8",
+      "older_man": "unicode/1f474.png?v8",
+      "older_woman": "unicode/1f475.png?v8",
+      "olive": "unicode/1fad2.png?v8",
+      "om": "unicode/1f549.png?v8",
+      "oman": "unicode/1f1f4-1f1f2.png?v8",
+      "on": "unicode/1f51b.png?v8",
+      "oncoming_automobile": "unicode/1f698.png?v8",
+      "oncoming_bus": "unicode/1f68d.png?v8",
+      "oncoming_police_car": "unicode/1f694.png?v8",
+      "oncoming_taxi": "unicode/1f696.png?v8",
+      "one": "unicode/0031-20e3.png?v8",
+      "one_piece_swimsuit": "unicode/1fa71.png?v8",
+      "onion": "unicode/1f9c5.png?v8",
+      "open_book": "unicode/1f4d6.png?v8",
+      "open_file_folder": "unicode/1f4c2.png?v8",
+      "open_hands": "unicode/1f450.png?v8",
+      "open_mouth": "unicode/1f62e.png?v8",
+      "open_umbrella": "unicode/2602.png?v8",
+      "ophiuchus": "unicode/26ce.png?v8",
+      "orange": "unicode/1f34a.png?v8",
+      "orange_book": "unicode/1f4d9.png?v8",
+      "orange_circle": "unicode/1f7e0.png?v8",
+      "orange_heart": "unicode/1f9e1.png?v8",
+      "orange_square": "unicode/1f7e7.png?v8",
+      "orangutan": "unicode/1f9a7.png?v8",
+      "orthodox_cross": "unicode/2626.png?v8",
+      "otter": "unicode/1f9a6.png?v8",
+      "outbox_tray": "unicode/1f4e4.png?v8",
+      "owl": "unicode/1f989.png?v8",
+      "ox": "unicode/1f402.png?v8",
+      "oyster": "unicode/1f9aa.png?v8",
+      "package": "unicode/1f4e6.png?v8",
+      "page_facing_up": "unicode/1f4c4.png?v8",
+      "page_with_curl": "unicode/1f4c3.png?v8",
+      "pager": "unicode/1f4df.png?v8",
+      "paintbrush": "unicode/1f58c.png?v8",
+      "pakistan": "unicode/1f1f5-1f1f0.png?v8",
+      "palau": "unicode/1f1f5-1f1fc.png?v8",
+      "palestinian_territories": "unicode/1f1f5-1f1f8.png?v8",
+      "palm_tree": "unicode/1f334.png?v8",
+      "palms_up_together": "unicode/1f932.png?v8",
+      "panama": "unicode/1f1f5-1f1e6.png?v8",
+      "pancakes": "unicode/1f95e.png?v8",
+      "panda_face": "unicode/1f43c.png?v8",
+      "paperclip": "unicode/1f4ce.png?v8",
+      "paperclips": "unicode/1f587.png?v8",
+      "papua_new_guinea": "unicode/1f1f5-1f1ec.png?v8",
+      "parachute": "unicode/1fa82.png?v8",
+      "paraguay": "unicode/1f1f5-1f1fe.png?v8",
+      "parasol_on_ground": "unicode/26f1.png?v8",
+      "parking": "unicode/1f17f.png?v8",
+      "parrot": "unicode/1f99c.png?v8",
+      "part_alternation_mark": "unicode/303d.png?v8",
+      "partly_sunny": "unicode/26c5.png?v8",
+      "partying_face": "unicode/1f973.png?v8",
+      "passenger_ship": "unicode/1f6f3.png?v8",
+      "passport_control": "unicode/1f6c2.png?v8",
+      "pause_button": "unicode/23f8.png?v8",
+      "paw_prints": "unicode/1f43e.png?v8",
+      "peace_symbol": "unicode/262e.png?v8",
+      "peach": "unicode/1f351.png?v8",
+      "peacock": "unicode/1f99a.png?v8",
+      "peanuts": "unicode/1f95c.png?v8",
+      "pear": "unicode/1f350.png?v8",
+      "pen": "unicode/1f58a.png?v8",
+      "pencil": "unicode/1f4dd.png?v8",
+      "pencil2": "unicode/270f.png?v8",
+      "penguin": "unicode/1f427.png?v8",
+      "pensive": "unicode/1f614.png?v8",
+      "people_holding_hands": "unicode/1f9d1-1f91d-1f9d1.png?v8",
+      "people_hugging": "unicode/1fac2.png?v8",
+      "performing_arts": "unicode/1f3ad.png?v8",
+      "persevere": "unicode/1f623.png?v8",
+      "person_bald": "unicode/1f9d1-1f9b2.png?v8",
+      "person_curly_hair": "unicode/1f9d1-1f9b1.png?v8",
+      "person_feeding_baby": "unicode/1f9d1-1f37c.png?v8",
+      "person_fencing": "unicode/1f93a.png?v8",
+      "person_in_manual_wheelchair": "unicode/1f9d1-1f9bd.png?v8",
+      "person_in_motorized_wheelchair": "unicode/1f9d1-1f9bc.png?v8",
+      "person_in_tuxedo": "unicode/1f935.png?v8",
+      "person_red_hair": "unicode/1f9d1-1f9b0.png?v8",
+      "person_white_hair": "unicode/1f9d1-1f9b3.png?v8",
+      "person_with_probing_cane": "unicode/1f9d1-1f9af.png?v8",
+      "person_with_turban": "unicode/1f473.png?v8",
+      "person_with_veil": "unicode/1f470.png?v8",
+      "peru": "unicode/1f1f5-1f1ea.png?v8",
+      "petri_dish": "unicode/1f9eb.png?v8",
+      "philippines": "unicode/1f1f5-1f1ed.png?v8",
+      "phone": "unicode/260e.png?v8",
+      "pick": "unicode/26cf.png?v8",
+      "pickup_truck": "unicode/1f6fb.png?v8",
+      "pie": "unicode/1f967.png?v8",
+      "pig": "unicode/1f437.png?v8",
+      "pig2": "unicode/1f416.png?v8",
+      "pig_nose": "unicode/1f43d.png?v8",
+      "pill": "unicode/1f48a.png?v8",
+      "pilot": "unicode/1f9d1-2708.png?v8",
+      "pinata": "unicode/1fa85.png?v8",
+      "pinched_fingers": "unicode/1f90c.png?v8",
+      "pinching_hand": "unicode/1f90f.png?v8",
+      "pineapple": "unicode/1f34d.png?v8",
+      "ping_pong": "unicode/1f3d3.png?v8",
+      "pirate_flag": "unicode/1f3f4-2620.png?v8",
+      "pisces": "unicode/2653.png?v8",
+      "pitcairn_islands": "unicode/1f1f5-1f1f3.png?v8",
+      "pizza": "unicode/1f355.png?v8",
+      "placard": "unicode/1faa7.png?v8",
+      "place_of_worship": "unicode/1f6d0.png?v8",
+      "plate_with_cutlery": "unicode/1f37d.png?v8",
+      "play_or_pause_button": "unicode/23ef.png?v8",
+      "pleading_face": "unicode/1f97a.png?v8",
+      "plunger": "unicode/1faa0.png?v8",
+      "point_down": "unicode/1f447.png?v8",
+      "point_left": "unicode/1f448.png?v8",
+      "point_right": "unicode/1f449.png?v8",
+      "point_up": "unicode/261d.png?v8",
+      "point_up_2": "unicode/1f446.png?v8",
+      "poland": "unicode/1f1f5-1f1f1.png?v8",
+      "polar_bear": "unicode/1f43b-2744.png?v8",
+      "police_car": "unicode/1f693.png?v8",
+      "police_officer": "unicode/1f46e.png?v8",
+      "policeman": "unicode/1f46e-2642.png?v8",
+      "policewoman": "unicode/1f46e-2640.png?v8",
+      "poodle": "unicode/1f429.png?v8",
+      "poop": "unicode/1f4a9.png?v8",
+      "popcorn": "unicode/1f37f.png?v8",
+      "portugal": "unicode/1f1f5-1f1f9.png?v8",
+      "post_office": "unicode/1f3e3.png?v8",
+      "postal_horn": "unicode/1f4ef.png?v8",
+      "postbox": "unicode/1f4ee.png?v8",
+      "potable_water": "unicode/1f6b0.png?v8",
+      "potato": "unicode/1f954.png?v8",
+      "potted_plant": "unicode/1fab4.png?v8",
+      "pouch": "unicode/1f45d.png?v8",
+      "poultry_leg": "unicode/1f357.png?v8",
+      "pound": "unicode/1f4b7.png?v8",
+      "pout": "unicode/1f621.png?v8",
+      "pouting_cat": "unicode/1f63e.png?v8",
+      "pouting_face": "unicode/1f64e.png?v8",
+      "pouting_man": "unicode/1f64e-2642.png?v8",
+      "pouting_woman": "unicode/1f64e-2640.png?v8",
+      "pray": "unicode/1f64f.png?v8",
+      "prayer_beads": "unicode/1f4ff.png?v8",
+      "pregnant_woman": "unicode/1f930.png?v8",
+      "pretzel": "unicode/1f968.png?v8",
+      "previous_track_button": "unicode/23ee.png?v8",
+      "prince": "unicode/1f934.png?v8",
+      "princess": "unicode/1f478.png?v8",
+      "printer": "unicode/1f5a8.png?v8",
+      "probing_cane": "unicode/1f9af.png?v8",
+      "puerto_rico": "unicode/1f1f5-1f1f7.png?v8",
+      "punch": "unicode/1f44a.png?v8",
+      "purple_circle": "unicode/1f7e3.png?v8",
+      "purple_heart": "unicode/1f49c.png?v8",
+      "purple_square": "unicode/1f7ea.png?v8",
+      "purse": "unicode/1f45b.png?v8",
+      "pushpin": "unicode/1f4cc.png?v8",
+      "put_litter_in_its_place": "unicode/1f6ae.png?v8",
+      "qatar": "unicode/1f1f6-1f1e6.png?v8",
+      "question": "unicode/2753.png?v8",
+      "rabbit": "unicode/1f430.png?v8",
+      "rabbit2": "unicode/1f407.png?v8",
+      "raccoon": "unicode/1f99d.png?v8",
+      "racehorse": "unicode/1f40e.png?v8",
+      "racing_car": "unicode/1f3ce.png?v8",
+      "radio": "unicode/1f4fb.png?v8",
+      "radio_button": "unicode/1f518.png?v8",
+      "radioactive": "unicode/2622.png?v8",
+      "rage": "unicode/1f621.png?v8",
+      "rage1": "rage1.png?v8",
+      "rage2": "rage2.png?v8",
+      "rage3": "rage3.png?v8",
+      "rage4": "rage4.png?v8",
+      "railway_car": "unicode/1f683.png?v8",
+      "railway_track": "unicode/1f6e4.png?v8",
+      "rainbow": "unicode/1f308.png?v8",
+      "rainbow_flag": "unicode/1f3f3-1f308.png?v8",
+      "raised_back_of_hand": "unicode/1f91a.png?v8",
+      "raised_eyebrow": "unicode/1f928.png?v8",
+      "raised_hand": "unicode/270b.png?v8",
+      "raised_hand_with_fingers_splayed": "unicode/1f590.png?v8",
+      "raised_hands": "unicode/1f64c.png?v8",
+      "raising_hand": "unicode/1f64b.png?v8",
+      "raising_hand_man": "unicode/1f64b-2642.png?v8",
+      "raising_hand_woman": "unicode/1f64b-2640.png?v8",
+      "ram": "unicode/1f40f.png?v8",
+      "ramen": "unicode/1f35c.png?v8",
+      "rat": "unicode/1f400.png?v8",
+      "razor": "unicode/1fa92.png?v8",
+      "receipt": "unicode/1f9fe.png?v8",
+      "record_button": "unicode/23fa.png?v8",
+      "recycle": "unicode/267b.png?v8",
+      "red_car": "unicode/1f697.png?v8",
+      "red_circle": "unicode/1f534.png?v8",
+      "red_envelope": "unicode/1f9e7.png?v8",
+      "red_haired_man": "unicode/1f468-1f9b0.png?v8",
+      "red_haired_woman": "unicode/1f469-1f9b0.png?v8",
+      "red_square": "unicode/1f7e5.png?v8",
+      "registered": "unicode/00ae.png?v8",
+      "relaxed": "unicode/263a.png?v8",
+      "relieved": "unicode/1f60c.png?v8",
+      "reminder_ribbon": "unicode/1f397.png?v8",
+      "repeat": "unicode/1f501.png?v8",
+      "repeat_one": "unicode/1f502.png?v8",
+      "rescue_worker_helmet": "unicode/26d1.png?v8",
+      "restroom": "unicode/1f6bb.png?v8",
+      "reunion": "unicode/1f1f7-1f1ea.png?v8",
+      "revolving_hearts": "unicode/1f49e.png?v8",
+      "rewind": "unicode/23ea.png?v8",
+      "rhinoceros": "unicode/1f98f.png?v8",
+      "ribbon": "unicode/1f380.png?v8",
+      "rice": "unicode/1f35a.png?v8",
+      "rice_ball": "unicode/1f359.png?v8",
+      "rice_cracker": "unicode/1f358.png?v8",
+      "rice_scene": "unicode/1f391.png?v8",
+      "right_anger_bubble": "unicode/1f5ef.png?v8",
+      "ring": "unicode/1f48d.png?v8",
+      "ringed_planet": "unicode/1fa90.png?v8",
+      "robot": "unicode/1f916.png?v8",
+      "rock": "unicode/1faa8.png?v8",
+      "rocket": "unicode/1f680.png?v8",
+      "rofl": "unicode/1f923.png?v8",
+      "roll_eyes": "unicode/1f644.png?v8",
+      "roll_of_paper": "unicode/1f9fb.png?v8",
+      "roller_coaster": "unicode/1f3a2.png?v8",
+      "roller_skate": "unicode/1f6fc.png?v8",
+      "romania": "unicode/1f1f7-1f1f4.png?v8",
+      "rooster": "unicode/1f413.png?v8",
+      "rose": "unicode/1f339.png?v8",
+      "rosette": "unicode/1f3f5.png?v8",
+      "rotating_light": "unicode/1f6a8.png?v8",
+      "round_pushpin": "unicode/1f4cd.png?v8",
+      "rowboat": "unicode/1f6a3.png?v8",
+      "rowing_man": "unicode/1f6a3-2642.png?v8",
+      "rowing_woman": "unicode/1f6a3-2640.png?v8",
+      "ru": "unicode/1f1f7-1f1fa.png?v8",
+      "rugby_football": "unicode/1f3c9.png?v8",
+      "runner": "unicode/1f3c3.png?v8",
+      "running": "unicode/1f3c3.png?v8",
+      "running_man": "unicode/1f3c3-2642.png?v8",
+      "running_shirt_with_sash": "unicode/1f3bd.png?v8",
+      "running_woman": "unicode/1f3c3-2640.png?v8",
+      "rwanda": "unicode/1f1f7-1f1fc.png?v8",
+      "sa": "unicode/1f202.png?v8",
+      "safety_pin": "unicode/1f9f7.png?v8",
+      "safety_vest": "unicode/1f9ba.png?v8",
+      "sagittarius": "unicode/2650.png?v8",
+      "sailboat": "unicode/26f5.png?v8",
+      "sake": "unicode/1f376.png?v8",
+      "salt": "unicode/1f9c2.png?v8",
+      "samoa": "unicode/1f1fc-1f1f8.png?v8",
+      "san_marino": "unicode/1f1f8-1f1f2.png?v8",
+      "sandal": "unicode/1f461.png?v8",
+      "sandwich": "unicode/1f96a.png?v8",
+      "santa": "unicode/1f385.png?v8",
+      "sao_tome_principe": "unicode/1f1f8-1f1f9.png?v8",
+      "sari": "unicode/1f97b.png?v8",
+      "sassy_man": "unicode/1f481-2642.png?v8",
+      "sassy_woman": "unicode/1f481-2640.png?v8",
+      "satellite": "unicode/1f4e1.png?v8",
+      "satisfied": "unicode/1f606.png?v8",
+      "saudi_arabia": "unicode/1f1f8-1f1e6.png?v8",
+      "sauna_man": "unicode/1f9d6-2642.png?v8",
+      "sauna_person": "unicode/1f9d6.png?v8",
+      "sauna_woman": "unicode/1f9d6-2640.png?v8",
+      "sauropod": "unicode/1f995.png?v8",
+      "saxophone": "unicode/1f3b7.png?v8",
+      "scarf": "unicode/1f9e3.png?v8",
+      "school": "unicode/1f3eb.png?v8",
+      "school_satchel": "unicode/1f392.png?v8",
+      "scientist": "unicode/1f9d1-1f52c.png?v8",
+      "scissors": "unicode/2702.png?v8",
+      "scorpion": "unicode/1f982.png?v8",
+      "scorpius": "unicode/264f.png?v8",
+      "scotland": "unicode/1f3f4-e0067-e0062-e0073-e0063-e0074-e007f.png?v8",
+      "scream": "unicode/1f631.png?v8",
+      "scream_cat": "unicode/1f640.png?v8",
+      "screwdriver": "unicode/1fa9b.png?v8",
+      "scroll": "unicode/1f4dc.png?v8",
+      "seal": "unicode/1f9ad.png?v8",
+      "seat": "unicode/1f4ba.png?v8",
+      "secret": "unicode/3299.png?v8",
+      "see_no_evil": "unicode/1f648.png?v8",
+      "seedling": "unicode/1f331.png?v8",
+      "selfie": "unicode/1f933.png?v8",
+      "senegal": "unicode/1f1f8-1f1f3.png?v8",
+      "serbia": "unicode/1f1f7-1f1f8.png?v8",
+      "service_dog": "unicode/1f415-1f9ba.png?v8",
+      "seven": "unicode/0037-20e3.png?v8",
+      "sewing_needle": "unicode/1faa1.png?v8",
+      "seychelles": "unicode/1f1f8-1f1e8.png?v8",
+      "shallow_pan_of_food": "unicode/1f958.png?v8",
+      "shamrock": "unicode/2618.png?v8",
+      "shark": "unicode/1f988.png?v8",
+      "shaved_ice": "unicode/1f367.png?v8",
+      "sheep": "unicode/1f411.png?v8",
+      "shell": "unicode/1f41a.png?v8",
+      "shield": "unicode/1f6e1.png?v8",
+      "shinto_shrine": "unicode/26e9.png?v8",
+      "ship": "unicode/1f6a2.png?v8",
+      "shipit": "shipit.png?v8",
+      "shirt": "unicode/1f455.png?v8",
+      "shit": "unicode/1f4a9.png?v8",
+      "shoe": "unicode/1f45e.png?v8",
+      "shopping": "unicode/1f6cd.png?v8",
+      "shopping_cart": "unicode/1f6d2.png?v8",
+      "shorts": "unicode/1fa73.png?v8",
+      "shower": "unicode/1f6bf.png?v8",
+      "shrimp": "unicode/1f990.png?v8",
+      "shrug": "unicode/1f937.png?v8",
+      "shushing_face": "unicode/1f92b.png?v8",
+      "sierra_leone": "unicode/1f1f8-1f1f1.png?v8",
+      "signal_strength": "unicode/1f4f6.png?v8",
+      "singapore": "unicode/1f1f8-1f1ec.png?v8",
+      "singer": "unicode/1f9d1-1f3a4.png?v8",
+      "sint_maarten": "unicode/1f1f8-1f1fd.png?v8",
+      "six": "unicode/0036-20e3.png?v8",
+      "six_pointed_star": "unicode/1f52f.png?v8",
+      "skateboard": "unicode/1f6f9.png?v8",
+      "ski": "unicode/1f3bf.png?v8",
+      "skier": "unicode/26f7.png?v8",
+      "skull": "unicode/1f480.png?v8",
+      "skull_and_crossbones": "unicode/2620.png?v8",
+      "skunk": "unicode/1f9a8.png?v8",
+      "sled": "unicode/1f6f7.png?v8",
+      "sleeping": "unicode/1f634.png?v8",
+      "sleeping_bed": "unicode/1f6cc.png?v8",
+      "sleepy": "unicode/1f62a.png?v8",
+      "slightly_frowning_face": "unicode/1f641.png?v8",
+      "slightly_smiling_face": "unicode/1f642.png?v8",
+      "slot_machine": "unicode/1f3b0.png?v8",
+      "sloth": "unicode/1f9a5.png?v8",
+      "slovakia": "unicode/1f1f8-1f1f0.png?v8",
+      "slovenia": "unicode/1f1f8-1f1ee.png?v8",
+      "small_airplane": "unicode/1f6e9.png?v8",
+      "small_blue_diamond": "unicode/1f539.png?v8",
+      "small_orange_diamond": "unicode/1f538.png?v8",
+      "small_red_triangle": "unicode/1f53a.png?v8",
+      "small_red_triangle_down": "unicode/1f53b.png?v8",
+      "smile": "unicode/1f604.png?v8",
+      "smile_cat": "unicode/1f638.png?v8",
+      "smiley": "unicode/1f603.png?v8",
+      "smiley_cat": "unicode/1f63a.png?v8",
+      "smiling_face_with_tear": "unicode/1f972.png?v8",
+      "smiling_face_with_three_hearts": "unicode/1f970.png?v8",
+      "smiling_imp": "unicode/1f608.png?v8",
+      "smirk": "unicode/1f60f.png?v8",
+      "smirk_cat": "unicode/1f63c.png?v8",
+      "smoking": "unicode/1f6ac.png?v8",
+      "snail": "unicode/1f40c.png?v8",
+      "snake": "unicode/1f40d.png?v8",
+      "sneezing_face": "unicode/1f927.png?v8",
+      "snowboarder": "unicode/1f3c2.png?v8",
+      "snowflake": "unicode/2744.png?v8",
+      "snowman": "unicode/26c4.png?v8",
+      "snowman_with_snow": "unicode/2603.png?v8",
+      "soap": "unicode/1f9fc.png?v8",
+      "sob": "unicode/1f62d.png?v8",
+      "soccer": "unicode/26bd.png?v8",
+      "socks": "unicode/1f9e6.png?v8",
+      "softball": "unicode/1f94e.png?v8",
+      "solomon_islands": "unicode/1f1f8-1f1e7.png?v8",
+      "somalia": "unicode/1f1f8-1f1f4.png?v8",
+      "soon": "unicode/1f51c.png?v8",
+      "sos": "unicode/1f198.png?v8",
+      "sound": "unicode/1f509.png?v8",
+      "south_africa": "unicode/1f1ff-1f1e6.png?v8",
+      "south_georgia_south_sandwich_islands": "unicode/1f1ec-1f1f8.png?v8",
+      "south_sudan": "unicode/1f1f8-1f1f8.png?v8",
+      "space_invader": "unicode/1f47e.png?v8",
+      "spades": "unicode/2660.png?v8",
+      "spaghetti": "unicode/1f35d.png?v8",
+      "sparkle": "unicode/2747.png?v8",
+      "sparkler": "unicode/1f387.png?v8",
+      "sparkles": "unicode/2728.png?v8",
+      "sparkling_heart": "unicode/1f496.png?v8",
+      "speak_no_evil": "unicode/1f64a.png?v8",
+      "speaker": "unicode/1f508.png?v8",
+      "speaking_head": "unicode/1f5e3.png?v8",
+      "speech_balloon": "unicode/1f4ac.png?v8",
+      "speedboat": "unicode/1f6a4.png?v8",
+      "spider": "unicode/1f577.png?v8",
+      "spider_web": "unicode/1f578.png?v8",
+      "spiral_calendar": "unicode/1f5d3.png?v8",
+      "spiral_notepad": "unicode/1f5d2.png?v8",
+      "sponge": "unicode/1f9fd.png?v8",
+      "spoon": "unicode/1f944.png?v8",
+      "squid": "unicode/1f991.png?v8",
+      "sri_lanka": "unicode/1f1f1-1f1f0.png?v8",
+      "st_barthelemy": "unicode/1f1e7-1f1f1.png?v8",
+      "st_helena": "unicode/1f1f8-1f1ed.png?v8",
+      "st_kitts_nevis": "unicode/1f1f0-1f1f3.png?v8",
+      "st_lucia": "unicode/1f1f1-1f1e8.png?v8",
+      "st_martin": "unicode/1f1f2-1f1eb.png?v8",
+      "st_pierre_miquelon": "unicode/1f1f5-1f1f2.png?v8",
+      "st_vincent_grenadines": "unicode/1f1fb-1f1e8.png?v8",
+      "stadium": "unicode/1f3df.png?v8",
+      "standing_man": "unicode/1f9cd-2642.png?v8",
+      "standing_person": "unicode/1f9cd.png?v8",
+      "standing_woman": "unicode/1f9cd-2640.png?v8",
+      "star": "unicode/2b50.png?v8",
+      "star2": "unicode/1f31f.png?v8",
+      "star_and_crescent": "unicode/262a.png?v8",
+      "star_of_david": "unicode/2721.png?v8",
+      "star_struck": "unicode/1f929.png?v8",
+      "stars": "unicode/1f320.png?v8",
+      "station": "unicode/1f689.png?v8",
+      "statue_of_liberty": "unicode/1f5fd.png?v8",
+      "steam_locomotive": "unicode/1f682.png?v8",
+      "stethoscope": "unicode/1fa7a.png?v8",
+      "stew": "unicode/1f372.png?v8",
+      "stop_button": "unicode/23f9.png?v8",
+      "stop_sign": "unicode/1f6d1.png?v8",
+      "stopwatch": "unicode/23f1.png?v8",
+      "straight_ruler": "unicode/1f4cf.png?v8",
+      "strawberry": "unicode/1f353.png?v8",
+      "stuck_out_tongue": "unicode/1f61b.png?v8",
+      "stuck_out_tongue_closed_eyes": "unicode/1f61d.png?v8",
+      "stuck_out_tongue_winking_eye": "unicode/1f61c.png?v8",
+      "student": "unicode/1f9d1-1f393.png?v8",
+      "studio_microphone": "unicode/1f399.png?v8",
+      "stuffed_flatbread": "unicode/1f959.png?v8",
+      "sudan": "unicode/1f1f8-1f1e9.png?v8",
+      "sun_behind_large_cloud": "unicode/1f325.png?v8",
+      "sun_behind_rain_cloud": "unicode/1f326.png?v8",
+      "sun_behind_small_cloud": "unicode/1f324.png?v8",
+      "sun_with_face": "unicode/1f31e.png?v8",
+      "sunflower": "unicode/1f33b.png?v8",
+      "sunglasses": "unicode/1f60e.png?v8",
+      "sunny": "unicode/2600.png?v8",
+      "sunrise": "unicode/1f305.png?v8",
+      "sunrise_over_mountains": "unicode/1f304.png?v8",
+      "superhero": "unicode/1f9b8.png?v8",
+      "superhero_man": "unicode/1f9b8-2642.png?v8",
+      "superhero_woman": "unicode/1f9b8-2640.png?v8",
+      "supervillain": "unicode/1f9b9.png?v8",
+      "supervillain_man": "unicode/1f9b9-2642.png?v8",
+      "supervillain_woman": "unicode/1f9b9-2640.png?v8",
+      "surfer": "unicode/1f3c4.png?v8",
+      "surfing_man": "unicode/1f3c4-2642.png?v8",
+      "surfing_woman": "unicode/1f3c4-2640.png?v8",
+      "suriname": "unicode/1f1f8-1f1f7.png?v8",
+      "sushi": "unicode/1f363.png?v8",
+      "suspect": "suspect.png?v8",
+      "suspension_railway": "unicode/1f69f.png?v8",
+      "svalbard_jan_mayen": "unicode/1f1f8-1f1ef.png?v8",
+      "swan": "unicode/1f9a2.png?v8",
+      "swaziland": "unicode/1f1f8-1f1ff.png?v8",
+      "sweat": "unicode/1f613.png?v8",
+      "sweat_drops": "unicode/1f4a6.png?v8",
+      "sweat_smile": "unicode/1f605.png?v8",
+      "sweden": "unicode/1f1f8-1f1ea.png?v8",
+      "sweet_potato": "unicode/1f360.png?v8",
+      "swim_brief": "unicode/1fa72.png?v8",
+      "swimmer": "unicode/1f3ca.png?v8",
+      "swimming_man": "unicode/1f3ca-2642.png?v8",
+      "swimming_woman": "unicode/1f3ca-2640.png?v8",
+      "switzerland": "unicode/1f1e8-1f1ed.png?v8",
+      "symbols": "unicode/1f523.png?v8",
+      "synagogue": "unicode/1f54d.png?v8",
+      "syria": "unicode/1f1f8-1f1fe.png?v8",
+      "syringe": "unicode/1f489.png?v8",
+      "t-rex": "unicode/1f996.png?v8",
+      "taco": "unicode/1f32e.png?v8",
+      "tada": "unicode/1f389.png?v8",
+      "taiwan": "unicode/1f1f9-1f1fc.png?v8",
+      "tajikistan": "unicode/1f1f9-1f1ef.png?v8",
+      "takeout_box": "unicode/1f961.png?v8",
+      "tamale": "unicode/1fad4.png?v8",
+      "tanabata_tree": "unicode/1f38b.png?v8",
+      "tangerine": "unicode/1f34a.png?v8",
+      "tanzania": "unicode/1f1f9-1f1ff.png?v8",
+      "taurus": "unicode/2649.png?v8",
+      "taxi": "unicode/1f695.png?v8",
+      "tea": "unicode/1f375.png?v8",
+      "teacher": "unicode/1f9d1-1f3eb.png?v8",
+      "teapot": "unicode/1fad6.png?v8",
+      "technologist": "unicode/1f9d1-1f4bb.png?v8",
+      "teddy_bear": "unicode/1f9f8.png?v8",
+      "telephone": "unicode/260e.png?v8",
+      "telephone_receiver": "unicode/1f4de.png?v8",
+      "telescope": "unicode/1f52d.png?v8",
+      "tennis": "unicode/1f3be.png?v8",
+      "tent": "unicode/26fa.png?v8",
+      "test_tube": "unicode/1f9ea.png?v8",
+      "thailand": "unicode/1f1f9-1f1ed.png?v8",
+      "thermometer": "unicode/1f321.png?v8",
+      "thinking": "unicode/1f914.png?v8",
+      "thong_sandal": "unicode/1fa74.png?v8",
+      "thought_balloon": "unicode/1f4ad.png?v8",
+      "thread": "unicode/1f9f5.png?v8",
+      "three": "unicode/0033-20e3.png?v8",
+      "thumbsdown": "unicode/1f44e.png?v8",
+      "thumbsup": "unicode/1f44d.png?v8",
+      "ticket": "unicode/1f3ab.png?v8",
+      "tickets": "unicode/1f39f.png?v8",
+      "tiger": "unicode/1f42f.png?v8",
+      "tiger2": "unicode/1f405.png?v8",
+      "timer_clock": "unicode/23f2.png?v8",
+      "timor_leste": "unicode/1f1f9-1f1f1.png?v8",
+      "tipping_hand_man": "unicode/1f481-2642.png?v8",
+      "tipping_hand_person": "unicode/1f481.png?v8",
+      "tipping_hand_woman": "unicode/1f481-2640.png?v8",
+      "tired_face": "unicode/1f62b.png?v8",
+      "tm": "unicode/2122.png?v8",
+      "togo": "unicode/1f1f9-1f1ec.png?v8",
+      "toilet": "unicode/1f6bd.png?v8",
+      "tokelau": "unicode/1f1f9-1f1f0.png?v8",
+      "tokyo_tower": "unicode/1f5fc.png?v8",
+      "tomato": "unicode/1f345.png?v8",
+      "tonga": "unicode/1f1f9-1f1f4.png?v8",
+      "tongue": "unicode/1f445.png?v8",
+      "toolbox": "unicode/1f9f0.png?v8",
+      "tooth": "unicode/1f9b7.png?v8",
+      "toothbrush": "unicode/1faa5.png?v8",
+      "top": "unicode/1f51d.png?v8",
+      "tophat": "unicode/1f3a9.png?v8",
+      "tornado": "unicode/1f32a.png?v8",
+      "tr": "unicode/1f1f9-1f1f7.png?v8",
+      "trackball": "unicode/1f5b2.png?v8",
+      "tractor": "unicode/1f69c.png?v8",
+      "traffic_light": "unicode/1f6a5.png?v8",
+      "train": "unicode/1f68b.png?v8",
+      "train2": "unicode/1f686.png?v8",
+      "tram": "unicode/1f68a.png?v8",
+      "transgender_flag": "unicode/1f3f3-26a7.png?v8",
+      "transgender_symbol": "unicode/26a7.png?v8",
+      "triangular_flag_on_post": "unicode/1f6a9.png?v8",
+      "triangular_ruler": "unicode/1f4d0.png?v8",
+      "trident": "unicode/1f531.png?v8",
+      "trinidad_tobago": "unicode/1f1f9-1f1f9.png?v8",
+      "tristan_da_cunha": "unicode/1f1f9-1f1e6.png?v8",
+      "triumph": "unicode/1f624.png?v8",
+      "trolleybus": "unicode/1f68e.png?v8",
+      "trollface": "trollface.png?v8",
+      "trophy": "unicode/1f3c6.png?v8",
+      "tropical_drink": "unicode/1f379.png?v8",
+      "tropical_fish": "unicode/1f420.png?v8",
+      "truck": "unicode/1f69a.png?v8",
+      "trumpet": "unicode/1f3ba.png?v8",
+      "tshirt": "unicode/1f455.png?v8",
+      "tulip": "unicode/1f337.png?v8",
+      "tumbler_glass": "unicode/1f943.png?v8",
+      "tunisia": "unicode/1f1f9-1f1f3.png?v8",
+      "turkey": "unicode/1f983.png?v8",
+      "turkmenistan": "unicode/1f1f9-1f1f2.png?v8",
+      "turks_caicos_islands": "unicode/1f1f9-1f1e8.png?v8",
+      "turtle": "unicode/1f422.png?v8",
+      "tuvalu": "unicode/1f1f9-1f1fb.png?v8",
+      "tv": "unicode/1f4fa.png?v8",
+      "twisted_rightwards_arrows": "unicode/1f500.png?v8",
+      "two": "unicode/0032-20e3.png?v8",
+      "two_hearts": "unicode/1f495.png?v8",
+      "two_men_holding_hands": "unicode/1f46c.png?v8",
+      "two_women_holding_hands": "unicode/1f46d.png?v8",
+      "u5272": "unicode/1f239.png?v8",
+      "u5408": "unicode/1f234.png?v8",
+      "u55b6": "unicode/1f23a.png?v8",
+      "u6307": "unicode/1f22f.png?v8",
+      "u6708": "unicode/1f237.png?v8",
+      "u6709": "unicode/1f236.png?v8",
+      "u6e80": "unicode/1f235.png?v8",
+      "u7121": "unicode/1f21a.png?v8",
+      "u7533": "unicode/1f238.png?v8",
+      "u7981": "unicode/1f232.png?v8",
+      "u7a7a": "unicode/1f233.png?v8",
+      "uganda": "unicode/1f1fa-1f1ec.png?v8",
+      "uk": "unicode/1f1ec-1f1e7.png?v8",
+      "ukraine": "unicode/1f1fa-1f1e6.png?v8",
+      "umbrella": "unicode/2614.png?v8",
+      "unamused": "unicode/1f612.png?v8",
+      "underage": "unicode/1f51e.png?v8",
+      "unicorn": "unicode/1f984.png?v8",
+      "united_arab_emirates": "unicode/1f1e6-1f1ea.png?v8",
+      "united_nations": "unicode/1f1fa-1f1f3.png?v8",
+      "unlock": "unicode/1f513.png?v8",
+      "up": "unicode/1f199.png?v8",
+      "upside_down_face": "unicode/1f643.png?v8",
+      "uruguay": "unicode/1f1fa-1f1fe.png?v8",
+      "us": "unicode/1f1fa-1f1f8.png?v8",
+      "us_outlying_islands": "unicode/1f1fa-1f1f2.png?v8",
+      "us_virgin_islands": "unicode/1f1fb-1f1ee.png?v8",
+      "uzbekistan": "unicode/1f1fa-1f1ff.png?v8",
+      "v": "unicode/270c.png?v8",
+      "vampire": "unicode/1f9db.png?v8",
+      "vampire_man": "unicode/1f9db-2642.png?v8",
+      "vampire_woman": "unicode/1f9db-2640.png?v8",
+      "vanuatu": "unicode/1f1fb-1f1fa.png?v8",
+      "vatican_city": "unicode/1f1fb-1f1e6.png?v8",
+      "venezuela": "unicode/1f1fb-1f1ea.png?v8",
+      "vertical_traffic_light": "unicode/1f6a6.png?v8",
+      "vhs": "unicode/1f4fc.png?v8",
+      "vibration_mode": "unicode/1f4f3.png?v8",
+      "video_camera": "unicode/1f4f9.png?v8",
+      "video_game": "unicode/1f3ae.png?v8",
+      "vietnam": "unicode/1f1fb-1f1f3.png?v8",
+      "violin": "unicode/1f3bb.png?v8",
+      "virgo": "unicode/264d.png?v8",
+      "volcano": "unicode/1f30b.png?v8",
+      "volleyball": "unicode/1f3d0.png?v8",
+      "vomiting_face": "unicode/1f92e.png?v8",
+      "vs": "unicode/1f19a.png?v8",
+      "vulcan_salute": "unicode/1f596.png?v8",
+      "waffle": "unicode/1f9c7.png?v8",
+      "wales": "unicode/1f3f4-e0067-e0062-e0077-e006c-e0073-e007f.png?v8",
+      "walking": "unicode/1f6b6.png?v8",
+      "walking_man": "unicode/1f6b6-2642.png?v8",
+      "walking_woman": "unicode/1f6b6-2640.png?v8",
+      "wallis_futuna": "unicode/1f1fc-1f1eb.png?v8",
+      "waning_crescent_moon": "unicode/1f318.png?v8",
+      "waning_gibbous_moon": "unicode/1f316.png?v8",
+      "warning": "unicode/26a0.png?v8",
+      "wastebasket": "unicode/1f5d1.png?v8",
+      "watch": "unicode/231a.png?v8",
+      "water_buffalo": "unicode/1f403.png?v8",
+      "water_polo": "unicode/1f93d.png?v8",
+      "watermelon": "unicode/1f349.png?v8",
+      "wave": "unicode/1f44b.png?v8",
+      "wavy_dash": "unicode/3030.png?v8",
+      "waxing_crescent_moon": "unicode/1f312.png?v8",
+      "waxing_gibbous_moon": "unicode/1f314.png?v8",
+      "wc": "unicode/1f6be.png?v8",
+      "weary": "unicode/1f629.png?v8",
+      "wedding": "unicode/1f492.png?v8",
+      "weight_lifting": "unicode/1f3cb.png?v8",
+      "weight_lifting_man": "unicode/1f3cb-2642.png?v8",
+      "weight_lifting_woman": "unicode/1f3cb-2640.png?v8",
+      "western_sahara": "unicode/1f1ea-1f1ed.png?v8",
+      "whale": "unicode/1f433.png?v8",
+      "whale2": "unicode/1f40b.png?v8",
+      "wheel_of_dharma": "unicode/2638.png?v8",
+      "wheelchair": "unicode/267f.png?v8",
+      "white_check_mark": "unicode/2705.png?v8",
+      "white_circle": "unicode/26aa.png?v8",
+      "white_flag": "unicode/1f3f3.png?v8",
+      "white_flower": "unicode/1f4ae.png?v8",
+      "white_haired_man": "unicode/1f468-1f9b3.png?v8",
+      "white_haired_woman": "unicode/1f469-1f9b3.png?v8",
+      "white_heart": "unicode/1f90d.png?v8",
+      "white_large_square": "unicode/2b1c.png?v8",
+      "white_medium_small_square": "unicode/25fd.png?v8",
+      "white_medium_square": "unicode/25fb.png?v8",
+      "white_small_square": "unicode/25ab.png?v8",
+      "white_square_button": "unicode/1f533.png?v8",
+      "wilted_flower": "unicode/1f940.png?v8",
+      "wind_chime": "unicode/1f390.png?v8",
+      "wind_face": "unicode/1f32c.png?v8",
+      "window": "unicode/1fa9f.png?v8",
+      "wine_glass": "unicode/1f377.png?v8",
+      "wink": "unicode/1f609.png?v8",
+      "wolf": "unicode/1f43a.png?v8",
+      "woman": "unicode/1f469.png?v8",
+      "woman_artist": "unicode/1f469-1f3a8.png?v8",
+      "woman_astronaut": "unicode/1f469-1f680.png?v8",
+      "woman_beard": "unicode/1f9d4-2640.png?v8",
+      "woman_cartwheeling": "unicode/1f938-2640.png?v8",
+      "woman_cook": "unicode/1f469-1f373.png?v8",
+      "woman_dancing": "unicode/1f483.png?v8",
+      "woman_facepalming": "unicode/1f926-2640.png?v8",
+      "woman_factory_worker": "unicode/1f469-1f3ed.png?v8",
+      "woman_farmer": "unicode/1f469-1f33e.png?v8",
+      "woman_feeding_baby": "unicode/1f469-1f37c.png?v8",
+      "woman_firefighter": "unicode/1f469-1f692.png?v8",
+      "woman_health_worker": "unicode/1f469-2695.png?v8",
+      "woman_in_manual_wheelchair": "unicode/1f469-1f9bd.png?v8",
+      "woman_in_motorized_wheelchair": "unicode/1f469-1f9bc.png?v8",
+      "woman_in_tuxedo": "unicode/1f935-2640.png?v8",
+      "woman_judge": "unicode/1f469-2696.png?v8",
+      "woman_juggling": "unicode/1f939-2640.png?v8",
+      "woman_mechanic": "unicode/1f469-1f527.png?v8",
+      "woman_office_worker": "unicode/1f469-1f4bc.png?v8",
+      "woman_pilot": "unicode/1f469-2708.png?v8",
+      "woman_playing_handball": "unicode/1f93e-2640.png?v8",
+      "woman_playing_water_polo": "unicode/1f93d-2640.png?v8",
+      "woman_scientist": "unicode/1f469-1f52c.png?v8",
+      "woman_shrugging": "unicode/1f937-2640.png?v8",
+      "woman_singer": "unicode/1f469-1f3a4.png?v8",
+      "woman_student": "unicode/1f469-1f393.png?v8",
+      "woman_teacher": "unicode/1f469-1f3eb.png?v8",
+      "woman_technologist": "unicode/1f469-1f4bb.png?v8",
+      "woman_with_headscarf": "unicode/1f9d5.png?v8",
+      "woman_with_probing_cane": "unicode/1f469-1f9af.png?v8",
+      "woman_with_turban": "unicode/1f473-2640.png?v8",
+      "woman_with_veil": "unicode/1f470-2640.png?v8",
+      "womans_clothes": "unicode/1f45a.png?v8",
+      "womans_hat": "unicode/1f452.png?v8",
+      "women_wrestling": "unicode/1f93c-2640.png?v8",
+      "womens": "unicode/1f6ba.png?v8",
+      "wood": "unicode/1fab5.png?v8",
+      "woozy_face": "unicode/1f974.png?v8",
+      "world_map": "unicode/1f5fa.png?v8",
+      "worm": "unicode/1fab1.png?v8",
+      "worried": "unicode/1f61f.png?v8",
+      "wrench": "unicode/1f527.png?v8",
+      "wrestling": "unicode/1f93c.png?v8",
+      "writing_hand": "unicode/270d.png?v8",
+      "x": "unicode/274c.png?v8",
+      "yarn": "unicode/1f9f6.png?v8",
+      "yawning_face": "unicode/1f971.png?v8",
+      "yellow_circle": "unicode/1f7e1.png?v8",
+      "yellow_heart": "unicode/1f49b.png?v8",
+      "yellow_square": "unicode/1f7e8.png?v8",
+      "yemen": "unicode/1f1fe-1f1ea.png?v8",
+      "yen": "unicode/1f4b4.png?v8",
+      "yin_yang": "unicode/262f.png?v8",
+      "yo_yo": "unicode/1fa80.png?v8",
+      "yum": "unicode/1f60b.png?v8",
+      "zambia": "unicode/1f1ff-1f1f2.png?v8",
+      "zany_face": "unicode/1f92a.png?v8",
+      "zap": "unicode/26a1.png?v8",
+      "zebra": "unicode/1f993.png?v8",
+      "zero": "unicode/0030-20e3.png?v8",
+      "zimbabwe": "unicode/1f1ff-1f1fc.png?v8",
+      "zipper_mouth_face": "unicode/1f910.png?v8",
+      "zombie": "unicode/1f9df.png?v8",
+      "zombie_man": "unicode/1f9df-2642.png?v8",
+      "zombie_woman": "unicode/1f9df-2640.png?v8",
+      "zzz": "unicode/1f4a4.png?v8"
+    }
+  };
+
+  function replaceEmojiShorthand(m, $1, useNativeEmoji) {
+    var emojiMatch = emojiData.data[$1];
+
+    var result = m;
+
+    if (emojiMatch) {
+      if (useNativeEmoji && /unicode/.test(emojiMatch)) {
+        var emojiUnicode = emojiMatch
+          .replace('unicode/', '')
+          .replace(/\.png.*/, '')
+          .split('-')
+          .map(function (u) { return ("&#x" + u + ";"); })
+          // Separate multi-character emoji with zero width joiner sequence (ZWJ)
+          // Hat tip: https://about.gitlab.com/blog/2018/05/30/journey-in-native-unicode-emoji/#emoji-made-up-of-multiple-characters
+          .join('&zwj;')
+          .concat('&#xFE0E;');
+        result = "<span class=\"emoji\">" + emojiUnicode + "</span>";
+      } else {
+        result = "<img src=\"" + (emojiData.baseURL) + emojiMatch + ".png\" alt=\"" + $1 + "\" class=\"emoji\" loading=\"lazy\">";
+      }
+    }
+
+    return result;
+  }
+
+  function emojify(text, useNativeEmoji) {
+    return (
+      text
+        // Mark colons in tags
+        .replace(
+          /<(code|pre|script|template)[^>]*?>[\s\S]+?<\/(code|pre|script|template)>/g,
+          function (m) { return m.replace(/:/g, '__colon__'); }
+        )
+        // Mark colons in comments
+        .replace(/<!--[\s\S]+?-->/g, function (m) { return m.replace(/:/g, '__colon__'); })
+        // Mark colons in URIs
+        .replace(/([a-z]{2,}:)?\/\/[^\s'">)]+/gi, function (m) { return m.replace(/:/g, '__colon__'); }
+        )
+        // Replace emoji shorthand codes
+        .replace(/:([a-z0-9_\-+]+?):/g, function (m, $1) { return replaceEmojiShorthand(m, $1, useNativeEmoji); }
+        )
+        // Restore colons in tags and comments
+        .replace(/__colon__/g, ':')
+    );
+  }
+
+  /**
+   * Converts a colon formatted string to a object with properties.
+   *
+   * This is process a provided string and look for any tokens in the format
+   * of `:name[=value]` and then convert it to a object and return.
+   * An example of this is ':include :type=code :fragment=demo' is taken and
+   * then converted to:
+   *
+   * ```
+   * {
+   *  include: '',
+   *  type: 'code',
+   *  fragment: 'demo'
+   * }
+   * ```
+   *
+   * @param {string}   str   The string to parse.
+   *
+   * @return {object}  The original string and parsed object, { str, config }.
+   */
+  function getAndRemoveConfig(str) {
+    if ( str === void 0 ) str = '';
+
+    var config = {};
+
+    if (str) {
+      str = str
+        .replace(/^('|")/, '')
+        .replace(/('|")$/, '')
+        .replace(/(?:^|\s):([\w-]+:?)=?([\w-%]+)?/g, function (m, key, value) {
+          if (key.indexOf(':') === -1) {
+            config[key] = (value && value.replace(/&quot;/g, '')) || true;
+            return '';
+          }
+
+          return m;
+        })
+        .trim();
+    }
+
+    return { str: str, config: config };
+  }
+
+  /**
+   * Remove the <a> tag from sidebar when the header with link, details see issue 1069
+   * @param {string}   str   The string to deal with.
+   *
+   * @return {string}   str   The string after delete the <a> element.
+   */
+  function removeAtag(str) {
+    if ( str === void 0 ) str = '';
+
+    return str.replace(/(<\/?a.*?>)/gi, '');
+  }
+
+  var imageCompiler = function (ref) {
+      var renderer = ref.renderer;
+      var contentBase = ref.contentBase;
+      var router = ref.router;
+
+      return (renderer.image = function (href, title, text) {
+      var url = href;
+      var attrs = [];
+
+      var ref = getAndRemoveConfig(title);
+      var str = ref.str;
+      var config = ref.config;
+      title = str;
+
+      if (config['no-zoom']) {
+        attrs.push('data-no-zoom');
+      }
+
+      if (title) {
+        attrs.push(("title=\"" + title + "\""));
+      }
+
+      if (config.size) {
+        var ref$1 = config.size.split('x');
+        var width = ref$1[0];
+        var height = ref$1[1];
+        if (height) {
+          attrs.push(("width=\"" + width + "\" height=\"" + height + "\""));
+        } else {
+          attrs.push(("width=\"" + width + "\""));
+        }
+      }
+
+      if (config.class) {
+        attrs.push(("class=\"" + (config.class) + "\""));
+      }
+
+      if (config.id) {
+        attrs.push(("id=\"" + (config.id) + "\""));
+      }
+
+      if (!isAbsolutePath(href)) {
+        url = getPath(contentBase, getParentPath(router.getCurrentPath()), href);
+      }
+
+      if (attrs.length > 0) {
+        return ("<img src=\"" + url + "\" data-origin=\"" + href + "\" alt=\"" + text + "\" " + (attrs.join(
+          ' '
+        )) + " />");
+      }
+
+      return ("<img src=\"" + url + "\" data-origin=\"" + href + "\" alt=\"" + text + "\"" + attrs + ">");
+    });
+  };
+
+  var prism = createCommonjsModule(function (module) {
+  /* **********************************************
+       Begin prism-core.js
+  ********************************************** */
+
+  /// <reference lib="WebWorker"/>
+
+  var _self = (typeof window !== 'undefined')
+  	? window   // if in browser
+  	: (
+  		(typeof WorkerGlobalScope !== 'undefined' && self instanceof WorkerGlobalScope)
+  			? self // if in worker
+  			: {}   // if in node js
+  	);
+
+  /**
+   * Prism: Lightweight, robust, elegant syntax highlighting
+   *
+   * @license MIT <https://opensource.org/licenses/MIT>
+   * @author Lea Verou <https://lea.verou.me>
+   * @namespace
+   * @public
+   */
+  var Prism = (function (_self) {
+
+  	// Private helper vars
+  	var lang = /(?:^|\s)lang(?:uage)?-([\w-]+)(?=\s|$)/i;
+  	var uniqueId = 0;
+
+  	// The grammar object for plaintext
+  	var plainTextGrammar = {};
+
+
+  	var _ = {
+  		/**
+  		 * By default, Prism will attempt to highlight all code elements (by calling {@link Prism.highlightAll}) on the
+  		 * current page after the page finished loading. This might be a problem if e.g. you wanted to asynchronously load
+  		 * additional languages or plugins yourself.
+  		 *
+  		 * By setting this value to `true`, Prism will not automatically highlight all code elements on the page.
+  		 *
+  		 * You obviously have to change this value before the automatic highlighting started. To do this, you can add an
+  		 * empty Prism object into the global scope before loading the Prism script like this:
+  		 *
+  		 * ```js
+  		 * window.Prism = window.Prism || {};
+  		 * Prism.manual = true;
+  		 * // add a new <script> to load Prism's script
+  		 * ```
+  		 *
+  		 * @default false
+  		 * @type {boolean}
+  		 * @memberof Prism
+  		 * @public
+  		 */
+  		manual: _self.Prism && _self.Prism.manual,
+  		/**
+  		 * By default, if Prism is in a web worker, it assumes that it is in a worker it created itself, so it uses
+  		 * `addEventListener` to communicate with its parent instance. However, if you're using Prism manually in your
+  		 * own worker, you don't want it to do this.
+  		 *
+  		 * By setting this value to `true`, Prism will not add its own listeners to the worker.
+  		 *
+  		 * You obviously have to change this value before Prism executes. To do this, you can add an
+  		 * empty Prism object into the global scope before loading the Prism script like this:
+  		 *
+  		 * ```js
+  		 * window.Prism = window.Prism || {};
+  		 * Prism.disableWorkerMessageHandler = true;
+  		 * // Load Prism's script
+  		 * ```
+  		 *
+  		 * @default false
+  		 * @type {boolean}
+  		 * @memberof Prism
+  		 * @public
+  		 */
+  		disableWorkerMessageHandler: _self.Prism && _self.Prism.disableWorkerMessageHandler,
+
+  		/**
+  		 * A namespace for utility methods.
+  		 *
+  		 * All function in this namespace that are not explicitly marked as _public_ are for __internal use only__ and may
+  		 * change or disappear at any time.
+  		 *
+  		 * @namespace
+  		 * @memberof Prism
+  		 */
+  		util: {
+  			encode: function encode(tokens) {
+  				if (tokens instanceof Token) {
+  					return new Token(tokens.type, encode(tokens.content), tokens.alias);
+  				} else if (Array.isArray(tokens)) {
+  					return tokens.map(encode);
+  				} else {
+  					return tokens.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/\u00a0/g, ' ');
+  				}
+  			},
+
+  			/**
+  			 * Returns the name of the type of the given value.
+  			 *
+  			 * @param {any} o
+  			 * @returns {string}
+  			 * @example
+  			 * type(null)      === 'Null'
+  			 * type(undefined) === 'Undefined'
+  			 * type(123)       === 'Number'
+  			 * type('foo')     === 'String'
+  			 * type(true)      === 'Boolean'
+  			 * type([1, 2])    === 'Array'
+  			 * type({})        === 'Object'
+  			 * type(String)    === 'Function'
+  			 * type(/abc+/)    === 'RegExp'
+  			 */
+  			type: function (o) {
+  				return Object.prototype.toString.call(o).slice(8, -1);
+  			},
+
+  			/**
+  			 * Returns a unique number for the given object. Later calls will still return the same number.
+  			 *
+  			 * @param {Object} obj
+  			 * @returns {number}
+  			 */
+  			objId: function (obj) {
+  				if (!obj['__id']) {
+  					Object.defineProperty(obj, '__id', { value: ++uniqueId });
+  				}
+  				return obj['__id'];
+  			},
+
+  			/**
+  			 * Creates a deep clone of the given object.
+  			 *
+  			 * The main intended use of this function is to clone language definitions.
+  			 *
+  			 * @param {T} o
+  			 * @param {Record<number, any>} [visited]
+  			 * @returns {T}
+  			 * @template T
+  			 */
+  			clone: function deepClone(o, visited) {
+  				visited = visited || {};
+
+  				var clone; var id;
+  				switch (_.util.type(o)) {
+  					case 'Object':
+  						id = _.util.objId(o);
+  						if (visited[id]) {
+  							return visited[id];
+  						}
+  						clone = /** @type {Record<string, any>} */ ({});
+  						visited[id] = clone;
+
+  						for (var key in o) {
+  							if (o.hasOwnProperty(key)) {
+  								clone[key] = deepClone(o[key], visited);
+  							}
+  						}
+
+  						return /** @type {any} */ (clone);
+
+  					case 'Array':
+  						id = _.util.objId(o);
+  						if (visited[id]) {
+  							return visited[id];
+  						}
+  						clone = [];
+  						visited[id] = clone;
+
+  						(/** @type {Array} */(/** @type {any} */(o))).forEach(function (v, i) {
+  							clone[i] = deepClone(v, visited);
+  						});
+
+  						return /** @type {any} */ (clone);
+
+  					default:
+  						return o;
+  				}
+  			},
+
+  			/**
+  			 * Returns the Prism language of the given element set by a `language-xxxx` or `lang-xxxx` class.
+  			 *
+  			 * If no language is set for the element or the element is `null` or `undefined`, `none` will be returned.
+  			 *
+  			 * @param {Element} element
+  			 * @returns {string}
+  			 */
+  			getLanguage: function (element) {
+  				while (element) {
+  					var m = lang.exec(element.className);
+  					if (m) {
+  						return m[1].toLowerCase();
+  					}
+  					element = element.parentElement;
+  				}
+  				return 'none';
+  			},
+
+  			/**
+  			 * Sets the Prism `language-xxxx` class of the given element.
+  			 *
+  			 * @param {Element} element
+  			 * @param {string} language
+  			 * @returns {void}
+  			 */
+  			setLanguage: function (element, language) {
+  				// remove all `language-xxxx` classes
+  				// (this might leave behind a leading space)
+  				element.className = element.className.replace(RegExp(lang, 'gi'), '');
+
+  				// add the new `language-xxxx` class
+  				// (using `classList` will automatically clean up spaces for us)
+  				element.classList.add('language-' + language);
+  			},
+
+  			/**
+  			 * Returns the script element that is currently executing.
+  			 *
+  			 * This does __not__ work for line script element.
+  			 *
+  			 * @returns {HTMLScriptElement | null}
+  			 */
+  			currentScript: function () {
+  				if (typeof document === 'undefined') {
+  					return null;
+  				}
+  				if ('currentScript' in document && 1 < 2 /* hack to trip TS' flow analysis */) {
+  					return /** @type {any} */ (document.currentScript);
+  				}
+
+  				// IE11 workaround
+  				// we'll get the src of the current script by parsing IE11's error stack trace
+  				// this will not work for inline scripts
+
+  				try {
+  					throw new Error();
+  				} catch (err) {
+  					// Get file src url from stack. Specifically works with the format of stack traces in IE.
+  					// A stack will look like this:
+  					//
+  					// Error
+  					//    at _.util.currentScript (http://localhost/components/prism-core.js:119:5)
+  					//    at Global code (http://localhost/components/prism-core.js:606:1)
+
+  					var src = (/at [^(\r\n]*\((.*):[^:]+:[^:]+\)$/i.exec(err.stack) || [])[1];
+  					if (src) {
+  						var scripts = document.getElementsByTagName('script');
+  						for (var i in scripts) {
+  							if (scripts[i].src == src) {
+  								return scripts[i];
+  							}
+  						}
+  					}
+  					return null;
+  				}
+  			},
+
+  			/**
+  			 * Returns whether a given class is active for `element`.
+  			 *
+  			 * The class can be activated if `element` or one of its ancestors has the given class and it can be deactivated
+  			 * if `element` or one of its ancestors has the negated version of the given class. The _negated version_ of the
+  			 * given class is just the given class with a `no-` prefix.
+  			 *
+  			 * Whether the class is active is determined by the closest ancestor of `element` (where `element` itself is
+  			 * closest ancestor) that has the given class or the negated version of it. If neither `element` nor any of its
+  			 * ancestors have the given class or the negated version of it, then the default activation will be returned.
+  			 *
+  			 * In the paradoxical situation where the closest ancestor contains __both__ the given class and the negated
+  			 * version of it, the class is considered active.
+  			 *
+  			 * @param {Element} element
+  			 * @param {string} className
+  			 * @param {boolean} [defaultActivation=false]
+  			 * @returns {boolean}
+  			 */
+  			isActive: function (element, className, defaultActivation) {
+  				var no = 'no-' + className;
+
+  				while (element) {
+  					var classList = element.classList;
+  					if (classList.contains(className)) {
+  						return true;
+  					}
+  					if (classList.contains(no)) {
+  						return false;
+  					}
+  					element = element.parentElement;
+  				}
+  				return !!defaultActivation;
+  			}
+  		},
+
+  		/**
+  		 * This namespace contains all currently loaded languages and the some helper functions to create and modify languages.
+  		 *
+  		 * @namespace
+  		 * @memberof Prism
+  		 * @public
+  		 */
+  		languages: {
+  			/**
+  			 * The grammar for plain, unformatted text.
+  			 */
+  			plain: plainTextGrammar,
+  			plaintext: plainTextGrammar,
+  			text: plainTextGrammar,
+  			txt: plainTextGrammar,
+
+  			/**
+  			 * Creates a deep copy of the language with the given id and appends the given tokens.
+  			 *
+  			 * If a token in `redef` also appears in the copied language, then the existing token in the copied language
+  			 * will be overwritten at its original position.
+  			 *
+  			 * ## Best practices
+  			 *
+  			 * Since the position of overwriting tokens (token in `redef` that overwrite tokens in the copied language)
+  			 * doesn't matter, they can technically be in any order. However, this can be confusing to others that trying to
+  			 * understand the language definition because, normally, the order of tokens matters in Prism grammars.
+  			 *
+  			 * Therefore, it is encouraged to order overwriting tokens according to the positions of the overwritten tokens.
+  			 * Furthermore, all non-overwriting tokens should be placed after the overwriting ones.
+  			 *
+  			 * @param {string} id The id of the language to extend. This has to be a key in `Prism.languages`.
+  			 * @param {Grammar} redef The new tokens to append.
+  			 * @returns {Grammar} The new language created.
+  			 * @public
+  			 * @example
+  			 * Prism.languages['css-with-colors'] = Prism.languages.extend('css', {
+  			 *     // Prism.languages.css already has a 'comment' token, so this token will overwrite CSS' 'comment' token
+  			 *     // at its original position
+  			 *     'comment': { ... },
+  			 *     // CSS doesn't have a 'color' token, so this token will be appended
+  			 *     'color': /\b(?:red|green|blue)\b/
+  			 * });
+  			 */
+  			extend: function (id, redef) {
+  				var lang = _.util.clone(_.languages[id]);
+
+  				for (var key in redef) {
+  					lang[key] = redef[key];
+  				}
+
+  				return lang;
+  			},
+
+  			/**
+  			 * Inserts tokens _before_ another token in a language definition or any other grammar.
+  			 *
+  			 * ## Usage
+  			 *
+  			 * This helper method makes it easy to modify existing languages. For example, the CSS language definition
+  			 * not only defines CSS highlighting for CSS documents, but also needs to define highlighting for CSS embedded
+  			 * in HTML through `<style>` elements. To do this, it needs to modify `Prism.languages.markup` and add the
+  			 * appropriate tokens. However, `Prism.languages.markup` is a regular JavaScript object literal, so if you do
+  			 * this:
+  			 *
+  			 * ```js
+  			 * Prism.languages.markup.style = {
+  			 *     // token
+  			 * };
+  			 * ```
+  			 *
+  			 * then the `style` token will be added (and processed) at the end. `insertBefore` allows you to insert tokens
+  			 * before existing tokens. For the CSS example above, you would use it like this:
+  			 *
+  			 * ```js
+  			 * Prism.languages.insertBefore('markup', 'cdata', {
+  			 *     'style': {
+  			 *         // token
+  			 *     }
+  			 * });
+  			 * ```
+  			 *
+  			 * ## Special cases
+  			 *
+  			 * If the grammars of `inside` and `insert` have tokens with the same name, the tokens in `inside`'s grammar
+  			 * will be ignored.
+  			 *
+  			 * This behavior can be used to insert tokens after `before`:
+  			 *
+  			 * ```js
+  			 * Prism.languages.insertBefore('markup', 'comment', {
+  			 *     'comment': Prism.languages.markup.comment,
+  			 *     // tokens after 'comment'
+  			 * });
+  			 * ```
+  			 *
+  			 * ## Limitations
+  			 *
+  			 * The main problem `insertBefore` has to solve is iteration order. Since ES2015, the iteration order for object
+  			 * properties is guaranteed to be the insertion order (except for integer keys) but some browsers behave
+  			 * differently when keys are deleted and re-inserted. So `insertBefore` can't be implemented by temporarily
+  			 * deleting properties which is necessary to insert at arbitrary positions.
+  			 *
+  			 * To solve this problem, `insertBefore` doesn't actually insert the given tokens into the target object.
+  			 * Instead, it will create a new object and replace all references to the target object with the new one. This
+  			 * can be done without temporarily deleting properties, so the iteration order is well-defined.
+  			 *
+  			 * However, only references that can be reached from `Prism.languages` or `insert` will be replaced. I.e. if
+  			 * you hold the target object in a variable, then the value of the variable will not change.
+  			 *
+  			 * ```js
+  			 * var oldMarkup = Prism.languages.markup;
+  			 * var newMarkup = Prism.languages.insertBefore('markup', 'comment', { ... });
+  			 *
+  			 * assert(oldMarkup !== Prism.languages.markup);
+  			 * assert(newMarkup === Prism.languages.markup);
+  			 * ```
+  			 *
+  			 * @param {string} inside The property of `root` (e.g. a language id in `Prism.languages`) that contains the
+  			 * object to be modified.
+  			 * @param {string} before The key to insert before.
+  			 * @param {Grammar} insert An object containing the key-value pairs to be inserted.
+  			 * @param {Object<string, any>} [root] The object containing `inside`, i.e. the object that contains the
+  			 * object to be modified.
+  			 *
+  			 * Defaults to `Prism.languages`.
+  			 * @returns {Grammar} The new grammar object.
+  			 * @public
+  			 */
+  			insertBefore: function (inside, before, insert, root) {
+  				root = root || /** @type {any} */ (_.languages);
+  				var grammar = root[inside];
+  				/** @type {Grammar} */
+  				var ret = {};
+
+  				for (var token in grammar) {
+  					if (grammar.hasOwnProperty(token)) {
+
+  						if (token == before) {
+  							for (var newToken in insert) {
+  								if (insert.hasOwnProperty(newToken)) {
+  									ret[newToken] = insert[newToken];
+  								}
+  							}
+  						}
+
+  						// Do not insert token which also occur in insert. See #1525
+  						if (!insert.hasOwnProperty(token)) {
+  							ret[token] = grammar[token];
+  						}
+  					}
+  				}
+
+  				var old = root[inside];
+  				root[inside] = ret;
+
+  				// Update references in other language definitions
+  				_.languages.DFS(_.languages, function (key, value) {
+  					if (value === old && key != inside) {
+  						this[key] = ret;
+  					}
+  				});
+
+  				return ret;
+  			},
+
+  			// Traverse a language definition with Depth First Search
+  			DFS: function DFS(o, callback, type, visited) {
+  				visited = visited || {};
+
+  				var objId = _.util.objId;
+
+  				for (var i in o) {
+  					if (o.hasOwnProperty(i)) {
+  						callback.call(o, i, o[i], type || i);
+
+  						var property = o[i];
+  						var propertyType = _.util.type(property);
+
+  						if (propertyType === 'Object' && !visited[objId(property)]) {
+  							visited[objId(property)] = true;
+  							DFS(property, callback, null, visited);
+  						} else if (propertyType === 'Array' && !visited[objId(property)]) {
+  							visited[objId(property)] = true;
+  							DFS(property, callback, i, visited);
+  						}
+  					}
+  				}
+  			}
+  		},
+
+  		plugins: {},
+
+  		/**
+  		 * This is the most high-level function in Prism’s API.
+  		 * It fetches all the elements that have a `.language-xxxx` class and then calls {@link Prism.highlightElement} on
+  		 * each one of them.
+  		 *
+  		 * This is equivalent to `Prism.highlightAllUnder(document, async, callback)`.
+  		 *
+  		 * @param {boolean} [async=false] Same as in {@link Prism.highlightAllUnder}.
+  		 * @param {HighlightCallback} [callback] Same as in {@link Prism.highlightAllUnder}.
+  		 * @memberof Prism
+  		 * @public
+  		 */
+  		highlightAll: function (async, callback) {
+  			_.highlightAllUnder(document, async, callback);
+  		},
+
+  		/**
+  		 * Fetches all the descendants of `container` that have a `.language-xxxx` class and then calls
+  		 * {@link Prism.highlightElement} on each one of them.
+  		 *
+  		 * The following hooks will be run:
+  		 * 1. `before-highlightall`
+  		 * 2. `before-all-elements-highlight`
+  		 * 3. All hooks of {@link Prism.highlightElement} for each element.
+  		 *
+  		 * @param {ParentNode} container The root element, whose descendants that have a `.language-xxxx` class will be highlighted.
+  		 * @param {boolean} [async=false] Whether each element is to be highlighted asynchronously using Web Workers.
+  		 * @param {HighlightCallback} [callback] An optional callback to be invoked on each element after its highlighting is done.
+  		 * @memberof Prism
+  		 * @public
+  		 */
+  		highlightAllUnder: function (container, async, callback) {
+  			var env = {
+  				callback: callback,
+  				container: container,
+  				selector: 'code[class*="language-"], [class*="language-"] code, code[class*="lang-"], [class*="lang-"] code'
+  			};
+
+  			_.hooks.run('before-highlightall', env);
+
+  			env.elements = Array.prototype.slice.apply(env.container.querySelectorAll(env.selector));
+
+  			_.hooks.run('before-all-elements-highlight', env);
+
+  			for (var i = 0, element; (element = env.elements[i++]);) {
+  				_.highlightElement(element, async === true, env.callback);
+  			}
+  		},
+
+  		/**
+  		 * Highlights the code inside a single element.
+  		 *
+  		 * The following hooks will be run:
+  		 * 1. `before-sanity-check`
+  		 * 2. `before-highlight`
+  		 * 3. All hooks of {@link Prism.highlight}. These hooks will be run by an asynchronous worker if `async` is `true`.
+  		 * 4. `before-insert`
+  		 * 5. `after-highlight`
+  		 * 6. `complete`
+  		 *
+  		 * Some the above hooks will be skipped if the element doesn't contain any text or there is no grammar loaded for
+  		 * the element's language.
+  		 *
+  		 * @param {Element} element The element containing the code.
+  		 * It must have a class of `language-xxxx` to be processed, where `xxxx` is a valid language identifier.
+  		 * @param {boolean} [async=false] Whether the element is to be highlighted asynchronously using Web Workers
+  		 * to improve performance and avoid blocking the UI when highlighting very large chunks of code. This option is
+  		 * [disabled by default](https://prismjs.com/faq.html#why-is-asynchronous-highlighting-disabled-by-default).
+  		 *
+  		 * Note: All language definitions required to highlight the code must be included in the main `prism.js` file for
+  		 * asynchronous highlighting to work. You can build your own bundle on the
+  		 * [Download page](https://prismjs.com/download.html).
+  		 * @param {HighlightCallback} [callback] An optional callback to be invoked after the highlighting is done.
+  		 * Mostly useful when `async` is `true`, since in that case, the highlighting is done asynchronously.
+  		 * @memberof Prism
+  		 * @public
+  		 */
+  		highlightElement: function (element, async, callback) {
+  			// Find language
+  			var language = _.util.getLanguage(element);
+  			var grammar = _.languages[language];
+
+  			// Set language on the element, if not present
+  			_.util.setLanguage(element, language);
+
+  			// Set language on the parent, for styling
+  			var parent = element.parentElement;
+  			if (parent && parent.nodeName.toLowerCase() === 'pre') {
+  				_.util.setLanguage(parent, language);
+  			}
+
+  			var code = element.textContent;
+
+  			var env = {
+  				element: element,
+  				language: language,
+  				grammar: grammar,
+  				code: code
+  			};
+
+  			function insertHighlightedCode(highlightedCode) {
+  				env.highlightedCode = highlightedCode;
+
+  				_.hooks.run('before-insert', env);
+
+  				env.element.innerHTML = env.highlightedCode;
+
+  				_.hooks.run('after-highlight', env);
+  				_.hooks.run('complete', env);
+  				callback && callback.call(env.element);
+  			}
+
+  			_.hooks.run('before-sanity-check', env);
+
+  			// plugins may change/add the parent/element
+  			parent = env.element.parentElement;
+  			if (parent && parent.nodeName.toLowerCase() === 'pre' && !parent.hasAttribute('tabindex')) {
+  				parent.setAttribute('tabindex', '0');
+  			}
+
+  			if (!env.code) {
+  				_.hooks.run('complete', env);
+  				callback && callback.call(env.element);
+  				return;
+  			}
+
+  			_.hooks.run('before-highlight', env);
+
+  			if (!env.grammar) {
+  				insertHighlightedCode(_.util.encode(env.code));
+  				return;
+  			}
+
+  			if (async && _self.Worker) {
+  				var worker = new Worker(_.filename);
+
+  				worker.onmessage = function (evt) {
+  					insertHighlightedCode(evt.data);
+  				};
+
+  				worker.postMessage(JSON.stringify({
+  					language: env.language,
+  					code: env.code,
+  					immediateClose: true
+  				}));
+  			} else {
+  				insertHighlightedCode(_.highlight(env.code, env.grammar, env.language));
+  			}
+  		},
+
+  		/**
+  		 * Low-level function, only use if you know what you’re doing. It accepts a string of text as input
+  		 * and the language definitions to use, and returns a string with the HTML produced.
+  		 *
+  		 * The following hooks will be run:
+  		 * 1. `before-tokenize`
+  		 * 2. `after-tokenize`
+  		 * 3. `wrap`: On each {@link Token}.
+  		 *
+  		 * @param {string} text A string with the code to be highlighted.
+  		 * @param {Grammar} grammar An object containing the tokens to use.
+  		 *
+  		 * Usually a language definition like `Prism.languages.markup`.
+  		 * @param {string} language The name of the language definition passed to `grammar`.
+  		 * @returns {string} The highlighted HTML.
+  		 * @memberof Prism
+  		 * @public
+  		 * @example
+  		 * Prism.highlight('var foo = true;', Prism.languages.javascript, 'javascript');
+  		 */
+  		highlight: function (text, grammar, language) {
+  			var env = {
+  				code: text,
+  				grammar: grammar,
+  				language: language
+  			};
+  			_.hooks.run('before-tokenize', env);
+  			if (!env.grammar) {
+  				throw new Error('The language "' + env.language + '" has no grammar.');
+  			}
+  			env.tokens = _.tokenize(env.code, env.grammar);
+  			_.hooks.run('after-tokenize', env);
+  			return Token.stringify(_.util.encode(env.tokens), env.language);
+  		},
+
+  		/**
+  		 * This is the heart of Prism, and the most low-level function you can use. It accepts a string of text as input
+  		 * and the language definitions to use, and returns an array with the tokenized code.
+  		 *
+  		 * When the language definition includes nested tokens, the function is called recursively on each of these tokens.
+  		 *
+  		 * This method could be useful in other contexts as well, as a very crude parser.
+  		 *
+  		 * @param {string} text A string with the code to be highlighted.
+  		 * @param {Grammar} grammar An object containing the tokens to use.
+  		 *
+  		 * Usually a language definition like `Prism.languages.markup`.
+  		 * @returns {TokenStream} An array of strings and tokens, a token stream.
+  		 * @memberof Prism
+  		 * @public
+  		 * @example
+  		 * let code = `var foo = 0;`;
+  		 * let tokens = Prism.tokenize(code, Prism.languages.javascript);
+  		 * tokens.forEach(token => {
+  		 *     if (token instanceof Prism.Token && token.type === 'number') {
+  		 *         console.log(`Found numeric literal: ${token.content}`);
+  		 *     }
+  		 * });
+  		 */
+  		tokenize: function (text, grammar) {
+  			var rest = grammar.rest;
+  			if (rest) {
+  				for (var token in rest) {
+  					grammar[token] = rest[token];
+  				}
+
+  				delete grammar.rest;
+  			}
+
+  			var tokenList = new LinkedList();
+  			addAfter(tokenList, tokenList.head, text);
+
+  			matchGrammar(text, tokenList, grammar, tokenList.head, 0);
+
+  			return toArray(tokenList);
+  		},
+
+  		/**
+  		 * @namespace
+  		 * @memberof Prism
+  		 * @public
+  		 */
+  		hooks: {
+  			all: {},
+
+  			/**
+  			 * Adds the given callback to the list of callbacks for the given hook.
+  			 *
+  			 * The callback will be invoked when the hook it is registered for is run.
+  			 * Hooks are usually directly run by a highlight function but you can also run hooks yourself.
+  			 *
+  			 * One callback function can be registered to multiple hooks and the same hook multiple times.
+  			 *
+  			 * @param {string} name The name of the hook.
+  			 * @param {HookCallback} callback The callback function which is given environment variables.
+  			 * @public
+  			 */
+  			add: function (name, callback) {
+  				var hooks = _.hooks.all;
+
+  				hooks[name] = hooks[name] || [];
+
+  				hooks[name].push(callback);
+  			},
+
+  			/**
+  			 * Runs a hook invoking all registered callbacks with the given environment variables.
+  			 *
+  			 * Callbacks will be invoked synchronously and in the order in which they were registered.
+  			 *
+  			 * @param {string} name The name of the hook.
+  			 * @param {Object<string, any>} env The environment variables of the hook passed to all callbacks registered.
+  			 * @public
+  			 */
+  			run: function (name, env) {
+  				var callbacks = _.hooks.all[name];
+
+  				if (!callbacks || !callbacks.length) {
+  					return;
+  				}
+
+  				for (var i = 0, callback; (callback = callbacks[i++]);) {
+  					callback(env);
+  				}
+  			}
+  		},
+
+  		Token: Token
+  	};
+  	_self.Prism = _;
+
+
+  	// Typescript note:
+  	// The following can be used to import the Token type in JSDoc:
+  	//
+  	//   @typedef {InstanceType<import("./prism-core")["Token"]>} Token
+
+  	/**
+  	 * Creates a new token.
+  	 *
+  	 * @param {string} type See {@link Token#type type}
+  	 * @param {string | TokenStream} content See {@link Token#content content}
+  	 * @param {string|string[]} [alias] The alias(es) of the token.
+  	 * @param {string} [matchedStr=""] A copy of the full string this token was created from.
+  	 * @class
+  	 * @global
+  	 * @public
+  	 */
+  	function Token(type, content, alias, matchedStr) {
+  		/**
+  		 * The type of the token.
+  		 *
+  		 * This is usually the key of a pattern in a {@link Grammar}.
+  		 *
+  		 * @type {string}
+  		 * @see GrammarToken
+  		 * @public
+  		 */
+  		this.type = type;
+  		/**
+  		 * The strings or tokens contained by this token.
+  		 *
+  		 * This will be a token stream if the pattern matched also defined an `inside` grammar.
+  		 *
+  		 * @type {string | TokenStream}
+  		 * @public
+  		 */
+  		this.content = content;
+  		/**
+  		 * The alias(es) of the token.
+  		 *
+  		 * @type {string|string[]}
+  		 * @see GrammarToken
+  		 * @public
+  		 */
+  		this.alias = alias;
+  		// Copy of the full string this token was created from
+  		this.length = (matchedStr || '').length | 0;
+  	}
+
+  	/**
+  	 * A token stream is an array of strings and {@link Token Token} objects.
+  	 *
+  	 * Token streams have to fulfill a few properties that are assumed by most functions (mostly internal ones) that process
+  	 * them.
+  	 *
+  	 * 1. No adjacent strings.
+  	 * 2. No empty strings.
+  	 *
+  	 *    The only exception here is the token stream that only contains the empty string and nothing else.
+  	 *
+  	 * @typedef {Array<string | Token>} TokenStream
+  	 * @global
+  	 * @public
+  	 */
+
+  	/**
+  	 * Converts the given token or token stream to an HTML representation.
+  	 *
+  	 * The following hooks will be run:
+  	 * 1. `wrap`: On each {@link Token}.
+  	 *
+  	 * @param {string | Token | TokenStream} o The token or token stream to be converted.
+  	 * @param {string} language The name of current language.
+  	 * @returns {string} The HTML representation of the token or token stream.
+  	 * @memberof Token
+  	 * @static
+  	 */
+  	Token.stringify = function stringify(o, language) {
+  		if (typeof o == 'string') {
+  			return o;
+  		}
+  		if (Array.isArray(o)) {
+  			var s = '';
+  			o.forEach(function (e) {
+  				s += stringify(e, language);
+  			});
+  			return s;
+  		}
+
+  		var env = {
+  			type: o.type,
+  			content: stringify(o.content, language),
+  			tag: 'span',
+  			classes: ['token', o.type],
+  			attributes: {},
+  			language: language
+  		};
+
+  		var aliases = o.alias;
+  		if (aliases) {
+  			if (Array.isArray(aliases)) {
+  				Array.prototype.push.apply(env.classes, aliases);
+  			} else {
+  				env.classes.push(aliases);
+  			}
+  		}
+
+  		_.hooks.run('wrap', env);
+
+  		var attributes = '';
+  		for (var name in env.attributes) {
+  			attributes += ' ' + name + '="' + (env.attributes[name] || '').replace(/"/g, '&quot;') + '"';
+  		}
+
+  		return '<' + env.tag + ' class="' + env.classes.join(' ') + '"' + attributes + '>' + env.content + '</' + env.tag + '>';
+  	};
+
+  	/**
+  	 * @param {RegExp} pattern
+  	 * @param {number} pos
+  	 * @param {string} text
+  	 * @param {boolean} lookbehind
+  	 * @returns {RegExpExecArray | null}
+  	 */
+  	function matchPattern(pattern, pos, text, lookbehind) {
+  		pattern.lastIndex = pos;
+  		var match = pattern.exec(text);
+  		if (match && lookbehind && match[1]) {
+  			// change the match to remove the text matched by the Prism lookbehind group
+  			var lookbehindLength = match[1].length;
+  			match.index += lookbehindLength;
+  			match[0] = match[0].slice(lookbehindLength);
+  		}
+  		return match;
+  	}
+
+  	/**
+  	 * @param {string} text
+  	 * @param {LinkedList<string | Token>} tokenList
+  	 * @param {any} grammar
+  	 * @param {LinkedListNode<string | Token>} startNode
+  	 * @param {number} startPos
+  	 * @param {RematchOptions} [rematch]
+  	 * @returns {void}
+  	 * @private
+  	 *
+  	 * @typedef RematchOptions
+  	 * @property {string} cause
+  	 * @property {number} reach
+  	 */
+  	function matchGrammar(text, tokenList, grammar, startNode, startPos, rematch) {
+  		for (var token in grammar) {
+  			if (!grammar.hasOwnProperty(token) || !grammar[token]) {
+  				continue;
+  			}
+
+  			var patterns = grammar[token];
+  			patterns = Array.isArray(patterns) ? patterns : [patterns];
+
+  			for (var j = 0; j < patterns.length; ++j) {
+  				if (rematch && rematch.cause == token + ',' + j) {
+  					return;
+  				}
+
+  				var patternObj = patterns[j];
+  				var inside = patternObj.inside;
+  				var lookbehind = !!patternObj.lookbehind;
+  				var greedy = !!patternObj.greedy;
+  				var alias = patternObj.alias;
+
+  				if (greedy && !patternObj.pattern.global) {
+  					// Without the global flag, lastIndex won't work
+  					var flags = patternObj.pattern.toString().match(/[imsuy]*$/)[0];
+  					patternObj.pattern = RegExp(patternObj.pattern.source, flags + 'g');
+  				}
+
+  				/** @type {RegExp} */
+  				var pattern = patternObj.pattern || patternObj;
+
+  				for ( // iterate the token list and keep track of the current token/string position
+  					var currentNode = startNode.next, pos = startPos;
+  					currentNode !== tokenList.tail;
+  					pos += currentNode.value.length, currentNode = currentNode.next
+  				) {
+
+  					if (rematch && pos >= rematch.reach) {
+  						break;
+  					}
+
+  					var str = currentNode.value;
+
+  					if (tokenList.length > text.length) {
+  						// Something went terribly wrong, ABORT, ABORT!
+  						return;
+  					}
+
+  					if (str instanceof Token) {
+  						continue;
+  					}
+
+  					var removeCount = 1; // this is the to parameter of removeBetween
+  					var match;
+
+  					if (greedy) {
+  						match = matchPattern(pattern, pos, text, lookbehind);
+  						if (!match || match.index >= text.length) {
+  							break;
+  						}
+
+  						var from = match.index;
+  						var to = match.index + match[0].length;
+  						var p = pos;
+
+  						// find the node that contains the match
+  						p += currentNode.value.length;
+  						while (from >= p) {
+  							currentNode = currentNode.next;
+  							p += currentNode.value.length;
+  						}
+  						// adjust pos (and p)
+  						p -= currentNode.value.length;
+  						pos = p;
+
+  						// the current node is a Token, then the match starts inside another Token, which is invalid
+  						if (currentNode.value instanceof Token) {
+  							continue;
+  						}
+
+  						// find the last node which is affected by this match
+  						for (
+  							var k = currentNode;
+  							k !== tokenList.tail && (p < to || typeof k.value === 'string');
+  							k = k.next
+  						) {
+  							removeCount++;
+  							p += k.value.length;
+  						}
+  						removeCount--;
+
+  						// replace with the new match
+  						str = text.slice(pos, p);
+  						match.index -= pos;
+  					} else {
+  						match = matchPattern(pattern, 0, str, lookbehind);
+  						if (!match) {
+  							continue;
+  						}
+  					}
+
+  					// eslint-disable-next-line no-redeclare
+  					var from = match.index;
+  					var matchStr = match[0];
+  					var before = str.slice(0, from);
+  					var after = str.slice(from + matchStr.length);
+
+  					var reach = pos + str.length;
+  					if (rematch && reach > rematch.reach) {
+  						rematch.reach = reach;
+  					}
+
+  					var removeFrom = currentNode.prev;
+
+  					if (before) {
+  						removeFrom = addAfter(tokenList, removeFrom, before);
+  						pos += before.length;
+  					}
+
+  					removeRange(tokenList, removeFrom, removeCount);
+
+  					var wrapped = new Token(token, inside ? _.tokenize(matchStr, inside) : matchStr, alias, matchStr);
+  					currentNode = addAfter(tokenList, removeFrom, wrapped);
+
+  					if (after) {
+  						addAfter(tokenList, currentNode, after);
+  					}
+
+  					if (removeCount > 1) {
+  						// at least one Token object was removed, so we have to do some rematching
+  						// this can only happen if the current pattern is greedy
+
+  						/** @type {RematchOptions} */
+  						var nestedRematch = {
+  							cause: token + ',' + j,
+  							reach: reach
+  						};
+  						matchGrammar(text, tokenList, grammar, currentNode.prev, pos, nestedRematch);
+
+  						// the reach might have been extended because of the rematching
+  						if (rematch && nestedRematch.reach > rematch.reach) {
+  							rematch.reach = nestedRematch.reach;
+  						}
+  					}
+  				}
+  			}
+  		}
+  	}
+
+  	/**
+  	 * @typedef LinkedListNode
+  	 * @property {T} value
+  	 * @property {LinkedListNode<T> | null} prev The previous node.
+  	 * @property {LinkedListNode<T> | null} next The next node.
+  	 * @template T
+  	 * @private
+  	 */
+
+  	/**
+  	 * @template T
+  	 * @private
+  	 */
+  	function LinkedList() {
+  		/** @type {LinkedListNode<T>} */
+  		var head = { value: null, prev: null, next: null };
+  		/** @type {LinkedListNode<T>} */
+  		var tail = { value: null, prev: head, next: null };
+  		head.next = tail;
+
+  		/** @type {LinkedListNode<T>} */
+  		this.head = head;
+  		/** @type {LinkedListNode<T>} */
+  		this.tail = tail;
+  		this.length = 0;
+  	}
+
+  	/**
+  	 * Adds a new node with the given value to the list.
+  	 *
+  	 * @param {LinkedList<T>} list
+  	 * @param {LinkedListNode<T>} node
+  	 * @param {T} value
+  	 * @returns {LinkedListNode<T>} The added node.
+  	 * @template T
+  	 */
+  	function addAfter(list, node, value) {
+  		// assumes that node != list.tail && values.length >= 0
+  		var next = node.next;
+
+  		var newNode = { value: value, prev: node, next: next };
+  		node.next = newNode;
+  		next.prev = newNode;
+  		list.length++;
+
+  		return newNode;
+  	}
+  	/**
+  	 * Removes `count` nodes after the given node. The given node will not be removed.
+  	 *
+  	 * @param {LinkedList<T>} list
+  	 * @param {LinkedListNode<T>} node
+  	 * @param {number} count
+  	 * @template T
+  	 */
+  	function removeRange(list, node, count) {
+  		var next = node.next;
+  		for (var i = 0; i < count && next !== list.tail; i++) {
+  			next = next.next;
+  		}
+  		node.next = next;
+  		next.prev = node;
+  		list.length -= i;
+  	}
+  	/**
+  	 * @param {LinkedList<T>} list
+  	 * @returns {T[]}
+  	 * @template T
+  	 */
+  	function toArray(list) {
+  		var array = [];
+  		var node = list.head.next;
+  		while (node !== list.tail) {
+  			array.push(node.value);
+  			node = node.next;
+  		}
+  		return array;
+  	}
+
+
+  	if (!_self.document) {
+  		if (!_self.addEventListener) {
+  			// in Node.js
+  			return _;
+  		}
+
+  		if (!_.disableWorkerMessageHandler) {
+  			// In worker
+  			_self.addEventListener('message', function (evt) {
+  				var message = JSON.parse(evt.data);
+  				var lang = message.language;
+  				var code = message.code;
+  				var immediateClose = message.immediateClose;
+
+  				_self.postMessage(_.highlight(code, _.languages[lang], lang));
+  				if (immediateClose) {
+  					_self.close();
+  				}
+  			}, false);
+  		}
+
+  		return _;
+  	}
+
+  	// Get current script and highlight
+  	var script = _.util.currentScript();
+
+  	if (script) {
+  		_.filename = script.src;
+
+  		if (script.hasAttribute('data-manual')) {
+  			_.manual = true;
+  		}
+  	}
+
+  	function highlightAutomaticallyCallback() {
+  		if (!_.manual) {
+  			_.highlightAll();
+  		}
+  	}
+
+  	if (!_.manual) {
+  		// If the document state is "loading", then we'll use DOMContentLoaded.
+  		// If the document state is "interactive" and the prism.js script is deferred, then we'll also use the
+  		// DOMContentLoaded event because there might be some plugins or languages which have also been deferred and they
+  		// might take longer one animation frame to execute which can create a race condition where only some plugins have
+  		// been loaded when Prism.highlightAll() is executed, depending on how fast resources are loaded.
+  		// See https://github.com/PrismJS/prism/issues/2102
+  		var readyState = document.readyState;
+  		if (readyState === 'loading' || readyState === 'interactive' && script && script.defer) {
+  			document.addEventListener('DOMContentLoaded', highlightAutomaticallyCallback);
+  		} else {
+  			if (window.requestAnimationFrame) {
+  				window.requestAnimationFrame(highlightAutomaticallyCallback);
+  			} else {
+  				window.setTimeout(highlightAutomaticallyCallback, 16);
+  			}
+  		}
+  	}
+
+  	return _;
+
+  }(_self));
+
+  if ( module.exports) {
+  	module.exports = Prism;
+  }
+
+  // hack for components to work correctly in node.js
+  if (typeof commonjsGlobal !== 'undefined') {
+  	commonjsGlobal.Prism = Prism;
+  }
+
+  // some additional documentation/types
+
+  /**
+   * The expansion of a simple `RegExp` literal to support additional properties.
+   *
+   * @typedef GrammarToken
+   * @property {RegExp} pattern The regular expression of the token.
+   * @property {boolean} [lookbehind=false] If `true`, then the first capturing group of `pattern` will (effectively)
+   * behave as a lookbehind group meaning that the captured text will not be part of the matched text of the new token.
+   * @property {boolean} [greedy=false] Whether the token is greedy.
+   * @property {string|string[]} [alias] An optional alias or list of aliases.
+   * @property {Grammar} [inside] The nested grammar of this token.
+   *
+   * The `inside` grammar will be used to tokenize the text value of each token of this kind.
+   *
+   * This can be used to make nested and even recursive language definitions.
+   *
+   * Note: This can cause infinite recursion. Be careful when you embed different languages or even the same language into
+   * each another.
+   * @global
+   * @public
+   */
+
+  /**
+   * @typedef Grammar
+   * @type {Object<string, RegExp | GrammarToken | Array<RegExp | GrammarToken>>}
+   * @property {Grammar} [rest] An optional grammar object that will be appended to this grammar.
+   * @global
+   * @public
+   */
+
+  /**
+   * A function which will invoked after an element was successfully highlighted.
+   *
+   * @callback HighlightCallback
+   * @param {Element} element The element successfully highlighted.
+   * @returns {void}
+   * @global
+   * @public
+   */
+
+  /**
+   * @callback HookCallback
+   * @param {Object<string, any>} env The environment variables of the hook.
+   * @returns {void}
+   * @global
+   * @public
+   */
+
+
+  /* **********************************************
+       Begin prism-markup.js
+  ********************************************** */
+
+  Prism.languages.markup = {
+  	'comment': {
+  		pattern: /<!--(?:(?!<!--)[\s\S])*?-->/,
+  		greedy: true
+  	},
+  	'prolog': {
+  		pattern: /<\?[\s\S]+?\?>/,
+  		greedy: true
+  	},
+  	'doctype': {
+  		// https://www.w3.org/TR/xml/#NT-doctypedecl
+  		pattern: /<!DOCTYPE(?:[^>"'[\]]|"[^"]*"|'[^']*')+(?:\[(?:[^<"'\]]|"[^"]*"|'[^']*'|<(?!!--)|<!--(?:[^-]|-(?!->))*-->)*\]\s*)?>/i,
+  		greedy: true,
+  		inside: {
+  			'internal-subset': {
+  				pattern: /(^[^\[]*\[)[\s\S]+(?=\]>$)/,
+  				lookbehind: true,
+  				greedy: true,
+  				inside: null // see below
+  			},
+  			'string': {
+  				pattern: /"[^"]*"|'[^']*'/,
+  				greedy: true
+  			},
+  			'punctuation': /^<!|>$|[[\]]/,
+  			'doctype-tag': /^DOCTYPE/i,
+  			'name': /[^\s<>'"]+/
+  		}
+  	},
+  	'cdata': {
+  		pattern: /<!\[CDATA\[[\s\S]*?\]\]>/i,
+  		greedy: true
+  	},
+  	'tag': {
+  		pattern: /<\/?(?!\d)[^\s>\/=$<%]+(?:\s(?:\s*[^\s>\/=]+(?:\s*=\s*(?:"[^"]*"|'[^']*'|[^\s'">=]+(?=[\s>]))|(?=[\s/>])))+)?\s*\/?>/,
+  		greedy: true,
+  		inside: {
+  			'tag': {
+  				pattern: /^<\/?[^\s>\/]+/,
+  				inside: {
+  					'punctuation': /^<\/?/,
+  					'namespace': /^[^\s>\/:]+:/
+  				}
+  			},
+  			'special-attr': [],
+  			'attr-value': {
+  				pattern: /=\s*(?:"[^"]*"|'[^']*'|[^\s'">=]+)/,
+  				inside: {
+  					'punctuation': [
+  						{
+  							pattern: /^=/,
+  							alias: 'attr-equals'
+  						},
+  						/"|'/
+  					]
+  				}
+  			},
+  			'punctuation': /\/?>/,
+  			'attr-name': {
+  				pattern: /[^\s>\/]+/,
+  				inside: {
+  					'namespace': /^[^\s>\/:]+:/
+  				}
+  			}
+
+  		}
+  	},
+  	'entity': [
+  		{
+  			pattern: /&[\da-z]{1,8};/i,
+  			alias: 'named-entity'
+  		},
+  		/&#x?[\da-f]{1,8};/i
+  	]
+  };
+
+  Prism.languages.markup['tag'].inside['attr-value'].inside['entity'] =
+  	Prism.languages.markup['entity'];
+  Prism.languages.markup['doctype'].inside['internal-subset'].inside = Prism.languages.markup;
+
+  // Plugin to make entity title show the real entity, idea by Roman Komarov
+  Prism.hooks.add('wrap', function (env) {
+
+  	if (env.type === 'entity') {
+  		env.attributes['title'] = env.content.replace(/&amp;/, '&');
+  	}
+  });
+
+  Object.defineProperty(Prism.languages.markup.tag, 'addInlined', {
+  	/**
+  	 * Adds an inlined language to markup.
+  	 *
+  	 * An example of an inlined language is CSS with `<style>` tags.
+  	 *
+  	 * @param {string} tagName The name of the tag that contains the inlined language. This name will be treated as
+  	 * case insensitive.
+  	 * @param {string} lang The language key.
+  	 * @example
+  	 * addInlined('style', 'css');
+  	 */
+  	value: function addInlined(tagName, lang) {
+  		var includedCdataInside = {};
+  		includedCdataInside['language-' + lang] = {
+  			pattern: /(^<!\[CDATA\[)[\s\S]+?(?=\]\]>$)/i,
+  			lookbehind: true,
+  			inside: Prism.languages[lang]
+  		};
+  		includedCdataInside['cdata'] = /^<!\[CDATA\[|\]\]>$/i;
+
+  		var inside = {
+  			'included-cdata': {
+  				pattern: /<!\[CDATA\[[\s\S]*?\]\]>/i,
+  				inside: includedCdataInside
+  			}
+  		};
+  		inside['language-' + lang] = {
+  			pattern: /[\s\S]+/,
+  			inside: Prism.languages[lang]
+  		};
+
+  		var def = {};
+  		def[tagName] = {
+  			pattern: RegExp(/(<__[^>]*>)(?:<!\[CDATA\[(?:[^\]]|\](?!\]>))*\]\]>|(?!<!\[CDATA\[)[\s\S])*?(?=<\/__>)/.source.replace(/__/g, function () { return tagName; }), 'i'),
+  			lookbehind: true,
+  			greedy: true,
+  			inside: inside
+  		};
+
+  		Prism.languages.insertBefore('markup', 'cdata', def);
+  	}
+  });
+  Object.defineProperty(Prism.languages.markup.tag, 'addAttribute', {
+  	/**
+  	 * Adds an pattern to highlight languages embedded in HTML attributes.
+  	 *
+  	 * An example of an inlined language is CSS with `style` attributes.
+  	 *
+  	 * @param {string} attrName The name of the tag that contains the inlined language. This name will be treated as
+  	 * case insensitive.
+  	 * @param {string} lang The language key.
+  	 * @example
+  	 * addAttribute('style', 'css');
+  	 */
+  	value: function (attrName, lang) {
+  		Prism.languages.markup.tag.inside['special-attr'].push({
+  			pattern: RegExp(
+  				/(^|["'\s])/.source + '(?:' + attrName + ')' + /\s*=\s*(?:"[^"]*"|'[^']*'|[^\s'">=]+(?=[\s>]))/.source,
+  				'i'
+  			),
+  			lookbehind: true,
+  			inside: {
+  				'attr-name': /^[^\s=]+/,
+  				'attr-value': {
+  					pattern: /=[\s\S]+/,
+  					inside: {
+  						'value': {
+  							pattern: /(^=\s*(["']|(?!["'])))\S[\s\S]*(?=\2$)/,
+  							lookbehind: true,
+  							alias: [lang, 'language-' + lang],
+  							inside: Prism.languages[lang]
+  						},
+  						'punctuation': [
+  							{
+  								pattern: /^=/,
+  								alias: 'attr-equals'
+  							},
+  							/"|'/
+  						]
+  					}
+  				}
+  			}
+  		});
+  	}
+  });
+
+  Prism.languages.html = Prism.languages.markup;
+  Prism.languages.mathml = Prism.languages.markup;
+  Prism.languages.svg = Prism.languages.markup;
+
+  Prism.languages.xml = Prism.languages.extend('markup', {});
+  Prism.languages.ssml = Prism.languages.xml;
+  Prism.languages.atom = Prism.languages.xml;
+  Prism.languages.rss = Prism.languages.xml;
+
+
+  /* **********************************************
+       Begin prism-css.js
+  ********************************************** */
+
+  (function (Prism) {
+
+  	var string = /(?:"(?:\\(?:\r\n|[\s\S])|[^"\\\r\n])*"|'(?:\\(?:\r\n|[\s\S])|[^'\\\r\n])*')/;
+
+  	Prism.languages.css = {
+  		'comment': /\/\*[\s\S]*?\*\//,
+  		'atrule': {
+  			pattern: /@[\w-](?:[^;{\s]|\s+(?![\s{]))*(?:;|(?=\s*\{))/,
+  			inside: {
+  				'rule': /^@[\w-]+/,
+  				'selector-function-argument': {
+  					pattern: /(\bselector\s*\(\s*(?![\s)]))(?:[^()\s]|\s+(?![\s)])|\((?:[^()]|\([^()]*\))*\))+(?=\s*\))/,
+  					lookbehind: true,
+  					alias: 'selector'
+  				},
+  				'keyword': {
+  					pattern: /(^|[^\w-])(?:and|not|only|or)(?![\w-])/,
+  					lookbehind: true
+  				}
+  				// See rest below
+  			}
+  		},
+  		'url': {
+  			// https://drafts.csswg.org/css-values-3/#urls
+  			pattern: RegExp('\\burl\\((?:' + string.source + '|' + /(?:[^\\\r\n()"']|\\[\s\S])*/.source + ')\\)', 'i'),
+  			greedy: true,
+  			inside: {
+  				'function': /^url/i,
+  				'punctuation': /^\(|\)$/,
+  				'string': {
+  					pattern: RegExp('^' + string.source + '$'),
+  					alias: 'url'
+  				}
+  			}
+  		},
+  		'selector': {
+  			pattern: RegExp('(^|[{}\\s])[^{}\\s](?:[^{};"\'\\s]|\\s+(?![\\s{])|' + string.source + ')*(?=\\s*\\{)'),
+  			lookbehind: true
+  		},
+  		'string': {
+  			pattern: string,
+  			greedy: true
+  		},
+  		'property': {
+  			pattern: /(^|[^-\w\xA0-\uFFFF])(?!\s)[-_a-z\xA0-\uFFFF](?:(?!\s)[-\w\xA0-\uFFFF])*(?=\s*:)/i,
+  			lookbehind: true
+  		},
+  		'important': /!important\b/i,
+  		'function': {
+  			pattern: /(^|[^-a-z0-9])[-a-z0-9]+(?=\()/i,
+  			lookbehind: true
+  		},
+  		'punctuation': /[(){};:,]/
+  	};
+
+  	Prism.languages.css['atrule'].inside.rest = Prism.languages.css;
+
+  	var markup = Prism.languages.markup;
+  	if (markup) {
+  		markup.tag.addInlined('style', 'css');
+  		markup.tag.addAttribute('style', 'css');
+  	}
+
+  }(Prism));
+
+
+  /* **********************************************
+       Begin prism-clike.js
+  ********************************************** */
+
+  Prism.languages.clike = {
+  	'comment': [
+  		{
+  			pattern: /(^|[^\\])\/\*[\s\S]*?(?:\*\/|$)/,
+  			lookbehind: true,
+  			greedy: true
+  		},
+  		{
+  			pattern: /(^|[^\\:])\/\/.*/,
+  			lookbehind: true,
+  			greedy: true
+  		}
+  	],
+  	'string': {
+  		pattern: /(["'])(?:\\(?:\r\n|[\s\S])|(?!\1)[^\\\r\n])*\1/,
+  		greedy: true
+  	},
+  	'class-name': {
+  		pattern: /(\b(?:class|extends|implements|instanceof|interface|new|trait)\s+|\bcatch\s+\()[\w.\\]+/i,
+  		lookbehind: true,
+  		inside: {
+  			'punctuation': /[.\\]/
+  		}
+  	},
+  	'keyword': /\b(?:break|catch|continue|do|else|finally|for|function|if|in|instanceof|new|null|return|throw|try|while)\b/,
+  	'boolean': /\b(?:false|true)\b/,
+  	'function': /\b\w+(?=\()/,
+  	'number': /\b0x[\da-f]+\b|(?:\b\d+(?:\.\d*)?|\B\.\d+)(?:e[+-]?\d+)?/i,
+  	'operator': /[<>]=?|[!=]=?=?|--?|\+\+?|&&?|\|\|?|[?*/~^%]/,
+  	'punctuation': /[{}[\];(),.:]/
+  };
+
+
+  /* **********************************************
+       Begin prism-javascript.js
+  ********************************************** */
+
+  Prism.languages.javascript = Prism.languages.extend('clike', {
+  	'class-name': [
+  		Prism.languages.clike['class-name'],
+  		{
+  			pattern: /(^|[^$\w\xA0-\uFFFF])(?!\s)[_$A-Z\xA0-\uFFFF](?:(?!\s)[$\w\xA0-\uFFFF])*(?=\.(?:constructor|prototype))/,
+  			lookbehind: true
+  		}
+  	],
+  	'keyword': [
+  		{
+  			pattern: /((?:^|\})\s*)catch\b/,
+  			lookbehind: true
+  		},
+  		{
+  			pattern: /(^|[^.]|\.\.\.\s*)\b(?:as|assert(?=\s*\{)|async(?=\s*(?:function\b|\(|[$\w\xA0-\uFFFF]|$))|await|break|case|class|const|continue|debugger|default|delete|do|else|enum|export|extends|finally(?=\s*(?:\{|$))|for|from(?=\s*(?:['"]|$))|function|(?:get|set)(?=\s*(?:[#\[$\w\xA0-\uFFFF]|$))|if|implements|import|in|instanceof|interface|let|new|null|of|package|private|protected|public|return|static|super|switch|this|throw|try|typeof|undefined|var|void|while|with|yield)\b/,
+  			lookbehind: true
+  		} ],
+  	// Allow for all non-ASCII characters (See http://stackoverflow.com/a/2008444)
+  	'function': /#?(?!\s)[_$a-zA-Z\xA0-\uFFFF](?:(?!\s)[$\w\xA0-\uFFFF])*(?=\s*(?:\.\s*(?:apply|bind|call)\s*)?\()/,
+  	'number': {
+  		pattern: RegExp(
+  			/(^|[^\w$])/.source +
+  			'(?:' +
+  			(
+  				// constant
+  				/NaN|Infinity/.source +
+  				'|' +
+  				// binary integer
+  				/0[bB][01]+(?:_[01]+)*n?/.source +
+  				'|' +
+  				// octal integer
+  				/0[oO][0-7]+(?:_[0-7]+)*n?/.source +
+  				'|' +
+  				// hexadecimal integer
+  				/0[xX][\dA-Fa-f]+(?:_[\dA-Fa-f]+)*n?/.source +
+  				'|' +
+  				// decimal bigint
+  				/\d+(?:_\d+)*n/.source +
+  				'|' +
+  				// decimal number (integer or float) but no bigint
+  				/(?:\d+(?:_\d+)*(?:\.(?:\d+(?:_\d+)*)?)?|\.\d+(?:_\d+)*)(?:[Ee][+-]?\d+(?:_\d+)*)?/.source
+  			) +
+  			')' +
+  			/(?![\w$])/.source
+  		),
+  		lookbehind: true
+  	},
+  	'operator': /--|\+\+|\*\*=?|=>|&&=?|\|\|=?|[!=]==|<<=?|>>>?=?|[-+*/%&|^!=<>]=?|\.{3}|\?\?=?|\?\.?|[~:]/
+  });
+
+  Prism.languages.javascript['class-name'][0].pattern = /(\b(?:class|extends|implements|instanceof|interface|new)\s+)[\w.\\]+/;
+
+  Prism.languages.insertBefore('javascript', 'keyword', {
+  	'regex': {
+  		// eslint-disable-next-line regexp/no-dupe-characters-character-class
+  		pattern: /((?:^|[^$\w\xA0-\uFFFF."'\])\s]|\b(?:return|yield))\s*)\/(?:\[(?:[^\]\\\r\n]|\\.)*\]|\\.|[^/\\\[\r\n])+\/[dgimyus]{0,7}(?=(?:\s|\/\*(?:[^*]|\*(?!\/))*\*\/)*(?:$|[\r\n,.;:})\]]|\/\/))/,
+  		lookbehind: true,
+  		greedy: true,
+  		inside: {
+  			'regex-source': {
+  				pattern: /^(\/)[\s\S]+(?=\/[a-z]*$)/,
+  				lookbehind: true,
+  				alias: 'language-regex',
+  				inside: Prism.languages.regex
+  			},
+  			'regex-delimiter': /^\/|\/$/,
+  			'regex-flags': /^[a-z]+$/,
+  		}
+  	},
+  	// This must be declared before keyword because we use "function" inside the look-forward
+  	'function-variable': {
+  		pattern: /#?(?!\s)[_$a-zA-Z\xA0-\uFFFF](?:(?!\s)[$\w\xA0-\uFFFF])*(?=\s*[=:]\s*(?:async\s*)?(?:\bfunction\b|(?:\((?:[^()]|\([^()]*\))*\)|(?!\s)[_$a-zA-Z\xA0-\uFFFF](?:(?!\s)[$\w\xA0-\uFFFF])*)\s*=>))/,
+  		alias: 'function'
+  	},
+  	'parameter': [
+  		{
+  			pattern: /(function(?:\s+(?!\s)[_$a-zA-Z\xA0-\uFFFF](?:(?!\s)[$\w\xA0-\uFFFF])*)?\s*\(\s*)(?!\s)(?:[^()\s]|\s+(?![\s)])|\([^()]*\))+(?=\s*\))/,
+  			lookbehind: true,
+  			inside: Prism.languages.javascript
+  		},
+  		{
+  			pattern: /(^|[^$\w\xA0-\uFFFF])(?!\s)[_$a-z\xA0-\uFFFF](?:(?!\s)[$\w\xA0-\uFFFF])*(?=\s*=>)/i,
+  			lookbehind: true,
+  			inside: Prism.languages.javascript
+  		},
+  		{
+  			pattern: /(\(\s*)(?!\s)(?:[^()\s]|\s+(?![\s)])|\([^()]*\))+(?=\s*\)\s*=>)/,
+  			lookbehind: true,
+  			inside: Prism.languages.javascript
+  		},
+  		{
+  			pattern: /((?:\b|\s|^)(?!(?:as|async|await|break|case|catch|class|const|continue|debugger|default|delete|do|else|enum|export|extends|finally|for|from|function|get|if|implements|import|in|instanceof|interface|let|new|null|of|package|private|protected|public|return|set|static|super|switch|this|throw|try|typeof|undefined|var|void|while|with|yield)(?![$\w\xA0-\uFFFF]))(?:(?!\s)[_$a-zA-Z\xA0-\uFFFF](?:(?!\s)[$\w\xA0-\uFFFF])*\s*)\(\s*|\]\s*\(\s*)(?!\s)(?:[^()\s]|\s+(?![\s)])|\([^()]*\))+(?=\s*\)\s*\{)/,
+  			lookbehind: true,
+  			inside: Prism.languages.javascript
+  		}
+  	],
+  	'constant': /\b[A-Z](?:[A-Z_]|\dx?)*\b/
+  });
+
+  Prism.languages.insertBefore('javascript', 'string', {
+  	'hashbang': {
+  		pattern: /^#!.*/,
+  		greedy: true,
+  		alias: 'comment'
+  	},
+  	'template-string': {
+  		pattern: /`(?:\\[\s\S]|\$\{(?:[^{}]|\{(?:[^{}]|\{[^}]*\})*\})+\}|(?!\$\{)[^\\`])*`/,
+  		greedy: true,
+  		inside: {
+  			'template-punctuation': {
+  				pattern: /^`|`$/,
+  				alias: 'string'
+  			},
+  			'interpolation': {
+  				pattern: /((?:^|[^\\])(?:\\{2})*)\$\{(?:[^{}]|\{(?:[^{}]|\{[^}]*\})*\})+\}/,
+  				lookbehind: true,
+  				inside: {
+  					'interpolation-punctuation': {
+  						pattern: /^\$\{|\}$/,
+  						alias: 'punctuation'
+  					},
+  					rest: Prism.languages.javascript
+  				}
+  			},
+  			'string': /[\s\S]+/
+  		}
+  	},
+  	'string-property': {
+  		pattern: /((?:^|[,{])[ \t]*)(["'])(?:\\(?:\r\n|[\s\S])|(?!\2)[^\\\r\n])*\2(?=\s*:)/m,
+  		lookbehind: true,
+  		greedy: true,
+  		alias: 'property'
+  	}
+  });
+
+  Prism.languages.insertBefore('javascript', 'operator', {
+  	'literal-property': {
+  		pattern: /((?:^|[,{])[ \t]*)(?!\s)[_$a-zA-Z\xA0-\uFFFF](?:(?!\s)[$\w\xA0-\uFFFF])*(?=\s*:)/m,
+  		lookbehind: true,
+  		alias: 'property'
+  	},
+  });
+
+  if (Prism.languages.markup) {
+  	Prism.languages.markup.tag.addInlined('script', 'javascript');
+
+  	// add attribute support for all DOM events.
+  	// https://developer.mozilla.org/en-US/docs/Web/Events#Standard_events
+  	Prism.languages.markup.tag.addAttribute(
+  		/on(?:abort|blur|change|click|composition(?:end|start|update)|dblclick|error|focus(?:in|out)?|key(?:down|up)|load|mouse(?:down|enter|leave|move|out|over|up)|reset|resize|scroll|select|slotchange|submit|unload|wheel)/.source,
+  		'javascript'
+  	);
+  }
+
+  Prism.languages.js = Prism.languages.javascript;
+
+
+  /* **********************************************
+       Begin prism-file-highlight.js
+  ********************************************** */
+
+  (function () {
+
+  	if (typeof Prism === 'undefined' || typeof document === 'undefined') {
+  		return;
+  	}
+
+  	// https://developer.mozilla.org/en-US/docs/Web/API/Element/matches#Polyfill
+  	if (!Element.prototype.matches) {
+  		Element.prototype.matches = Element.prototype.msMatchesSelector || Element.prototype.webkitMatchesSelector;
+  	}
+
+  	var LOADING_MESSAGE = 'Loading…';
+  	var FAILURE_MESSAGE = function (status, message) {
+  		return '✖ Error ' + status + ' while fetching file: ' + message;
+  	};
+  	var FAILURE_EMPTY_MESSAGE = '✖ Error: File does not exist or is empty';
+
+  	var EXTENSIONS = {
+  		'js': 'javascript',
+  		'py': 'python',
+  		'rb': 'ruby',
+  		'ps1': 'powershell',
+  		'psm1': 'powershell',
+  		'sh': 'bash',
+  		'bat': 'batch',
+  		'h': 'c',
+  		'tex': 'latex'
+  	};
+
+  	var STATUS_ATTR = 'data-src-status';
+  	var STATUS_LOADING = 'loading';
+  	var STATUS_LOADED = 'loaded';
+  	var STATUS_FAILED = 'failed';
+
+  	var SELECTOR = 'pre[data-src]:not([' + STATUS_ATTR + '="' + STATUS_LOADED + '"])'
+  		+ ':not([' + STATUS_ATTR + '="' + STATUS_LOADING + '"])';
+
+  	/**
+  	 * Loads the given file.
+  	 *
+  	 * @param {string} src The URL or path of the source file to load.
+  	 * @param {(result: string) => void} success
+  	 * @param {(reason: string) => void} error
+  	 */
+  	function loadFile(src, success, error) {
+  		var xhr = new XMLHttpRequest();
+  		xhr.open('GET', src, true);
+  		xhr.onreadystatechange = function () {
+  			if (xhr.readyState == 4) {
+  				if (xhr.status < 400 && xhr.responseText) {
+  					success(xhr.responseText);
+  				} else {
+  					if (xhr.status >= 400) {
+  						error(FAILURE_MESSAGE(xhr.status, xhr.statusText));
+  					} else {
+  						error(FAILURE_EMPTY_MESSAGE);
+  					}
+  				}
+  			}
+  		};
+  		xhr.send(null);
+  	}
+
+  	/**
+  	 * Parses the given range.
+  	 *
+  	 * This returns a range with inclusive ends.
+  	 *
+  	 * @param {string | null | undefined} range
+  	 * @returns {[number, number | undefined] | undefined}
+  	 */
+  	function parseRange(range) {
+  		var m = /^\s*(\d+)\s*(?:(,)\s*(?:(\d+)\s*)?)?$/.exec(range || '');
+  		if (m) {
+  			var start = Number(m[1]);
+  			var comma = m[2];
+  			var end = m[3];
+
+  			if (!comma) {
+  				return [start, start];
+  			}
+  			if (!end) {
+  				return [start, undefined];
+  			}
+  			return [start, Number(end)];
+  		}
+  		return undefined;
+  	}
+
+  	Prism.hooks.add('before-highlightall', function (env) {
+  		env.selector += ', ' + SELECTOR;
+  	});
+
+  	Prism.hooks.add('before-sanity-check', function (env) {
+  		var pre = /** @type {HTMLPreElement} */ (env.element);
+  		if (pre.matches(SELECTOR)) {
+  			env.code = ''; // fast-path the whole thing and go to complete
+
+  			pre.setAttribute(STATUS_ATTR, STATUS_LOADING); // mark as loading
+
+  			// add code element with loading message
+  			var code = pre.appendChild(document.createElement('CODE'));
+  			code.textContent = LOADING_MESSAGE;
+
+  			var src = pre.getAttribute('data-src');
+
+  			var language = env.language;
+  			if (language === 'none') {
+  				// the language might be 'none' because there is no language set;
+  				// in this case, we want to use the extension as the language
+  				var extension = (/\.(\w+)$/.exec(src) || [, 'none'])[1];
+  				language = EXTENSIONS[extension] || extension;
+  			}
+
+  			// set language classes
+  			Prism.util.setLanguage(code, language);
+  			Prism.util.setLanguage(pre, language);
+
+  			// preload the language
+  			var autoloader = Prism.plugins.autoloader;
+  			if (autoloader) {
+  				autoloader.loadLanguages(language);
+  			}
+
+  			// load file
+  			loadFile(
+  				src,
+  				function (text) {
+  					// mark as loaded
+  					pre.setAttribute(STATUS_ATTR, STATUS_LOADED);
+
+  					// handle data-range
+  					var range = parseRange(pre.getAttribute('data-range'));
+  					if (range) {
+  						var lines = text.split(/\r\n?|\n/g);
+
+  						// the range is one-based and inclusive on both ends
+  						var start = range[0];
+  						var end = range[1] == null ? lines.length : range[1];
+
+  						if (start < 0) { start += lines.length; }
+  						start = Math.max(0, Math.min(start - 1, lines.length));
+  						if (end < 0) { end += lines.length; }
+  						end = Math.max(0, Math.min(end, lines.length));
+
+  						text = lines.slice(start, end).join('\n');
+
+  						// add data-start for line numbers
+  						if (!pre.hasAttribute('data-start')) {
+  							pre.setAttribute('data-start', String(start + 1));
+  						}
+  					}
+
+  					// highlight code
+  					code.textContent = text;
+  					Prism.highlightElement(code);
+  				},
+  				function (error) {
+  					// mark as failed
+  					pre.setAttribute(STATUS_ATTR, STATUS_FAILED);
+
+  					code.textContent = error;
+  				}
+  			);
+  		}
+  	});
+
+  	Prism.plugins.fileHighlight = {
+  		/**
+  		 * Executes the File Highlight plugin for all matching `pre` elements under the given container.
+  		 *
+  		 * Note: Elements which are already loaded or currently loading will not be touched by this method.
+  		 *
+  		 * @param {ParentNode} [container=document]
+  		 */
+  		highlight: function highlight(container) {
+  			var elements = (container || document).querySelectorAll(SELECTOR);
+
+  			for (var i = 0, element; (element = elements[i++]);) {
+  				Prism.highlightElement(element);
+  			}
+  		}
+  	};
+
+  	var logged = false;
+  	/** @deprecated Use `Prism.plugins.fileHighlight.highlight` instead. */
+  	Prism.fileHighlight = function () {
+  		if (!logged) {
+  			console.warn('Prism.fileHighlight is deprecated. Use `Prism.plugins.fileHighlight.highlight` instead.');
+  			logged = true;
+  		}
+  		Prism.plugins.fileHighlight.highlight.apply(this, arguments);
+  	};
+
+  }());
+  });
+
+  (function (Prism) {
+
+  	/**
+  	 * Returns the placeholder for the given language id and index.
+  	 *
+  	 * @param {string} language
+  	 * @param {string|number} index
+  	 * @returns {string}
+  	 */
+  	function getPlaceholder(language, index) {
+  		return '___' + language.toUpperCase() + index + '___';
+  	}
+
+  	Object.defineProperties(Prism.languages['markup-templating'] = {}, {
+  		buildPlaceholders: {
+  			/**
+  			 * Tokenize all inline templating expressions matching `placeholderPattern`.
+  			 *
+  			 * If `replaceFilter` is provided, only matches of `placeholderPattern` for which `replaceFilter` returns
+  			 * `true` will be replaced.
+  			 *
+  			 * @param {object} env The environment of the `before-tokenize` hook.
+  			 * @param {string} language The language id.
+  			 * @param {RegExp} placeholderPattern The matches of this pattern will be replaced by placeholders.
+  			 * @param {(match: string) => boolean} [replaceFilter]
+  			 */
+  			value: function (env, language, placeholderPattern, replaceFilter) {
+  				if (env.language !== language) {
+  					return;
+  				}
+
+  				var tokenStack = env.tokenStack = [];
+
+  				env.code = env.code.replace(placeholderPattern, function (match) {
+  					if (typeof replaceFilter === 'function' && !replaceFilter(match)) {
+  						return match;
+  					}
+  					var i = tokenStack.length;
+  					var placeholder;
+
+  					// Check for existing strings
+  					while (env.code.indexOf(placeholder = getPlaceholder(language, i)) !== -1) {
+  						++i;
+  					}
+
+  					// Create a sparse array
+  					tokenStack[i] = match;
+
+  					return placeholder;
+  				});
+
+  				// Switch the grammar to markup
+  				env.grammar = Prism.languages.markup;
+  			}
+  		},
+  		tokenizePlaceholders: {
+  			/**
+  			 * Replace placeholders with proper tokens after tokenizing.
+  			 *
+  			 * @param {object} env The environment of the `after-tokenize` hook.
+  			 * @param {string} language The language id.
+  			 */
+  			value: function (env, language) {
+  				if (env.language !== language || !env.tokenStack) {
+  					return;
+  				}
+
+  				// Switch the grammar back
+  				env.grammar = Prism.languages[language];
+
+  				var j = 0;
+  				var keys = Object.keys(env.tokenStack);
+
+  				function walkTokens(tokens) {
+  					for (var i = 0; i < tokens.length; i++) {
+  						// all placeholders are replaced already
+  						if (j >= keys.length) {
+  							break;
+  						}
+
+  						var token = tokens[i];
+  						if (typeof token === 'string' || (token.content && typeof token.content === 'string')) {
+  							var k = keys[j];
+  							var t = env.tokenStack[k];
+  							var s = typeof token === 'string' ? token : token.content;
+  							var placeholder = getPlaceholder(language, k);
+
+  							var index = s.indexOf(placeholder);
+  							if (index > -1) {
+  								++j;
+
+  								var before = s.substring(0, index);
+  								var middle = new Prism.Token(language, Prism.tokenize(t, env.grammar), 'language-' + language, t);
+  								var after = s.substring(index + placeholder.length);
+
+  								var replacement = [];
+  								if (before) {
+  									replacement.push.apply(replacement, walkTokens([before]));
+  								}
+  								replacement.push(middle);
+  								if (after) {
+  									replacement.push.apply(replacement, walkTokens([after]));
+  								}
+
+  								if (typeof token === 'string') {
+  									tokens.splice.apply(tokens, [i, 1].concat(replacement));
+  								} else {
+  									token.content = replacement;
+  								}
+  							}
+  						} else if (token.content /* && typeof token.content !== 'string' */) {
+  							walkTokens(token.content);
+  						}
+  					}
+
+  					return tokens;
+  				}
+
+  				walkTokens(env.tokens);
+  			}
+  		}
+  	});
+
+  }(Prism));
+
+  var highlightCodeCompiler = function (ref) {
+      var renderer = ref.renderer;
+
+      return (renderer.code = function (code, lang) {
+      if ( lang === void 0 ) lang = 'markup';
+
+      var langOrMarkup = prism.languages[lang] || prism.languages.markup;
+      var text = prism.highlight(
+        code.replace(/@DOCSIFY_QM@/g, '`'),
+        langOrMarkup,
+        lang
+      );
+
+      return ("<pre v-pre data-lang=\"" + lang + "\"><code class=\"lang-" + lang + "\">" + text + "</code></pre>");
+    });
+  };
+
+  var paragraphCompiler = function (ref) {
+      var renderer = ref.renderer;
+
+      return (renderer.paragraph = function (text) {
+      var result;
+      if (/^!&gt;/.test(text)) {
+        result = helper('tip', text);
+      } else if (/^\?&gt;/.test(text)) {
+        result = helper('warn', text);
+      } else {
+        result = "<p>" + text + "</p>";
+      }
+
+      return result;
+    });
+  };
+
+  var taskListCompiler = function (ref) {
+      var renderer = ref.renderer;
+
+      return (renderer.list = function (body, ordered, start) {
+      var isTaskList = /<li class="task-list-item">/.test(
+        body.split('class="task-list"')[0]
+      );
+      var isStartReq = start && start > 1;
+      var tag = ordered ? 'ol' : 'ul';
+      var tagAttrs = [
+        isTaskList ? 'class="task-list"' : '',
+        isStartReq ? ("start=\"" + start + "\"") : '' ]
+        .join(' ')
+        .trim();
+
+      return ("<" + tag + " " + tagAttrs + ">" + body + "</" + tag + ">");
+    });
+  };
+
+  var taskListItemCompiler = function (ref) {
+      var renderer = ref.renderer;
+
+      return (renderer.listitem = function (text) {
+      var isTaskItem = /^(<input.*type="checkbox"[^>]*>)/.test(text);
+      var html = isTaskItem
+        ? ("<li class=\"task-list-item\"><label>" + text + "</label></li>")
+        : ("<li>" + text + "</li>");
+
+      return html;
+    });
+  };
+
+  var linkCompiler = function (ref) {
+      var renderer = ref.renderer;
+      var router = ref.router;
+      var linkTarget = ref.linkTarget;
+      var linkRel = ref.linkRel;
+      var compilerClass = ref.compilerClass;
+
+      return (renderer.link = function (href, title, text) {
+      if ( title === void 0 ) title = '';
+
+      var attrs = [];
+      var ref = getAndRemoveConfig(title);
+      var str = ref.str;
+      var config = ref.config;
+      linkTarget = config.target || linkTarget;
+      linkRel =
+        linkTarget === '_blank'
+          ? compilerClass.config.externalLinkRel || 'noopener'
+          : '';
+      title = str;
+
+      if (
+        !isAbsolutePath(href) &&
+        !compilerClass._matchNotCompileLink(href) &&
+        !config.ignore
+      ) {
+        if (href === compilerClass.config.homepage) {
+          href = 'README';
+        }
+
+        href = router.toURL(href, null, router.getCurrentPath());
+      } else {
+        if (!isAbsolutePath(href) && href.slice(0, 2) === './') {
+          href =
+            document.URL.replace(/\/(?!.*\/).*/, '/').replace('#/./', '') + href;
+        }
+        attrs.push(href.indexOf('mailto:') === 0 ? '' : ("target=\"" + linkTarget + "\""));
+        attrs.push(
+          href.indexOf('mailto:') === 0
+            ? ''
+            : linkRel !== ''
+            ? (" rel=\"" + linkRel + "\"")
+            : ''
+        );
+      }
+
+      // special case to check crossorigin urls
+      if (
+        config.crossorgin &&
+        linkTarget === '_self' &&
+        compilerClass.config.routerMode === 'history'
+      ) {
+        if (compilerClass.config.crossOriginLinks.indexOf(href) === -1) {
+          compilerClass.config.crossOriginLinks.push(href);
+        }
+      }
+
+      if (config.disabled) {
+        attrs.push('disabled');
+        href = 'javascript:void(0)';
+      }
+
+      if (config.class) {
+        attrs.push(("class=\"" + (config.class) + "\""));
+      }
+
+      if (config.id) {
+        attrs.push(("id=\"" + (config.id) + "\""));
+      }
+
+      if (title) {
+        attrs.push(("title=\"" + title + "\""));
+      }
+
+      return ("<a href=\"" + href + "\" " + (attrs.join(' ')) + ">" + text + "</a>");
+    });
+  };
+
+  var cachedLinks = {};
+
+  var compileMedia = {
+    markdown: function markdown(url) {
+      return {
+        url: url,
+      };
+    },
+    mermaid: function mermaid(url) {
+      return {
+        url: url,
+      };
+    },
+    iframe: function iframe(url, title) {
+      return {
+        html: ("<iframe src=\"" + url + "\" " + (title || 'width=100% height=400') + "></iframe>"),
+      };
+    },
+    video: function video(url, title) {
+      return {
+        html: ("<video src=\"" + url + "\" " + (title || 'controls') + ">Not Support</video>"),
+      };
+    },
+    audio: function audio(url, title) {
+      return {
+        html: ("<audio src=\"" + url + "\" " + (title || 'controls') + ">Not Support</audio>"),
+      };
+    },
+    code: function code(url, title) {
+      var lang = url.match(/\.(\w+)$/);
+
+      lang = title || (lang && lang[1]);
+      if (lang === 'md') {
+        lang = 'markdown';
+      }
+
+      return {
+        url: url,
+        lang: lang,
+      };
+    },
+  };
+
+  var Compiler = function Compiler(config, router) {
+    var this$1 = this;
+
+    this.config = config;
+    this.router = router;
+    this.cacheTree = {};
+    this.toc = [];
+    this.cacheTOC = {};
+    this.linkTarget = config.externalLinkTarget || '_blank';
+    this.linkRel =
+      this.linkTarget === '_blank' ? config.externalLinkRel || 'noopener' : '';
+    this.contentBase = router.getBasePath();
+
+    var renderer = this._initRenderer();
+    this.heading = renderer.heading;
+    var compile;
+    var mdConf = config.markdown || {};
+
+    if (isFn(mdConf)) {
+      compile = mdConf(marked_1, renderer);
+    } else {
+      marked_1.setOptions(
+        merge(mdConf, {
+          renderer: merge(renderer, mdConf.renderer),
+        })
+      );
+      compile = marked_1;
+    }
+
+    this._marked = compile;
+    this.compile = function (text) {
+      var isCached = true;
+      // eslint-disable-next-line no-unused-vars
+      var result = cached(function (_) {
+        isCached = false;
+        var html = '';
+
+        if (!text) {
+          return text;
+        }
+
+        if (isPrimitive(text)) {
+          html = compile(text);
+        } else {
+          html = compile.parser(text);
+        }
+
+        html = config.noEmoji ? html : emojify(html, config.nativeEmoji);
+        slugify.clear();
+
+        return html;
+      })(text);
+
+      var curFileName = this$1.router.parse().file;
+
+      if (isCached) {
+        this$1.toc = this$1.cacheTOC[curFileName];
+      } else {
+        this$1.cacheTOC[curFileName] = [].concat( this$1.toc );
+      }
+
+      return result;
+    };
+  };
+
+  /**
+   * Pulls content from file and renders inline on the page as a embedded item.
+   *
+   * This allows you to embed different file types on the returned
+   * page.
+   * The basic format is:
+   * ```
+   * [filename](_media/example.md ':include')
+   * ```
+   *
+   * @param {string} href The href to the file to embed in the page.
+   * @param {string} titleTitle of the link used to make the embed.
+   *
+   * @return {type} Return value description.
+   */
+  Compiler.prototype.compileEmbed = function compileEmbed (href, title) {
+    var ref = getAndRemoveConfig(title);
+      var str = ref.str;
+      var config = ref.config;
+    var embed;
+    title = str;
+
+    if (config.include) {
+      if (!isAbsolutePath(href)) {
+        href = getPath(
+           this.contentBase,
+          getParentPath(this.router.getCurrentPath()),
+          href
+        );
+      }
+
+      var media;
+      if (config.type && (media = compileMedia[config.type])) {
+        embed = media.call(this, href, title);
+        embed.type = config.type;
+      } else {
+        var type = 'code';
+        if (/\.(md|markdown)/.test(href)) {
+          type = 'markdown';
+        } else if (/\.mmd/.test(href)) {
+          type = 'mermaid';
+        } else if (/\.html?/.test(href)) {
+          type = 'iframe';
+        } else if (/\.(mp4|ogg)/.test(href)) {
+          type = 'video';
+        } else if (/\.mp3/.test(href)) {
+          type = 'audio';
+        }
+
+        embed = compileMedia[type].call(this, href, title);
+        embed.type = type;
+      }
+
+      embed.fragment = config.fragment;
+
+      return embed;
+    }
+  };
+
+  Compiler.prototype._matchNotCompileLink = function _matchNotCompileLink (link) {
+    var links = this.config.noCompileLinks || [];
+
+    for (var i = 0; i < links.length; i++) {
+      var n = links[i];
+      var re = cachedLinks[n] || (cachedLinks[n] = new RegExp(("^" + n + "$")));
+
+      if (re.test(link)) {
+        return link;
+      }
+    }
+  };
+
+  Compiler.prototype._initRenderer = function _initRenderer () {
+    var renderer = new marked_1.Renderer();
+    var ref = this;
+      var linkTarget = ref.linkTarget;
+      var linkRel = ref.linkRel;
+      var router = ref.router;
+      var contentBase = ref.contentBase;
+    var _self = this;
+    var origin = {};
+
+    /**
+     * Render anchor tag
+     * @link https://github.com/markedjs/marked#overriding-renderer-methods
+     * @param {String} text Text content
+     * @param {Number} level Type of heading (h<level> tag)
+     * @returns {String} Heading element
+     */
+    origin.heading = renderer.heading = function (text, level) {
+      var ref = getAndRemoveConfig(text);
+        var str = ref.str;
+        var config = ref.config;
+      var nextToc = { level: level, title: removeAtag(str) };
+
+      if (/<!-- {docsify-ignore} -->/g.test(str)) {
+        str = str.replace('<!-- {docsify-ignore} -->', '');
+        nextToc.title = removeAtag(str);
+        nextToc.ignoreSubHeading = true;
+      }
+
+      if (/{docsify-ignore}/g.test(str)) {
+        str = str.replace('{docsify-ignore}', '');
+        nextToc.title = removeAtag(str);
+        nextToc.ignoreSubHeading = true;
+      }
+
+      if (/<!-- {docsify-ignore-all} -->/g.test(str)) {
+        str = str.replace('<!-- {docsify-ignore-all} -->', '');
+        nextToc.title = removeAtag(str);
+        nextToc.ignoreAllSubs = true;
+      }
+
+      if (/{docsify-ignore-all}/g.test(str)) {
+        str = str.replace('{docsify-ignore-all}', '');
+        nextToc.title = removeAtag(str);
+        nextToc.ignoreAllSubs = true;
+      }
+
+      var slug = slugify(config.id || str);
+      var url = router.toURL(router.getCurrentPath(), { id: slug });
+      nextToc.slug = url;
+      _self.toc.push(nextToc);
+
+      return ("<h" + level + " id=\"" + slug + "\"><a href=\"" + url + "\" data-id=\"" + slug + "\" class=\"anchor\"><span>" + str + "</span></a></h" + level + ">");
+    };
+
+    origin.code = highlightCodeCompiler({ renderer: renderer });
+    origin.link = linkCompiler({
+      renderer: renderer,
+      router: router,
+      linkTarget: linkTarget,
+      linkRel: linkRel,
+      compilerClass: _self,
+    });
+    origin.paragraph = paragraphCompiler({ renderer: renderer });
+    origin.image = imageCompiler({ renderer: renderer, contentBase: contentBase, router: router });
+    origin.list = taskListCompiler({ renderer: renderer });
+    origin.listitem = taskListItemCompiler({ renderer: renderer });
+
+    renderer.origin = origin;
+
+    return renderer;
+  };
+
+  /**
+   * Compile sidebar
+   * @param {String} text Text content
+   * @param {Number} level Type of heading (h<level> tag)
+   * @returns {String} Sidebar element
+   */
+  Compiler.prototype.sidebar = function sidebar (text, level) {
+    var ref = this;
+      var toc = ref.toc;
+    var currentPath = this.router.getCurrentPath();
+    var html = '';
+
+    if (text) {
+      html = this.compile(text);
+    } else {
+      for (var i = 0; i < toc.length; i++) {
+        if (toc[i].ignoreSubHeading) {
+          var deletedHeaderLevel = toc[i].level;
+          toc.splice(i, 1);
+          // Remove headers who are under current header
+          for (
+            var j = i;
+            j < toc.length && deletedHeaderLevel < toc[j].level;
+            j++
+          ) {
+            toc.splice(j, 1) && j-- && i++;
+          }
+
+          i--;
+        }
+      }
+
+      var tree$1 = this.cacheTree[currentPath] || genTree(toc, level);
+      html = tree(tree$1, '<ul>{inner}</ul>');
+      this.cacheTree[currentPath] = tree$1;
+    }
+
+    return html;
+  };
+
+  /**
+   * Compile sub sidebar
+   * @param {Number} level Type of heading (h<level> tag)
+   * @returns {String} Sub-sidebar element
+   */
+  Compiler.prototype.subSidebar = function subSidebar (level) {
+    if (!level) {
+      this.toc = [];
+      return;
+    }
+
+    var currentPath = this.router.getCurrentPath();
+    var ref = this;
+      var cacheTree = ref.cacheTree;
+      var toc = ref.toc;
+
+    toc[0] && toc[0].ignoreAllSubs && toc.splice(0);
+    toc[0] && toc[0].level === 1 && toc.shift();
+
+    for (var i = 0; i < toc.length; i++) {
+      toc[i].ignoreSubHeading && toc.splice(i, 1) && i--;
+    }
+
+    var tree$1 = cacheTree[currentPath] || genTree(toc, level);
+
+    cacheTree[currentPath] = tree$1;
+    this.toc = [];
+    return tree(tree$1);
+  };
+
+  Compiler.prototype.header = function header (text, level) {
+    return this.heading(text, level);
+  };
+
+  Compiler.prototype.article = function article (text) {
+    return this.compile(text);
+  };
+
+  /**
+   * Compile cover page
+   * @param {Text} text Text content
+   * @returns {String} Cover page
+   */
+  Compiler.prototype.cover = function cover (text) {
+    var cacheToc = this.toc.slice();
+    var html = this.compile(text);
+
+    this.toc = cacheToc.slice();
+
+    return html;
+  };
+
+  var minIndent = function (string) {
+  	var match = string.match(/^[ \t]*(?=\S)/gm);
+
+  	if (!match) {
+  		return 0;
+  	}
+
+  	return match.reduce(function (r, a) { return Math.min(r, a.length); }, Infinity);
+  };
+
+  var stripIndent = function (string) {
+  	var indent = minIndent(string);
+
+  	if (indent === 0) {
+  		return string;
+  	}
+
+  	var regex = new RegExp(("^[ \\t]{" + indent + "}"), 'gm');
+
+  	return string.replace(regex, '');
+  };
+
+  var cached$2 = {};
+
+  function walkFetchEmbed(ref, cb) {
+    var embedTokens = ref.embedTokens;
+    var compile = ref.compile;
+    var fetch = ref.fetch;
+
+    var token;
+    var step = 0;
+    var count = 1;
+
+    if (!embedTokens.length) {
+      return cb({});
+    }
+
+    while ((token = embedTokens[step++])) {
+      // eslint-disable-next-line no-shadow
+      var next = (function (token) {
+        return function (text) {
+          var embedToken;
+          if (text) {
+            if (token.embed.type === 'markdown') {
+              var path = token.embed.url.split('/');
+              path.pop();
+              path = path.join('/');
+              // Resolves relative links to absolute
+              text = text.replace(/\[([^[\]]+)\]\(([^)]+)\)/g, function (x) {
+                var linkBeginIndex = x.indexOf('(');
+                if (x.slice(linkBeginIndex, linkBeginIndex + 2) === '(.') {
+                  return (
+                    x.substring(0, linkBeginIndex) +
+                    "(" + (window.location.protocol) + "//" + (window.location.host) + path + "/" +
+                    x.substring(linkBeginIndex + 1, x.length - 1) +
+                    ')'
+                  );
+                }
+                return x;
+              });
+
+              // This may contain YAML front matter and will need to be stripped.
+              var frontMatterInstalled =
+                ($docsify.frontMatter || {}).installed || false;
+              if (frontMatterInstalled === true) {
+                text = $docsify.frontMatter.parseMarkdown(text);
+              }
+
+              embedToken = compile.lexer(text);
+            } else if (token.embed.type === 'code') {
+              if (token.embed.fragment) {
+                var fragment = token.embed.fragment;
+                var pattern = new RegExp(
+                  ("(?:###|\\/\\/\\/)\\s*\\[" + fragment + "\\]([\\s\\S]*)(?:###|\\/\\/\\/)\\s*\\[" + fragment + "\\]")
+                );
+                text = stripIndent((text.match(pattern) || [])[1] || '').trim();
+              }
+
+              embedToken = compile.lexer(
+                '```' +
+                  token.embed.lang +
+                  '\n' +
+                  text.replace(/`/g, '@DOCSIFY_QM@') +
+                  '\n```\n'
+              );
+            } else if (token.embed.type === 'mermaid') {
+              embedToken = [
+                { type: 'html', text: ("<div class=\"mermaid\">\n" + text + "\n</div>") } ];
+              embedToken.links = {};
+            } else {
+              embedToken = [{ type: 'html', text: text }];
+              embedToken.links = {};
+            }
+          }
+
+          cb({ token: token, embedToken: embedToken });
+          if (++count >= step) {
+            cb({});
+          }
+        };
+      })(token);
+
+      if (token.embed.url) {
+        {
+          get(token.embed.url).then(next);
+        }
+      } else {
+        next(token.embed.html);
+      }
+    }
+  }
+
+  function prerenderEmbed(ref, done) {
+    var compiler = ref.compiler;
+    var raw = ref.raw; if ( raw === void 0 ) raw = '';
+    var fetch = ref.fetch;
+
+    var hit = cached$2[raw];
+    if (hit) {
+      var copy = hit.slice();
+      copy.links = hit.links;
+      return done(copy);
+    }
+
+    var compile = compiler._marked;
+    var tokens = compile.lexer(raw);
+    var embedTokens = [];
+    var linkRE = compile.Lexer.rules.inline.link;
+    var links = tokens.links;
+
+    tokens.forEach(function (token, index) {
+      if (token.type === 'paragraph') {
+        token.text = token.text.replace(
+          new RegExp(linkRE.source, 'g'),
+          function (src, filename, href, title) {
+            var embed = compiler.compileEmbed(href, title);
+
+            if (embed) {
+              embedTokens.push({
+                index: index,
+                embed: embed,
+              });
+            }
+
+            return src;
+          }
+        );
+      }
+    });
+
+    // keep track of which tokens have been embedded so far
+    // so that we know where to insert the embedded tokens as they
+    // are returned
+    var moves = [];
+    walkFetchEmbed({ compile: compile, embedTokens: embedTokens, fetch: fetch }, function (ref) {
+      var embedToken = ref.embedToken;
+      var token = ref.token;
+
+      if (token) {
+        // iterate through the array of previously inserted tokens
+        // to determine where the current embedded tokens should be inserted
+        var index = token.index;
+        moves.forEach(function (pos) {
+          if (index > pos.start) {
+            index += pos.length;
+          }
+        });
+
+        merge(links, embedToken.links);
+
+        tokens = tokens
+          .slice(0, index)
+          .concat(embedToken, tokens.slice(index + 1));
+        moves.push({ start: index, length: embedToken.length - 1 });
+      } else {
+        cached$2[raw] = tokens.concat();
+        tokens.links = cached$2[raw].links = links;
+        done(tokens);
+      }
+    });
+  }
+
+  /* eslint-disable no-unused-vars */
+
+  var vueGlobalData;
+
+  function executeScript() {
+    var script = findAll('.markdown-section>script')
+      .filter(function (s) { return !/template/.test(s.type); })[0];
+    if (!script) {
+      return false;
+    }
+
+    var code = script.innerText.trim();
+    if (!code) {
+      return false;
+    }
+
+    new Function(code)();
+  }
+
+  function formatUpdated(html, updated, fn) {
+    updated =
+      typeof fn === 'function'
+        ? fn(updated)
+        : typeof fn === 'string'
+        ? tinydate(fn)(new Date(updated))
+        : updated;
+
+    return html.replace(/{docsify-updated}/g, updated);
+  }
+
+  function renderMain(html) {
+    var docsifyConfig = this.config;
+    var markdownElm = find('.markdown-section');
+    var vueVersion =
+      'Vue' in window &&
+      window.Vue.version &&
+      Number(window.Vue.version.charAt(0));
+
+    var isMountedVue = function (elm) {
+      var isVue2 = Boolean(elm.__vue__ && elm.__vue__._isVue);
+      var isVue3 = Boolean(elm._vnode && elm._vnode.__v_skip);
+
+      return isVue2 || isVue3;
+    };
+
+    if (!html) {
+      html = '<h1>404 - Not found</h1>';
+    }
+
+    if ('Vue' in window) {
+      var mountedElms = findAll('.markdown-section > *')
+        .filter(function (elm) { return isMountedVue(elm); });
+
+      // Destroy/unmount existing Vue instances
+      for (var i = 0, list = mountedElms; i < list.length; i += 1) {
+        var mountedElm = list[i];
+
+        if (vueVersion === 2) {
+          mountedElm.__vue__.$destroy();
+        } else if (vueVersion === 3) {
+          mountedElm.__vue_app__.unmount();
+        }
+      }
+    }
+
+    this._renderTo(markdownElm, html);
+
+    // Render sidebar with the TOC
+    !docsifyConfig.loadSidebar && this._renderSidebar();
+
+    // Execute markdown <script>
+    if (
+      docsifyConfig.executeScript ||
+      ('Vue' in window && docsifyConfig.executeScript !== false)
+    ) {
+      executeScript();
+    }
+
+    // Handle Vue content not mounted by markdown <script>
+    if ('Vue' in window) {
+      var vueMountData = [];
+      var vueComponentNames = Object.keys(docsifyConfig.vueComponents || {});
+
+      // Register global vueComponents
+      if (vueVersion === 2 && vueComponentNames.length) {
+        vueComponentNames.forEach(function (name) {
+          var isNotRegistered = !window.Vue.options.components[name];
+
+          if (isNotRegistered) {
+            window.Vue.component(name, docsifyConfig.vueComponents[name]);
+          }
+        });
+      }
+
+      // Store global data() return value as shared data object
+      if (
+        !vueGlobalData &&
+        docsifyConfig.vueGlobalOptions &&
+        typeof docsifyConfig.vueGlobalOptions.data === 'function'
+      ) {
+        vueGlobalData = docsifyConfig.vueGlobalOptions.data();
+      }
+
+      // vueMounts
+      vueMountData.push.apply(
+        vueMountData, Object.keys(docsifyConfig.vueMounts || {})
+          .map(function (cssSelector) { return [
+            find(markdownElm, cssSelector),
+            docsifyConfig.vueMounts[cssSelector] ]; })
+          .filter(function (ref) {
+            var elm = ref[0];
+            var vueConfig = ref[1];
+
+            return elm;
+      })
+      );
+
+      // Template syntax, vueComponents, vueGlobalOptions
+      if (docsifyConfig.vueGlobalOptions || vueComponentNames.length) {
+        var reHasBraces = /{{2}[^{}]*}{2}/;
+        // Matches Vue full and shorthand syntax as attributes in HTML tags.
+        //
+        // Full syntax examples:
+        // v-foo, v-foo[bar], v-foo-bar, v-foo:bar-baz.prop
+        //
+        // Shorthand syntax examples:
+        // @foo, @foo.bar, @foo.bar.baz, @[foo], :foo, :[foo]
+        //
+        // Markup examples:
+        // <div v-html>{{ html }}</div>
+        // <div v-text="msg"></div>
+        // <div v-bind:text-content.prop="text">
+        // <button v-on:click="doThis"></button>
+        // <button v-on:click.once="doThis"></button>
+        // <button v-on:[event]="doThis"></button>
+        // <button @click.stop.prevent="doThis">
+        // <a :href="url">
+        // <a :[key]="url">
+        var reHasDirective = /<[^>/]+\s([@:]|v-)[\w-:.[\]]+[=>\s]/;
+
+        vueMountData.push.apply(
+          vueMountData, findAll('.markdown-section > *')
+            // Remove duplicates
+            .filter(function (elm) { return !vueMountData.some(function (ref) {
+              var e = ref[0];
+              var c = ref[1];
+
+              return e === elm;
+              }); })
+            // Detect Vue content
+            .filter(function (elm) {
+              var isVueMount =
+                // is a component
+                elm.tagName.toLowerCase() in
+                  (docsifyConfig.vueComponents || {}) ||
+                // has a component(s)
+                elm.querySelector(vueComponentNames.join(',') || null) ||
+                // has curly braces
+                reHasBraces.test(elm.outerHTML) ||
+                // has content directive
+                reHasDirective.test(elm.outerHTML);
+
+              return isVueMount;
+            })
+            .map(function (elm) {
+              // Clone global configuration
+              var vueConfig = merge({}, docsifyConfig.vueGlobalOptions || {});
+
+              // Replace vueGlobalOptions data() return value with shared data object.
+              // This provides a global store for all Vue instances that receive
+              // vueGlobalOptions as their configuration.
+              if (vueGlobalData) {
+                vueConfig.data = function () {
+                  return vueGlobalData;
                 };
-            var i = {
-                "application/json": n.languages.javascript,
-                "application/xml": n.languages.markup,
-                "text/xml": n.languages.markup,
-                "text/html": n.languages.markup
-            };
-            for (var a in i)
-                if (i[a]) {
-                    var r = {};
-                    r[a] = {
-                        pattern: new RegExp("(content-type:\\s*" + a + "[\\w\\W]*?)(?:\\r?\\n|\\r){2}[\\w\\W]*", "i"),
-                        lookbehind: !0,
-                        inside: {
-                            rest: i[a]
-                        }
-                    }, n.languages.insertBefore("http", "header-name", r)
-                } n.languages.icon = {
-                    comment: /#.*/,
-                    string: /(["'])(?:(?!\1)[^\\\r\n]|\\.|_(?:\r?\n|\r))*\1/,
-                    number: /\b(?:\d+r[a-z\d]+|\d+(?:\.\d+)?(?:e[+-]?\d+)?)\b|\.\d+\b/i,
-                    "builtin-keyword": {
-                        pattern: /&(?:allocated|ascii|clock|collections|cset|current|date|dateline|digits|dump|e|error(?:number|text|value)?|errout|fail|features|file|host|input|lcase|letters|level|line|main|null|output|phi|pi|pos|progname|random|regions|source|storage|subject|time|trace|ucase|version)\b/,
-                        alias: "variable"
-                    },
-                    directive: {
-                        pattern: /\$\w+/,
-                        alias: "builtin"
-                    },
-                    keyword: /\b(?:break|by|case|create|default|do|else|end|every|fail|global|if|initial|invocable|link|local|next|not|of|procedure|record|repeat|return|static|suspend|then|to|until|while)\b/,
-                    function: /(?!\d)\w+(?=\s*[({]|\s*!\s*\[)/,
-                    operator: /[+-]:(?!=)|(?:[\/?@^%&]|\+\+?|--?|==?=?|~==?=?|\*\*?|\|\|\|?|<(?:->?|<?=?)|>>?=?)(?::=)?|:(?:=:?)?|[!.\\|~]/,
-                    punctuation: /[\[\](){},;]/
-                }, n.languages.inform7 = {
-                    string: {
-                        pattern: /"[^"]*"/,
-                        inside: {
-                            substitution: {
-                                pattern: /\[[^\]]+\]/,
-                                inside: {
-                                    delimiter: {
-                                        pattern: /\[|\]/,
-                                        alias: "punctuation"
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    comment: /\[[^\]]+\]/,
-                    title: {
-                        pattern: /^[ \t]*(?:volume|book|part(?! of)|chapter|section|table)\b.+/im,
-                        alias: "important"
-                    },
-                    number: {
-                        pattern: /(^|[^-])(?:(?:\b|-)\d+(?:\.\d+)?(?:\^\d+)?\w*|\b(?:one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve))\b(?!-)/i,
-                        lookbehind: !0
-                    },
-                    verb: {
-                        pattern: /(^|[^-])\b(?:applying to|are|attacking|answering|asking|be(?:ing)?|burning|buying|called|carries|carry(?! out)|carrying|climbing|closing|conceal(?:s|ing)?|consulting|contain(?:s|ing)?|cutting|drinking|dropping|eating|enclos(?:es?|ing)|entering|examining|exiting|getting|giving|going|ha(?:ve|s|ving)|hold(?:s|ing)?|impl(?:y|ies)|incorporat(?:es?|ing)|inserting|is|jumping|kissing|listening|locking|looking|mean(?:s|ing)?|opening|provid(?:es?|ing)|pulling|pushing|putting|relat(?:es?|ing)|removing|searching|see(?:s|ing)?|setting|showing|singing|sleeping|smelling|squeezing|switching|support(?:s|ing)?|swearing|taking|tasting|telling|thinking|throwing|touching|turning|tying|unlock(?:s|ing)?|var(?:y|ies|ying)|waiting|waking|waving|wear(?:s|ing)?)\b(?!-)/i,
-                        lookbehind: !0,
-                        alias: "operator"
-                    },
-                    keyword: {
-                        pattern: /(^|[^-])\b(?:after|before|carry out|check|continue the action|definition(?= *:)|do nothing|else|end (?:if|unless|the story)|every turn|if|include|instead(?: of)?|let|move|no|now|otherwise|repeat|report|resume the story|rule for|running through|say(?:ing)?|stop the action|test|try(?:ing)?|understand|unless|use|when|while|yes)\b(?!-)/i,
-                        lookbehind: !0
-                    },
-                    property: {
-                        pattern: /(^|[^-])\b(?:adjacent(?! to)|carried|closed|concealed|contained|dark|described|edible|empty|enclosed|enterable|even|female|fixed in place|full|handled|held|improper-named|incorporated|inedible|invisible|lighted|lit|lock(?:able|ed)|male|marked for listing|mentioned|negative|neuter|non-(?:empty|full|recurring)|odd|opaque|open(?:able)?|plural-named|portable|positive|privately-named|proper-named|provided|publically-named|pushable between rooms|recurring|related|rubbing|scenery|seen|singular-named|supported|swinging|switch(?:able|ed(?: on| off)?)|touch(?:able|ed)|transparent|unconcealed|undescribed|unlit|unlocked|unmarked for listing|unmentioned|unopenable|untouchable|unvisited|variable|visible|visited|wearable|worn)\b(?!-)/i,
-                        lookbehind: !0,
-                        alias: "symbol"
-                    },
-                    position: {
-                        pattern: /(^|[^-])\b(?:above|adjacent to|back side of|below|between|down|east|everywhere|front side|here|in|inside(?: from)?|north(?:east|west)?|nowhere|on(?: top of)?|other side|outside(?: from)?|parts? of|regionally in|south(?:east|west)?|through|up|west|within)\b(?!-)/i,
-                        lookbehind: !0,
-                        alias: "keyword"
-                    },
-                    type: {
-                        pattern: /(^|[^-])\b(?:actions?|activit(?:y|ies)|actors?|animals?|backdrops?|containers?|devices?|directions?|doors?|holders?|kinds?|lists?|m[ae]n|nobody|nothing|nouns?|numbers?|objects?|people|persons?|player(?:'s holdall)?|regions?|relations?|rooms?|rule(?:book)?s?|scenes?|someone|something|supporters?|tables?|texts?|things?|time|vehicles?|wom[ae]n)\b(?!-)/i,
-                        lookbehind: !0,
-                        alias: "variable"
-                    },
-                    punctuation: /[.,:;(){}]/
-                }, n.languages.inform7.string.inside.substitution.inside.rest = n.util.clone(n.languages.inform7), n.languages.inform7.string.inside.substitution.inside.rest.text = {
-                    pattern: /\S(?:\s*\S)*/,
-                    alias: "comment"
-                }, n.languages.ini = {
-                    comment: /^[ \t]*;.*$/m,
-                    selector: /^[ \t]*\[.*?\]/m,
-                    constant: /^[ \t]*[^\s=]+?(?=[ \t]*=)/m,
-                    "attr-value": {
-                        pattern: /=.*/,
-                        inside: {
-                            punctuation: /^[=]/
-                        }
-                    }
-                }, n.languages.j = {
-                    comment: /\bNB\..*/,
-                    string: /'(?:''|[^'\r\n])*'/,
-                    keyword: /\b(?:(?:adverb|conjunction|CR|def|define|dyad|LF|monad|noun|verb)\b|(?:assert|break|case|catch[dt]?|continue|do|else|elseif|end|fcase|for|for_\w+|goto_\w+|if|label_\w+|return|select|throw|try|while|whilst)\.)/,
-                    verb: {
-                        pattern: /(?!\^:|;\.|[=!][.:])(?:\{(?:\.|::?)?|p(?:\.\.?|:)|[=!\]]|[<>+*\-%$|,#][.:]?|[\^?]\.?|[;\[]:?|[~}"i][.:]|[ACeEIjLor]\.|(?:[_\/\\qsux]|_?\d):)/,
-                        alias: "keyword"
-                    },
-                    number: /\b_?(?:(?!\d:)\d+(?:\.\d+)?(?:(?:[ejpx]|ad|ar)_?\d+(?:\.\d+)?)*(?:b_?[\da-z]+(?:\.[\da-z]+)?)?|_(?!\.))/,
-                    adverb: {
-                        pattern: /[~}]|[\/\\]\.?|[bfM]\.|t[.:]/,
-                        alias: "builtin"
-                    },
-                    operator: /[=a][.:]|_\./,
-                    conjunction: {
-                        pattern: /&(?:\.:?|:)?|[.:@][.:]?|[!D][.:]|[;dHT]\.|`:?|[\^LS]:|"/,
-                        alias: "variable"
-                    },
-                    punctuation: /[()]/
-                },
-                function(e) {
-                    e.languages.jade = {
-                        comment: {
-                            pattern: /(^([\t ]*))\/\/.*((?:\r?\n|\r)\2[\t ]+.+)*/m,
-                            lookbehind: !0
-                        },
-                        "multiline-script": {
-                            pattern: /(^([\t ]*)script\b.*\.[\t ]*)((?:\r?\n|\r(?!\n))(?:\2[\t ]+.+|\s*?(?=\r?\n|\r)))+/m,
-                            lookbehind: !0,
-                            inside: {
-                                rest: e.languages.javascript
-                            }
-                        },
-                        filter: {
-                            pattern: /(^([\t ]*)):.+((?:\r?\n|\r(?!\n))(?:\2[\t ]+.+|\s*?(?=\r?\n|\r)))+/m,
-                            lookbehind: !0,
-                            inside: {
-                                "filter-name": {
-                                    pattern: /^:[\w-]+/,
-                                    alias: "variable"
-                                }
-                            }
-                        },
-                        "multiline-plain-text": {
-                            pattern: /(^([\t ]*)[\w\-#.]+\.[\t ]*)((?:\r?\n|\r(?!\n))(?:\2[\t ]+.+|\s*?(?=\r?\n|\r)))+/m,
-                            lookbehind: !0
-                        },
-                        markup: {
-                            pattern: /(^[\t ]*)<.+/m,
-                            lookbehind: !0,
-                            inside: {
-                                rest: e.languages.markup
-                            }
-                        },
-                        doctype: {
-                            pattern: /((?:^|\n)[\t ]*)doctype(?: .+)?/,
-                            lookbehind: !0
-                        },
-                        "flow-control": {
-                            pattern: /(^[\t ]*)(?:if|unless|else|case|when|default|each|while)\b(?: .+)?/m,
-                            lookbehind: !0,
-                            inside: {
-                                each: {
-                                    pattern: /^each .+? in\b/,
-                                    inside: {
-                                        keyword: /\b(?:each|in)\b/,
-                                        punctuation: /,/
-                                    }
-                                },
-                                branch: {
-                                    pattern: /^(?:if|unless|else|case|when|default|while)\b/,
-                                    alias: "keyword"
-                                },
-                                rest: e.languages.javascript
-                            }
-                        },
-                        keyword: {
-                            pattern: /(^[\t ]*)(?:block|extends|include|append|prepend)\b.+/m,
-                            lookbehind: !0
-                        },
-                        mixin: [{
-                            pattern: /(^[\t ]*)mixin .+/m,
-                            lookbehind: !0,
-                            inside: {
-                                keyword: /^mixin/,
-                                function: /\w+(?=\s*\(|\s*$)/,
-                                punctuation: /[(),.]/
-                            }
-                        }, {
-                            pattern: /(^[\t ]*)\+.+/m,
-                            lookbehind: !0,
-                            inside: {
-                                name: {
-                                    pattern: /^\+\w+/,
-                                    alias: "function"
-                                },
-                                rest: e.languages.javascript
-                            }
-                        }],
-                        script: {
-                            pattern: /(^[\t ]*script(?:(?:&[^(]+)?\([^)]+\))*[\t ]+).+/m,
-                            lookbehind: !0,
-                            inside: {
-                                rest: e.languages.javascript
-                            }
-                        },
-                        "plain-text": {
-                            pattern: /(^[\t ]*(?!-)[\w\-#.]*[\w\-](?:(?:&[^(]+)?\([^)]+\))*\/?[\t ]+).+/m,
-                            lookbehind: !0
-                        },
-                        tag: {
-                            pattern: /(^[\t ]*)(?!-)[\w\-#.]*[\w\-](?:(?:&[^(]+)?\([^)]+\))*\/?:?/m,
-                            lookbehind: !0,
-                            inside: {
-                                attributes: [{
-                                    pattern: /&[^(]+\([^)]+\)/,
-                                    inside: {
-                                        rest: e.languages.javascript
-                                    }
-                                }, {
-                                    pattern: /\([^)]+\)/,
-                                    inside: {
-                                        "attr-value": {
-                                            pattern: /(=\s*)(?:\{[^}]*\}|[^,)\r\n]+)/,
-                                            lookbehind: !0,
-                                            inside: {
-                                                rest: e.languages.javascript
-                                            }
-                                        },
-                                        "attr-name": /[\w-]+(?=\s*!?=|\s*[,)])/,
-                                        punctuation: /[!=(),]+/
-                                    }
-                                }],
-                                punctuation: /:/
-                            }
-                        },
-                        code: [{
-                            pattern: /(^[\t ]*(?:-|!?=)).+/m,
-                            lookbehind: !0,
-                            inside: {
-                                rest: e.languages.javascript
-                            }
-                        }],
-                        punctuation: /[.\-!=|]+/
-                    };
-                    for (var t = [{
-                            filter: "atpl",
-                            language: "twig"
-                        }, {
-                            filter: "coffee",
-                            language: "coffeescript"
-                        }, "ejs", "handlebars", "hogan", "less", "livescript", "markdown", "mustache", "plates", {
-                            filter: "sass",
-                            language: "scss"
-                        }, "stylus", "swig"], n = {}, i = 0, a = t.length; a > i; i++) {
-                        var r = t[i];
-                        r = "string" == typeof r ? {
-                            filter: r,
-                            language: r
-                        } : r, e.languages[r.language] && (n["filter-" + r.filter] = {
-                            pattern: RegExp("(^([\\t ]*)):{{filter_name}}((?:\\r?\\n|\\r(?!\\n))(?:\\2[\\t ]+.+|\\s*?(?=\\r?\\n|\\r)))+".replace("{{filter_name}}", r.filter), "m"),
-                            lookbehind: !0,
-                            inside: {
-                                "filter-name": {
-                                    pattern: /^:[\w-]+/,
-                                    alias: "variable"
-                                },
-                                rest: e.languages[r.language]
-                            }
-                        })
-                    }
-                    e.languages.insertBefore("jade", "filter", n)
-                }(n), n.languages.java = n.languages.extend("clike", {
-                    keyword: /\b(abstract|continue|for|new|switch|assert|default|goto|package|synchronized|boolean|do|if|private|this|break|double|implements|protected|throw|byte|else|import|public|throws|case|enum|instanceof|return|transient|catch|extends|int|short|try|char|final|interface|static|void|class|finally|long|strictfp|volatile|const|float|native|super|while)\b/,
-                    number: /\b0b[01]+\b|\b0x[\da-f]*\.?[\da-fp\-]+\b|\b\d*\.?\d+(?:e[+-]?\d+)?[df]?\b/i,
-                    operator: {
-                        pattern: /(^|[^.])(?:\+[+=]?|-[-=]?|!=?|<<?=?|>>?>?=?|==?|&[&=]?|\|[|=]?|\*=?|\/=?|%=?|\^=?|[?:~])/m,
-                        lookbehind: !0
-                    }
-                }), n.languages.insertBefore("java", "function", {
-                    annotation: {
-                        alias: "punctuation",
-                        pattern: /(^|[^.])@\w+/,
-                        lookbehind: !0
-                    }
-                }), n.languages.jolie = n.languages.extend("clike", {
-                    keyword: /\b(?:include|define|is_defined|undef|main|init|outputPort|inputPort|Location|Protocol|Interfaces|RequestResponse|OneWay|type|interface|extender|throws|cset|csets|forward|Aggregates|Redirects|embedded|courier|extender|execution|sequential|concurrent|single|scope|install|throw|comp|cH|default|global|linkIn|linkOut|synchronized|this|new|for|if|else|while|in|Jolie|Java|Javascript|nullProcess|spawn|constants|with|provide|until|exit|foreach|instanceof|over|service)\b/g,
-                    builtin: /\b(?:undefined|string|int|void|long|Byte|bool|double|float|char|any)\b/,
-                    number: /\b\d*\.?\d+(?:e[+-]?\d+)?l?\b/i,
-                    operator: /->|<<|[!+-<>=*]?=|[:<>!?*\/%^]|&&|\|\||--?|\+\+?/g,
-                    symbol: /[|;@]/,
-                    punctuation: /[,.]/,
-                    string: {
-                        pattern: /(["'])(\\(?:\r\n|[\s\S])|(?!\1)[^\\\r\n])*\1/,
-                        greedy: !0
-                    }
-                }), delete n.languages.jolie["class-name"], delete n.languages.jolie.function, n.languages.insertBefore("jolie", "keyword", {
-                    function: {
-                        pattern: /((?:\b(?:outputPort|inputPort|in|service|courier)\b|@)\s*)\w+/,
-                        lookbehind: !0
-                    },
-                    aggregates: {
-                        pattern: /(\bAggregates\s*:\s*)(?:\w+(?:\s+with\s+\w+)?\s*,\s*)*\w+(?:\s+with\s+\w+)?/,
-                        lookbehind: !0,
-                        inside: {
-                            withExtension: {
-                                pattern: /\bwith\s+\w+/,
-                                inside: {
-                                    keyword: /\bwith\b/
-                                }
-                            },
-                            function: {
-                                pattern: /\w+/
-                            },
-                            punctuation: {
-                                pattern: /,/
-                            }
-                        }
-                    },
-                    redirects: {
-                        pattern: /(\bRedirects\s*:\s*)(?:\w+\s*=>\s*\w+\s*,\s*)*(?:\w+\s*=>\s*\w+)/,
-                        lookbehind: !0,
-                        inside: {
-                            punctuation: {
-                                pattern: /,/
-                            },
-                            function: {
-                                pattern: /\w+/g
-                            },
-                            symbol: {
-                                pattern: /=>/g
-                            }
-                        }
-                    }
-                }), n.languages.json = {
-                    property: /"(?:\\.|[^|"])*"(?=\s*:)/gi,
-                    string: /"(?!:)(?:\\.|[^|"])*"(?!:)/g,
-                    number: /\b-?(0x[\dA-Fa-f]+|\d*\.?\d+([Ee][+-]?\d+)?)\b/g,
-                    punctuation: /[{}[\]);,]/g,
-                    operator: /:/g,
-                    boolean: /\b(true|false)\b/gi,
-                    null: /\bnull\b/gi
-                }, n.languages.jsonp = n.languages.json, n.languages.julia = {
-                    comment: {
-                        pattern: /(^|[^\\])#.*/,
-                        lookbehind: !0
-                    },
-                    string: /"""[\s\S]+?"""|'''[\s\S]+?'''|("|')(\\?.)*?\1/,
-                    keyword: /\b(abstract|baremodule|begin|bitstype|break|catch|ccall|const|continue|do|else|elseif|end|export|finally|for|function|global|if|immutable|import|importall|let|local|macro|module|print|println|quote|return|try|type|typealias|using|while)\b/,
-                    boolean: /\b(true|false)\b/,
-                    number: /\b-?(0[box])?(?:[\da-f]+\.?\d*|\.\d+)(?:[efp][+-]?\d+)?j?\b/i,
-                    operator: /\+=?|-=?|\*=?|\/[\/=]?|\\=?|\^=?|%=?|÷=?|!=?=?|&=?|\|[=>]?|\$=?|<(?:<=?|[=:])?|>(?:=|>>?=?)?|==?=?|[~≠≤≥]/,
-                    punctuation: /[{}[\];(),.:]/
-                }, n.languages.keyman = {
-                    comment: /\bc\s.*/i,
-                    function: /\[\s*((CTRL|SHIFT|ALT|LCTRL|RCTRL|LALT|RALT|CAPS|NCAPS)\s+)*([TKU]_[a-z0-9_?]+|".+?"|'.+?')\s*\]/i,
-                    string: /("|')((?!\1).)*\1/,
-                    bold: [/&(baselayout|bitmap|capsononly|capsalwaysoff|shiftfreescaps|copyright|ethnologuecode|hotkey|includecodes|keyboardversion|kmw_embedcss|kmw_embedjs|kmw_helpfile|kmw_helptext|kmw_rtl|language|layer|layoutfile|message|mnemoniclayout|name|oldcharposmatching|platform|targets|version|visualkeyboard|windowslanguages)\b/i, /\b(bitmap|bitmaps|caps on only|caps always off|shift frees caps|copyright|hotkey|language|layout|message|name|version)\b/i],
-                    keyword: /\b(any|baselayout|beep|call|context|deadkey|dk|if|index|layer|notany|nul|outs|platform|return|reset|save|set|store|use)\b/i,
-                    atrule: /\b(ansi|begin|unicode|group|using keys|match|nomatch)\b/i,
-                    number: /\b(U\+[\dA-F]+|d\d+|x[\da-f]+|\d+)\b/i,
-                    operator: /[+>\\,()]/,
-                    tag: /\$(keyman|kmfl|weaver|keymanweb|keymanonly):/i
-                },
-                function(e) {
-                    e.languages.kotlin = e.languages.extend("clike", {
-                        keyword: {
-                            pattern: /(^|[^.])\b(?:abstract|annotation|as|break|by|catch|class|companion|const|constructor|continue|crossinline|data|do|else|enum|final|finally|for|fun|get|if|import|in|init|inline|inner|interface|internal|is|lateinit|noinline|null|object|open|out|override|package|private|protected|public|reified|return|sealed|set|super|tailrec|this|throw|to|try|val|var|when|where|while)\b/,
-                            lookbehind: !0
-                        },
-                        function: [/\w+(?=\s*\()/, {
-                            pattern: /(\.)\w+(?=\s*\{)/,
-                            lookbehind: !0
-                        }],
-                        number: /\b(?:0[bx][\da-fA-F]+|\d+(?:\.\d+)?(?:e[+-]?\d+)?[fFL]?)\b/,
-                        operator: /\+[+=]?|-[-=>]?|==?=?|!(?:!|==?)?|[\/*%<>]=?|[?:]:?|\.\.|&&|\|\||\b(?:and|inv|or|shl|shr|ushr|xor)\b/
-                    }), delete e.languages.kotlin["class-name"], e.languages.insertBefore("kotlin", "string", {
-                        "raw-string": {
-                            pattern: /(["'])\1\1[\s\S]*?\1{3}/,
-                            alias: "string"
-                        }
-                    }), e.languages.insertBefore("kotlin", "keyword", {
-                        annotation: {
-                            pattern: /\B@(?:\w+:)?(?:[A-Z]\w*|\[[^\]]+\])/,
-                            alias: "builtin"
-                        }
-                    }), e.languages.insertBefore("kotlin", "function", {
-                        label: {
-                            pattern: /\w+@|@\w+/,
-                            alias: "symbol"
-                        }
-                    });
-                    var t = [{
-                        pattern: /\$\{[^}]+\}/,
-                        inside: {
-                            delimiter: {
-                                pattern: /^\$\{|\}$/,
-                                alias: "variable"
-                            },
-                            rest: e.util.clone(e.languages.kotlin)
-                        }
-                    }, {
-                        pattern: /\$\w+/,
-                        alias: "variable"
-                    }];
-                    e.languages.kotlin.string.inside = e.languages.kotlin["raw-string"].inside = {
-                        interpolation: t
-                    }
-                }(n),
-                function(e) {
-                    var t = /\\([^a-z()[\]]|[a-z\*]+)/i,
-                        i = {
-                            "equation-command": {
-                                pattern: t,
-                                alias: "regex"
-                            }
-                        };
-                    n.languages.latex = {
-                        comment: /%.*/m,
-                        cdata: {
-                            pattern: /(\\begin\{((?:verbatim|lstlisting)\*?)\})([\w\W]*?)(?=\\end\{\2\})/,
-                            lookbehind: !0
-                        },
-                        equation: [{
-                            pattern: /\$(?:\\?[\w\W])*?\$|\\\((?:\\?[\w\W])*?\\\)|\\\[(?:\\?[\w\W])*?\\\]/,
-                            inside: i,
-                            alias: "string"
-                        }, {
-                            pattern: /(\\begin\{((?:equation|math|eqnarray|align|multline|gather)\*?)\})([\w\W]*?)(?=\\end\{\2\})/,
-                            lookbehind: !0,
-                            inside: i,
-                            alias: "string"
-                        }],
-                        keyword: {
-                            pattern: /(\\(?:begin|end|ref|cite|label|usepackage|documentclass)(?:\[[^\]]+\])?\{)[^}]+(?=\})/,
-                            lookbehind: !0
-                        },
-                        url: {
-                            pattern: /(\\url\{)[^}]+(?=\})/,
-                            lookbehind: !0
-                        },
-                        headline: {
-                            pattern: /(\\(?:part|chapter|section|subsection|frametitle|subsubsection|paragraph|subparagraph|subsubparagraph|subsubsubparagraph)\*?(?:\[[^\]]+\])?\{)[^}]+(?=\}(?:\[[^\]]+\])?)/,
-                            lookbehind: !0,
-                            alias: "class-name"
-                        },
-                        function: {
-                            pattern: t,
-                            alias: "selector"
-                        },
-                        punctuation: /[[\]{}&]/
-                    }
-                }(), n.languages.less = n.languages.extend("css", {
-                    comment: [/\/\*[\w\W]*?\*\//, {
-                        pattern: /(^|[^\\])\/\/.*/,
-                        lookbehind: !0
-                    }],
-                    atrule: {
-                        pattern: /@[\w-]+?(?:\([^{}]+\)|[^(){};])*?(?=\s*\{)/i,
-                        inside: {
-                            punctuation: /[:()]/
-                        }
-                    },
-                    selector: {
-                        pattern: /(?:@\{[\w-]+\}|[^{};\s@])(?:@\{[\w-]+\}|\([^{}]*\)|[^{};@])*?(?=\s*\{)/,
-                        inside: {
-                            variable: /@+[\w-]+/
-                        }
-                    },
-                    property: /(?:@\{[\w-]+\}|[\w-])+(?:\+_?)?(?=\s*:)/i,
-                    punctuation: /[{}();:,]/,
-                    operator: /[+\-*\/]/
-                }), n.languages.insertBefore("less", "punctuation", {
-                    function: n.languages.less.function
-                }), n.languages.insertBefore("less", "property", {
-                    variable: [{
-                        pattern: /@[\w-]+\s*:/,
-                        inside: {
-                            punctuation: /:/
-                        }
-                    }, /@@?[\w-]+/],
-                    "mixin-usage": {
-                        pattern: /([{;]\s*)[.#](?!\d)[\w-]+.*?(?=[(;])/,
-                        lookbehind: !0,
-                        alias: "function"
-                    }
-                }), n.languages.livescript = {
-                    "interpolated-string": {
-                        pattern: /("""|")(?:\\[\s\S]|(?!\1)[^\\])*\1/,
-                        greedy: !0,
-                        inside: {
-                            variable: {
-                                pattern: /(^|[^\\])#[a-z_](?:-?[a-z]|\d)*/m,
-                                lookbehind: !0
-                            },
-                            interpolation: {
-                                pattern: /(^|[^\\])#\{[^}]+\}/m,
-                                lookbehind: !0,
-                                inside: {
-                                    "interpolation-punctuation": {
-                                        pattern: /^#\{|\}$/,
-                                        alias: "variable"
-                                    }
-                                }
-                            },
-                            string: /[\s\S]+/
-                        }
-                    },
-                    comment: [{
-                        pattern: /(^|[^\\])\/\*[\w\W]*?\*\//,
-                        lookbehind: !0,
-                        greedy: !0
-                    }, {
-                        pattern: /(^|[^\\])#.*/,
-                        lookbehind: !0,
-                        greedy: !0
-                    }],
-                    string: [{
-                        pattern: /('''|')(?:\\[\s\S]|(?!\1)[^\\])*\1/,
-                        greedy: !0
-                    }, {
-                        pattern: /<\[[\s\S]*?\]>/,
-                        greedy: !0
-                    }, /\\[^\s,;\])}]+/],
-                    regex: [{
-                        pattern: /\/\/(\[.+?]|\\.|(?!\/\/)[^\\])+\/\/[gimyu]{0,5}/,
-                        greedy: !0,
-                        inside: {
-                            comment: {
-                                pattern: /(^|[^\\])#.*/,
-                                lookbehind: !0
-                            }
-                        }
-                    }, {
-                        pattern: /\/(\[.+?]|\\.|[^\/\\\r\n])+\/[gimyu]{0,5}/,
-                        greedy: !0
-                    }],
-                    keyword: {
-                        pattern: /(^|(?!-).)\b(?:break|case|catch|class|const|continue|default|do|else|extends|fallthrough|finally|for(?: ever)?|function|if|implements|it|let|loop|new|null|otherwise|own|return|super|switch|that|then|this|throw|try|unless|until|var|void|when|while|yield)(?!-)\b/m,
-                        lookbehind: !0
-                    },
-                    "keyword-operator": {
-                        pattern: /(^|[^-])\b(?:(?:delete|require|typeof)!|(?:and|by|delete|export|from|import(?: all)?|in|instanceof|is(?:nt| not)?|not|of|or|til|to|typeof|with|xor)(?!-)\b)/m,
-                        lookbehind: !0,
-                        alias: "operator"
-                    },
-                    boolean: {
-                        pattern: /(^|[^-])\b(?:false|no|off|on|true|yes)(?!-)\b/m,
-                        lookbehind: !0
-                    },
-                    argument: {
-                        pattern: /(^|(?!\.&\.)[^&])&(?!&)\d*/m,
-                        lookbehind: !0,
-                        alias: "variable"
-                    },
-                    number: /\b(?:\d+~[\da-z]+|\d[\d_]*(?:\.\d[\d_]*)?(?:[a-z]\w*)?)/i,
-                    identifier: /[a-z_](?:-?[a-z]|\d)*/i,
-                    operator: [{
-                        pattern: /( )\.(?= )/,
-                        lookbehind: !0
-                    }, /\.(?:[=~]|\.\.?)|\.(?:[&|^]|<<|>>>?)\.|:(?:=|:=?)|&&|\|[|>]|<(?:<<?<?|--?!?|~~?!?|[|=?])?|>[>=?]?|-(?:->?|>)?|\+\+?|@@?|%%?|\*\*?|!(?:~?=|--?>|~?~>)?|~(?:~?>|=)?|==?|\^\^?|[\/?]/],
-                    punctuation: /[(){}\[\]|.,:;`]/
-                }, n.languages.livescript["interpolated-string"].inside.interpolation.inside.rest = n.languages.livescript, n.languages.lolcode = {
-                    comment: [/\bOBTW\s+[\s\S]*?\s+TLDR\b/, /\bBTW.+/],
-                    string: {
-                        pattern: /"(?::.|[^"])*"/,
-                        inside: {
-                            variable: /:\{[^}]+\}/,
-                            symbol: [/:\([a-f\d]+\)/i, /:\[[^\]]+\]/, /:[)>o":]/]
-                        }
-                    },
-                    number: /(-|\b)\d*\.?\d+/,
-                    symbol: {
-                        pattern: /(^|\s)(?:A )?(?:YARN|NUMBR|NUMBAR|TROOF|BUKKIT|NOOB)(?=\s|,|$)/,
-                        lookbehind: !0,
-                        inside: {
-                            keyword: /A(?=\s)/
-                        }
-                    },
-                    label: {
-                        pattern: /((?:^|\s)(?:IM IN YR|IM OUTTA YR) )[a-zA-Z]\w*/,
-                        lookbehind: !0,
-                        alias: "string"
-                    },
-                    function: {
-                        pattern: /((?:^|\s)(?:I IZ|HOW IZ I|IZ) )[a-zA-Z]\w*/,
-                        lookbehind: !0
-                    },
-                    keyword: [{
-                        pattern: /(^|\s)(?:O HAI IM|KTHX|HAI|KTHXBYE|I HAS A|ITZ(?: A)?|R|AN|MKAY|SMOOSH|MAEK|IS NOW(?: A)?|VISIBLE|GIMMEH|O RLY\?|YA RLY|NO WAI|OIC|MEBBE|WTF\?|OMG|OMGWTF|GTFO|IM IN YR|IM OUTTA YR|FOUND YR|YR|TIL|WILE|UPPIN|NERFIN|I IZ|HOW IZ I|IF U SAY SO|SRS|HAS A|LIEK(?: A)?|IZ)(?=\s|,|$)/,
-                        lookbehind: !0
-                    }, /'Z(?=\s|,|$)/],
-                    boolean: {
-                        pattern: /(^|\s)(?:WIN|FAIL)(?=\s|,|$)/,
-                        lookbehind: !0
-                    },
-                    variable: {
-                        pattern: /(^|\s)IT(?=\s|,|$)/,
-                        lookbehind: !0
-                    },
-                    operator: {
-                        pattern: /(^|\s)(?:NOT|BOTH SAEM|DIFFRINT|(?:SUM|DIFF|PRODUKT|QUOSHUNT|MOD|BIGGR|SMALLR|BOTH|EITHER|WON|ALL|ANY) OF)(?=\s|,|$)/,
-                        lookbehind: !0
-                    },
-                    punctuation: /\.{3}|…|,|!/
-                }, n.languages.lua = {
-                    comment: /^#!.+|--(?:\[(=*)\[[\s\S]*?\]\1\]|.*)/m,
-                    string: {
-                        pattern: /(["'])(?:(?!\1)[^\\\r\n]|\\z(?:\r\n|\s)|\\(?:\r\n|[\s\S]))*\1|\[(=*)\[[\s\S]*?\]\2\]/,
-                        greedy: !0
-                    },
-                    number: /\b0x[a-f\d]+\.?[a-f\d]*(?:p[+-]?\d+)?\b|\b\d+(?:\.\B|\.?\d*(?:e[+-]?\d+)?\b)|\B\.\d+(?:e[+-]?\d+)?\b/i,
-                    keyword: /\b(?:and|break|do|else|elseif|end|false|for|function|goto|if|in|local|nil|not|or|repeat|return|then|true|until|while)\b/,
-                    function: /(?!\d)\w+(?=\s*(?:[({]))/,
-                    operator: [/[-+*%^&|#]|\/\/?|<[<=]?|>[>=]?|[=~]=?/, {
-                        pattern: /(^|[^.])\.\.(?!\.)/,
-                        lookbehind: !0
-                    }],
-                    punctuation: /[\[\](){},;]|\.+|:+/
-                }, n.languages.makefile = {
-                    comment: {
-                        pattern: /(^|[^\\])#(?:\\(?:\r\n|[\s\S])|.)*/,
-                        lookbehind: !0
-                    },
-                    string: /(["'])(?:\\(?:\r\n|[\s\S])|(?!\1)[^\\\r\n])*\1/,
-                    builtin: /\.[A-Z][^:#=\s]+(?=\s*:(?!=))/,
-                    symbol: {
-                        pattern: /^[^:=\r\n]+(?=\s*:(?!=))/m,
-                        inside: {
-                            variable: /\$+(?:[^(){}:#=\s]+|(?=[({]))/
-                        }
-                    },
-                    variable: /\$+(?:[^(){}:#=\s]+|\([@*%<^+?][DF]\)|(?=[({]))/,
-                    keyword: [/-include\b|\b(?:define|else|endef|endif|export|ifn?def|ifn?eq|include|override|private|sinclude|undefine|unexport|vpath)\b/, {
-                        pattern: /(\()(?:addsuffix|abspath|and|basename|call|dir|error|eval|file|filter(?:-out)?|findstring|firstword|flavor|foreach|guile|if|info|join|lastword|load|notdir|or|origin|patsubst|realpath|shell|sort|strip|subst|suffix|value|warning|wildcard|word(?:s|list)?)(?=[ \t])/,
-                        lookbehind: !0
-                    }],
-                    operator: /(?:::|[?:+!])?=|[|@]/,
-                    punctuation: /[:;(){}]/
-                }, n.languages.markdown = n.languages.extend("markup", {}), n.languages.insertBefore("markdown", "prolog", {
-                    blockquote: {
-                        pattern: /^>(?:[\t ]*>)*/m,
-                        alias: "punctuation"
-                    },
-                    code: [{
-                        pattern: /^(?: {4}|\t).+/m,
-                        alias: "keyword"
-                    }, {
-                        pattern: /``.+?``|`[^`\n]+`/,
-                        alias: "keyword"
-                    }],
-                    title: [{
-                        pattern: /\w+.*(?:\r?\n|\r)(?:==+|--+)/,
-                        alias: "important",
-                        inside: {
-                            punctuation: /==+$|--+$/
-                        }
-                    }, {
-                        pattern: /(^\s*)#+.+/m,
-                        lookbehind: !0,
-                        alias: "important",
-                        inside: {
-                            punctuation: /^#+|#+$/
-                        }
-                    }],
-                    hr: {
-                        pattern: /(^\s*)([*-])([\t ]*\2){2,}(?=\s*$)/m,
-                        lookbehind: !0,
-                        alias: "punctuation"
-                    },
-                    list: {
-                        pattern: /(^\s*)(?:[*+-]|\d+\.)(?=[\t ].)/m,
-                        lookbehind: !0,
-                        alias: "punctuation"
-                    },
-                    "url-reference": {
-                        pattern: /!?\[[^\]]+\]:[\t ]+(?:\S+|<(?:\\.|[^>\\])+>)(?:[\t ]+(?:"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|\((?:\\.|[^)\\])*\)))?/,
-                        inside: {
-                            variable: {
-                                pattern: /^(!?\[)[^\]]+/,
-                                lookbehind: !0
-                            },
-                            string: /(?:"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|\((?:\\.|[^)\\])*\))$/,
-                            punctuation: /^[\[\]!:]|[<>]/
-                        },
-                        alias: "url"
-                    },
-                    bold: {
-                        pattern: /(^|[^\\])(\*\*|__)(?:(?:\r?\n|\r)(?!\r?\n|\r)|.)+?\2/,
-                        lookbehind: !0,
-                        inside: {
-                            punctuation: /^\*\*|^__|\*\*$|__$/
-                        }
-                    },
-                    italic: {
-                        pattern: /(^|[^\\])([*_])(?:(?:\r?\n|\r)(?!\r?\n|\r)|.)+?\2/,
-                        lookbehind: !0,
-                        inside: {
-                            punctuation: /^[*_]|[*_]$/
-                        }
-                    },
-                    url: {
-                        pattern: /!?\[[^\]]+\](?:\([^\s)]+(?:[\t ]+"(?:\\.|[^"\\])*")?\)| ?\[[^\]\n]*\])/,
-                        inside: {
-                            variable: {
-                                pattern: /(!?\[)[^\]]+(?=\]$)/,
-                                lookbehind: !0
-                            },
-                            string: {
-                                pattern: /"(?:\\.|[^"\\])*"(?=\)$)/
-                            }
-                        }
-                    }
-                }), n.languages.markdown.bold.inside.url = n.util.clone(n.languages.markdown.url), n.languages.markdown.italic.inside.url = n.util.clone(n.languages.markdown.url), n.languages.markdown.bold.inside.italic = n.util.clone(n.languages.markdown.italic), n.languages.markdown.italic.inside.bold = n.util.clone(n.languages.markdown.bold), n.languages.matlab = {
-                    string: /\B'(?:''|[^'\n])*'/,
-                    comment: [/%\{[\s\S]*?\}%/, /%.+/],
-                    number: /\b-?(?:\d*\.?\d+(?:[eE][+-]?\d+)?(?:[ij])?|[ij])\b/,
-                    keyword: /\b(?:break|case|catch|continue|else|elseif|end|for|function|if|inf|NaN|otherwise|parfor|pause|pi|return|switch|try|while)\b/,
-                    function: /(?!\d)\w+(?=\s*\()/,
-                    operator: /\.?[*^\/\\']|[+\-:@]|[<>=~]=?|&&?|\|\|?/,
-                    punctuation: /\.{3}|[.,;\[\](){}!]/
-                }, n.languages.mel = {
-                    comment: /\/\/.*/,
-                    code: {
-                        pattern: /`(?:\\.|[^\\`\r\n])*`/,
-                        alias: "italic",
-                        inside: {
-                            delimiter: {
-                                pattern: /^`|`$/,
-                                alias: "punctuation"
-                            }
-                        }
-                    },
-                    string: /"(?:\\.|[^\\"\r\n])*"/,
-                    variable: /\$\w+/,
-                    number: /(?:\b|-)(?:0x[\da-fA-F]+|\d+\.?\d*)/,
-                    flag: {
-                        pattern: /-[^\d\W]\w*/,
-                        alias: "operator"
-                    },
-                    keyword: /\b(?:break|case|continue|default|do|else|float|for|global|if|in|int|matrix|proc|return|string|switch|vector|while)\b/,
-                    function: /\w+(?=\()|\b(?:about|abs|addAttr|addAttributeEditorNodeHelp|addDynamic|addNewShelfTab|addPP|addPanelCategory|addPrefixToName|advanceToNextDrivenKey|affectedNet|affects|aimConstraint|air|alias|aliasAttr|align|alignCtx|alignCurve|alignSurface|allViewFit|ambientLight|angle|angleBetween|animCone|animCurveEditor|animDisplay|animView|annotate|appendStringArray|applicationName|applyAttrPreset|applyTake|arcLenDimContext|arcLengthDimension|arclen|arrayMapper|art3dPaintCtx|artAttrCtx|artAttrPaintVertexCtx|artAttrSkinPaintCtx|artAttrTool|artBuildPaintMenu|artFluidAttrCtx|artPuttyCtx|artSelectCtx|artSetPaintCtx|artUserPaintCtx|assignCommand|assignInputDevice|assignViewportFactories|attachCurve|attachDeviceAttr|attachSurface|attrColorSliderGrp|attrCompatibility|attrControlGrp|attrEnumOptionMenu|attrEnumOptionMenuGrp|attrFieldGrp|attrFieldSliderGrp|attrNavigationControlGrp|attrPresetEditWin|attributeExists|attributeInfo|attributeMenu|attributeQuery|autoKeyframe|autoPlace|bakeClip|bakeFluidShading|bakePartialHistory|bakeResults|bakeSimulation|basename|basenameEx|batchRender|bessel|bevel|bevelPlus|binMembership|bindSkin|blend2|blendShape|blendShapeEditor|blendShapePanel|blendTwoAttr|blindDataType|boneLattice|boundary|boxDollyCtx|boxZoomCtx|bufferCurve|buildBookmarkMenu|buildKeyframeMenu|button|buttonManip|CBG|cacheFile|cacheFileCombine|cacheFileMerge|cacheFileTrack|camera|cameraView|canCreateManip|canvas|capitalizeString|catch|catchQuiet|ceil|changeSubdivComponentDisplayLevel|changeSubdivRegion|channelBox|character|characterMap|characterOutlineEditor|characterize|chdir|checkBox|checkBoxGrp|checkDefaultRenderGlobals|choice|circle|circularFillet|clamp|clear|clearCache|clip|clipEditor|clipEditorCurrentTimeCtx|clipSchedule|clipSchedulerOutliner|clipTrimBefore|closeCurve|closeSurface|cluster|cmdFileOutput|cmdScrollFieldExecuter|cmdScrollFieldReporter|cmdShell|coarsenSubdivSelectionList|collision|color|colorAtPoint|colorEditor|colorIndex|colorIndexSliderGrp|colorSliderButtonGrp|colorSliderGrp|columnLayout|commandEcho|commandLine|commandPort|compactHairSystem|componentEditor|compositingInterop|computePolysetVolume|condition|cone|confirmDialog|connectAttr|connectControl|connectDynamic|connectJoint|connectionInfo|constrain|constrainValue|constructionHistory|container|containsMultibyte|contextInfo|control|convertFromOldLayers|convertIffToPsd|convertLightmap|convertSolidTx|convertTessellation|convertUnit|copyArray|copyFlexor|copyKey|copySkinWeights|cos|cpButton|cpCache|cpClothSet|cpCollision|cpConstraint|cpConvClothToMesh|cpForces|cpGetSolverAttr|cpPanel|cpProperty|cpRigidCollisionFilter|cpSeam|cpSetEdit|cpSetSolverAttr|cpSolver|cpSolverTypes|cpTool|cpUpdateClothUVs|createDisplayLayer|createDrawCtx|createEditor|createLayeredPsdFile|createMotionField|createNewShelf|createNode|createRenderLayer|createSubdivRegion|cross|crossProduct|ctxAbort|ctxCompletion|ctxEditMode|ctxTraverse|currentCtx|currentTime|currentTimeCtx|currentUnit|curve|curveAddPtCtx|curveCVCtx|curveEPCtx|curveEditorCtx|curveIntersect|curveMoveEPCtx|curveOnSurface|curveSketchCtx|cutKey|cycleCheck|cylinder|dagPose|date|defaultLightListCheckBox|defaultNavigation|defineDataServer|defineVirtualDevice|deformer|deg_to_rad|delete|deleteAttr|deleteShadingGroupsAndMaterials|deleteShelfTab|deleteUI|deleteUnusedBrushes|delrandstr|detachCurve|detachDeviceAttr|detachSurface|deviceEditor|devicePanel|dgInfo|dgdirty|dgeval|dgtimer|dimWhen|directKeyCtx|directionalLight|dirmap|dirname|disable|disconnectAttr|disconnectJoint|diskCache|displacementToPoly|displayAffected|displayColor|displayCull|displayLevelOfDetail|displayPref|displayRGBColor|displaySmoothness|displayStats|displayString|displaySurface|distanceDimContext|distanceDimension|doBlur|dolly|dollyCtx|dopeSheetEditor|dot|dotProduct|doubleProfileBirailSurface|drag|dragAttrContext|draggerContext|dropoffLocator|duplicate|duplicateCurve|duplicateSurface|dynCache|dynControl|dynExport|dynExpression|dynGlobals|dynPaintEditor|dynParticleCtx|dynPref|dynRelEdPanel|dynRelEditor|dynamicLoad|editAttrLimits|editDisplayLayerGlobals|editDisplayLayerMembers|editRenderLayerAdjustment|editRenderLayerGlobals|editRenderLayerMembers|editor|editorTemplate|effector|emit|emitter|enableDevice|encodeString|endString|endsWith|env|equivalent|equivalentTol|erf|error|eval|evalDeferred|evalEcho|event|exactWorldBoundingBox|exclusiveLightCheckBox|exec|executeForEachObject|exists|exp|expression|expressionEditorListen|extendCurve|extendSurface|extrude|fcheck|fclose|feof|fflush|fgetline|fgetword|file|fileBrowserDialog|fileDialog|fileExtension|fileInfo|filetest|filletCurve|filter|filterCurve|filterExpand|filterStudioImport|findAllIntersections|findAnimCurves|findKeyframe|findMenuItem|findRelatedSkinCluster|finder|firstParentOf|fitBspline|flexor|floatEq|floatField|floatFieldGrp|floatScrollBar|floatSlider|floatSlider2|floatSliderButtonGrp|floatSliderGrp|floor|flow|fluidCacheInfo|fluidEmitter|fluidVoxelInfo|flushUndo|fmod|fontDialog|fopen|formLayout|format|fprint|frameLayout|fread|freeFormFillet|frewind|fromNativePath|fwrite|gamma|gauss|geometryConstraint|getApplicationVersionAsFloat|getAttr|getClassification|getDefaultBrush|getFileList|getFluidAttr|getInputDeviceRange|getMayaPanelTypes|getModifiers|getPanel|getParticleAttr|getPluginResource|getenv|getpid|glRender|glRenderEditor|globalStitch|gmatch|goal|gotoBindPose|grabColor|gradientControl|gradientControlNoAttr|graphDollyCtx|graphSelectContext|graphTrackCtx|gravity|grid|gridLayout|group|groupObjectsByName|HfAddAttractorToAS|HfAssignAS|HfBuildEqualMap|HfBuildFurFiles|HfBuildFurImages|HfCancelAFR|HfConnectASToHF|HfCreateAttractor|HfDeleteAS|HfEditAS|HfPerformCreateAS|HfRemoveAttractorFromAS|HfSelectAttached|HfSelectAttractors|HfUnAssignAS|hardenPointCurve|hardware|hardwareRenderPanel|headsUpDisplay|headsUpMessage|help|helpLine|hermite|hide|hilite|hitTest|hotBox|hotkey|hotkeyCheck|hsv_to_rgb|hudButton|hudSlider|hudSliderButton|hwReflectionMap|hwRender|hwRenderLoad|hyperGraph|hyperPanel|hyperShade|hypot|iconTextButton|iconTextCheckBox|iconTextRadioButton|iconTextRadioCollection|iconTextScrollList|iconTextStaticLabel|ikHandle|ikHandleCtx|ikHandleDisplayScale|ikSolver|ikSplineHandleCtx|ikSystem|ikSystemInfo|ikfkDisplayMethod|illustratorCurves|image|imfPlugins|inheritTransform|insertJoint|insertJointCtx|insertKeyCtx|insertKnotCurve|insertKnotSurface|instance|instanceable|instancer|intField|intFieldGrp|intScrollBar|intSlider|intSliderGrp|interToUI|internalVar|intersect|iprEngine|isAnimCurve|isConnected|isDirty|isParentOf|isSameObject|isTrue|isValidObjectName|isValidString|isValidUiName|isolateSelect|itemFilter|itemFilterAttr|itemFilterRender|itemFilterType|joint|jointCluster|jointCtx|jointDisplayScale|jointLattice|keyTangent|keyframe|keyframeOutliner|keyframeRegionCurrentTimeCtx|keyframeRegionDirectKeyCtx|keyframeRegionDollyCtx|keyframeRegionInsertKeyCtx|keyframeRegionMoveKeyCtx|keyframeRegionScaleKeyCtx|keyframeRegionSelectKeyCtx|keyframeRegionSetKeyCtx|keyframeRegionTrackCtx|keyframeStats|lassoContext|lattice|latticeDeformKeyCtx|launch|launchImageEditor|layerButton|layeredShaderPort|layeredTexturePort|layout|layoutDialog|lightList|lightListEditor|lightListPanel|lightlink|lineIntersection|linearPrecision|linstep|listAnimatable|listAttr|listCameras|listConnections|listDeviceAttachments|listHistory|listInputDeviceAxes|listInputDeviceButtons|listInputDevices|listMenuAnnotation|listNodeTypes|listPanelCategories|listRelatives|listSets|listTransforms|listUnselected|listerEditor|loadFluid|loadNewShelf|loadPlugin|loadPluginLanguageResources|loadPrefObjects|localizedPanelLabel|lockNode|loft|log|longNameOf|lookThru|ls|lsThroughFilter|lsType|lsUI|Mayatomr|mag|makeIdentity|makeLive|makePaintable|makeRoll|makeSingleSurface|makeTubeOn|makebot|manipMoveContext|manipMoveLimitsCtx|manipOptions|manipRotateContext|manipRotateLimitsCtx|manipScaleContext|manipScaleLimitsCtx|marker|match|max|memory|menu|menuBarLayout|menuEditor|menuItem|menuItemToShelf|menuSet|menuSetPref|messageLine|min|minimizeApp|mirrorJoint|modelCurrentTimeCtx|modelEditor|modelPanel|mouse|movIn|movOut|move|moveIKtoFK|moveKeyCtx|moveVertexAlongDirection|multiProfileBirailSurface|mute|nParticle|nameCommand|nameField|namespace|namespaceInfo|newPanelItems|newton|nodeCast|nodeIconButton|nodeOutliner|nodePreset|nodeType|noise|nonLinear|normalConstraint|normalize|nurbsBoolean|nurbsCopyUVSet|nurbsCube|nurbsEditUV|nurbsPlane|nurbsSelect|nurbsSquare|nurbsToPoly|nurbsToPolygonsPref|nurbsToSubdiv|nurbsToSubdivPref|nurbsUVSet|nurbsViewDirectionVector|objExists|objectCenter|objectLayer|objectType|objectTypeUI|obsoleteProc|oceanNurbsPreviewPlane|offsetCurve|offsetCurveOnSurface|offsetSurface|openGLExtension|openMayaPref|optionMenu|optionMenuGrp|optionVar|orbit|orbitCtx|orientConstraint|outlinerEditor|outlinerPanel|overrideModifier|paintEffectsDisplay|pairBlend|palettePort|paneLayout|panel|panelConfiguration|panelHistory|paramDimContext|paramDimension|paramLocator|parent|parentConstraint|particle|particleExists|particleInstancer|particleRenderInfo|partition|pasteKey|pathAnimation|pause|pclose|percent|performanceOptions|pfxstrokes|pickWalk|picture|pixelMove|planarSrf|plane|play|playbackOptions|playblast|plugAttr|plugNode|pluginInfo|pluginResourceUtil|pointConstraint|pointCurveConstraint|pointLight|pointMatrixMult|pointOnCurve|pointOnSurface|pointPosition|poleVectorConstraint|polyAppend|polyAppendFacetCtx|polyAppendVertex|polyAutoProjection|polyAverageNormal|polyAverageVertex|polyBevel|polyBlendColor|polyBlindData|polyBoolOp|polyBridgeEdge|polyCacheMonitor|polyCheck|polyChipOff|polyClipboard|polyCloseBorder|polyCollapseEdge|polyCollapseFacet|polyColorBlindData|polyColorDel|polyColorPerVertex|polyColorSet|polyCompare|polyCone|polyCopyUV|polyCrease|polyCreaseCtx|polyCreateFacet|polyCreateFacetCtx|polyCube|polyCut|polyCutCtx|polyCylinder|polyCylindricalProjection|polyDelEdge|polyDelFacet|polyDelVertex|polyDuplicateAndConnect|polyDuplicateEdge|polyEditUV|polyEditUVShell|polyEvaluate|polyExtrudeEdge|polyExtrudeFacet|polyExtrudeVertex|polyFlipEdge|polyFlipUV|polyForceUV|polyGeoSampler|polyHelix|polyInfo|polyInstallAction|polyLayoutUV|polyListComponentConversion|polyMapCut|polyMapDel|polyMapSew|polyMapSewMove|polyMergeEdge|polyMergeEdgeCtx|polyMergeFacet|polyMergeFacetCtx|polyMergeUV|polyMergeVertex|polyMirrorFace|polyMoveEdge|polyMoveFacet|polyMoveFacetUV|polyMoveUV|polyMoveVertex|polyNormal|polyNormalPerVertex|polyNormalizeUV|polyOptUvs|polyOptions|polyOutput|polyPipe|polyPlanarProjection|polyPlane|polyPlatonicSolid|polyPoke|polyPrimitive|polyPrism|polyProjection|polyPyramid|polyQuad|polyQueryBlindData|polyReduce|polySelect|polySelectConstraint|polySelectConstraintMonitor|polySelectCtx|polySelectEditCtx|polySeparate|polySetToFaceNormal|polySewEdge|polyShortestPathCtx|polySmooth|polySoftEdge|polySphere|polySphericalProjection|polySplit|polySplitCtx|polySplitEdge|polySplitRing|polySplitVertex|polyStraightenUVBorder|polySubdivideEdge|polySubdivideFacet|polyToSubdiv|polyTorus|polyTransfer|polyTriangulate|polyUVSet|polyUnite|polyWedgeFace|popen|popupMenu|pose|pow|preloadRefEd|print|progressBar|progressWindow|projFileViewer|projectCurve|projectTangent|projectionContext|projectionManip|promptDialog|propModCtx|propMove|psdChannelOutliner|psdEditTextureFile|psdExport|psdTextureFile|putenv|pwd|python|querySubdiv|quit|rad_to_deg|radial|radioButton|radioButtonGrp|radioCollection|radioMenuItemCollection|rampColorPort|rand|randomizeFollicles|randstate|rangeControl|readTake|rebuildCurve|rebuildSurface|recordAttr|recordDevice|redo|reference|referenceEdit|referenceQuery|refineSubdivSelectionList|refresh|refreshAE|registerPluginResource|rehash|reloadImage|removeJoint|removeMultiInstance|removePanelCategory|rename|renameAttr|renameSelectionList|renameUI|render|renderGlobalsNode|renderInfo|renderLayerButton|renderLayerParent|renderLayerPostProcess|renderLayerUnparent|renderManip|renderPartition|renderQualityNode|renderSettings|renderThumbnailUpdate|renderWindowEditor|renderWindowSelectContext|renderer|reorder|reorderDeformers|requires|reroot|resampleFluid|resetAE|resetPfxToPolyCamera|resetTool|resolutionNode|retarget|reverseCurve|reverseSurface|revolve|rgb_to_hsv|rigidBody|rigidSolver|roll|rollCtx|rootOf|rot|rotate|rotationInterpolation|roundConstantRadius|rowColumnLayout|rowLayout|runTimeCommand|runup|sampleImage|saveAllShelves|saveAttrPreset|saveFluid|saveImage|saveInitialState|saveMenu|savePrefObjects|savePrefs|saveShelf|saveToolSettings|scale|scaleBrushBrightness|scaleComponents|scaleConstraint|scaleKey|scaleKeyCtx|sceneEditor|sceneUIReplacement|scmh|scriptCtx|scriptEditorInfo|scriptJob|scriptNode|scriptTable|scriptToShelf|scriptedPanel|scriptedPanelType|scrollField|scrollLayout|sculpt|searchPathArray|seed|selLoadSettings|select|selectContext|selectCurveCV|selectKey|selectKeyCtx|selectKeyframeRegionCtx|selectMode|selectPref|selectPriority|selectType|selectedNodes|selectionConnection|separator|setAttr|setAttrEnumResource|setAttrMapping|setAttrNiceNameResource|setConstraintRestPosition|setDefaultShadingGroup|setDrivenKeyframe|setDynamic|setEditCtx|setEditor|setFluidAttr|setFocus|setInfinity|setInputDeviceMapping|setKeyCtx|setKeyPath|setKeyframe|setKeyframeBlendshapeTargetWts|setMenuMode|setNodeNiceNameResource|setNodeTypeFlag|setParent|setParticleAttr|setPfxToPolyCamera|setPluginResource|setProject|setStampDensity|setStartupMessage|setState|setToolTo|setUITemplate|setXformManip|sets|shadingConnection|shadingGeometryRelCtx|shadingLightRelCtx|shadingNetworkCompare|shadingNode|shapeCompare|shelfButton|shelfLayout|shelfTabLayout|shellField|shortNameOf|showHelp|showHidden|showManipCtx|showSelectionInTitle|showShadingGroupAttrEditor|showWindow|sign|simplify|sin|singleProfileBirailSurface|size|sizeBytes|skinCluster|skinPercent|smoothCurve|smoothTangentSurface|smoothstep|snap2to2|snapKey|snapMode|snapTogetherCtx|snapshot|soft|softMod|softModCtx|sort|sound|soundControl|source|spaceLocator|sphere|sphrand|spotLight|spotLightPreviewPort|spreadSheetEditor|spring|sqrt|squareSurface|srtContext|stackTrace|startString|startsWith|stitchAndExplodeShell|stitchSurface|stitchSurfacePoints|strcmp|stringArrayCatenate|stringArrayContains|stringArrayCount|stringArrayInsertAtIndex|stringArrayIntersector|stringArrayRemove|stringArrayRemoveAtIndex|stringArrayRemoveDuplicates|stringArrayRemoveExact|stringArrayToString|stringToStringArray|strip|stripPrefixFromName|stroke|subdAutoProjection|subdCleanTopology|subdCollapse|subdDuplicateAndConnect|subdEditUV|subdListComponentConversion|subdMapCut|subdMapSewMove|subdMatchTopology|subdMirror|subdToBlind|subdToPoly|subdTransferUVsToCache|subdiv|subdivCrease|subdivDisplaySmoothness|substitute|substituteAllString|substituteGeometry|substring|surface|surfaceSampler|surfaceShaderList|swatchDisplayPort|switchTable|symbolButton|symbolCheckBox|sysFile|system|tabLayout|tan|tangentConstraint|texLatticeDeformContext|texManipContext|texMoveContext|texMoveUVShellContext|texRotateContext|texScaleContext|texSelectContext|texSelectShortestPathCtx|texSmudgeUVContext|texWinToolCtx|text|textCurves|textField|textFieldButtonGrp|textFieldGrp|textManip|textScrollList|textToShelf|textureDisplacePlane|textureHairColor|texturePlacementContext|textureWindow|threadCount|threePointArcCtx|timeControl|timePort|timerX|toNativePath|toggle|toggleAxis|toggleWindowVisibility|tokenize|tokenizeList|tolerance|tolower|toolButton|toolCollection|toolDropped|toolHasOptions|toolPropertyWindow|torus|toupper|trace|track|trackCtx|transferAttributes|transformCompare|transformLimits|translator|trim|trunc|truncateFluidCache|truncateHairCache|tumble|tumbleCtx|turbulence|twoPointArcCtx|uiRes|uiTemplate|unassignInputDevice|undo|undoInfo|ungroup|uniform|unit|unloadPlugin|untangleUV|untitledFileName|untrim|upAxis|updateAE|userCtx|uvLink|uvSnapshot|validateShelfName|vectorize|view2dToolCtx|viewCamera|viewClipPlane|viewFit|viewHeadOn|viewLookAt|viewManip|viewPlace|viewSet|visor|volumeAxis|vortex|waitCursor|warning|webBrowser|webBrowserPrefs|whatIs|window|windowPref|wire|wireContext|workspace|wrinkle|wrinkleContext|writeTake|xbmLangPathList|xform)\b/,
-                    operator: [/\+[+=]?|-[-=]?|&&|\|\||[<>]=|[*\/!=]=?|[%^]/, {
-                        pattern: /(^|[^<])<(?!<)/,
-                        lookbehind: !0
-                    }, {
-                        pattern: /(^|[^>])>(?!>)/,
-                        lookbehind: !0
-                    }],
-                    punctuation: /<<|>>|[.,:;?\[\](){}]/
-                }, n.languages.mel.code.inside.rest = n.util.clone(n.languages.mel), n.languages.mizar = {
-                    comment: /::.+/,
-                    keyword: /@proof\b|\b(?:according|aggregate|all|and|antonym|are|as|associativity|assume|asymmetry|attr|be|begin|being|by|canceled|case|cases|clusters?|coherence|commutativity|compatibility|connectedness|consider|consistency|constructors|contradiction|correctness|def|deffunc|define|definitions?|defpred|do|does|equals|end|environ|ex|exactly|existence|for|from|func|given|hence|hereby|holds|idempotence|identity|iff?|implies|involutiveness|irreflexivity|is|it|let|means|mode|non|not|notations?|now|of|or|otherwise|over|per|pred|prefix|projectivity|proof|provided|qua|reconsider|redefine|reduce|reducibility|reflexivity|registrations?|requirements|reserve|sch|schemes?|section|selector|set|sethood|st|struct|such|suppose|symmetry|synonym|take|that|the|then|theorems?|thesis|thus|to|transitivity|uniqueness|vocabular(?:y|ies)|when|where|with|wrt)\b/,
-                    parameter: {
-                        pattern: /\$(?:10|\d)/,
-                        alias: "variable"
-                    },
-                    variable: /\w+(?=:)/,
-                    number: /(?:\b|-)\d+\b/,
-                    operator: /\.\.\.|->|&|\.?=/,
-                    punctuation: /\(#|#\)|[,:;\[\](){}]/
-                }, n.languages.monkey = {
-                    string: /"[^"\r\n]*"/,
-                    comment: [/^#Rem\s+[\s\S]*?^#End/im, /'.+/],
-                    preprocessor: {
-                        pattern: /(^[ \t]*)#.+/m,
-                        lookbehind: !0,
-                        alias: "comment"
-                    },
-                    function: /\w+(?=\()/,
-                    "type-char": {
-                        pattern: /(\w)[?%#$]/,
-                        lookbehind: !0,
-                        alias: "variable"
-                    },
-                    number: {
-                        pattern: /((?:\.\.)?)(?:(?:\b|\B-\.?|\B\.)\d+((?!\.\.)\.\d*)?|\$[\da-f]+)/i,
-                        lookbehind: !0
-                    },
-                    keyword: /\b(?:Void|Strict|Public|Private|Property|Bool|Int|Float|String|Array|Object|Continue|Exit|Import|Extern|New|Self|Super|Try|Catch|Eachin|True|False|Extends|Abstract|Final|Select|Case|Default|Const|Local|Global|Field|Method|Function|Class|End|If|Then|Else|ElseIf|EndIf|While|Wend|Repeat|Until|Forever|For|To|Step|Next|Return|Module|Interface|Implements|Inline|Throw|Null)\b/i,
-                    operator: /\.\.|<[=>]?|>=?|:?=|(?:[+\-*\/&~|]|\b(?:Mod|Shl|Shr)\b)=?|\b(?:And|Not|Or)\b/i,
-                    punctuation: /[.,:;()\[\]]/
-                }, n.languages.nasm = {
-                    comment: /;.*$/m,
-                    string: /("|'|`)(\\?.)*?\1/m,
-                    label: {
-                        pattern: /(^\s*)[A-Za-z._?$][\w.?$@~#]*:/m,
-                        lookbehind: !0,
-                        alias: "function"
-                    },
-                    keyword: [/\[?BITS (16|32|64)\]?/m, {
-                        pattern: /(^\s*)section\s*[a-zA-Z\.]+:?/im,
-                        lookbehind: !0
-                    }, /(?:extern|global)[^;\r\n]*/im, /(?:CPU|FLOAT|DEFAULT).*$/m],
-                    register: {
-                        pattern: /\b(?:st\d|[xyz]mm\d\d?|[cdt]r\d|r\d\d?[bwd]?|[er]?[abcd]x|[abcd][hl]|[er]?(bp|sp|si|di)|[cdefgs]s)\b/i,
-                        alias: "variable"
-                    },
-                    number: /(\b|-|(?=\$))(0[hx][\da-f]*\.?[\da-f]+(p[+-]?\d+)?|\d[\da-f]+[hx]|\$\d[\da-f]*|0[oq][0-7]+|[0-7]+[oq]|0[by][01]+|[01]+[by]|0[dt]\d+|\d*\.?\d+(\.?e[+-]?\d+)?[dt]?)\b/i,
-                    operator: /[\[\]*+\-\/%<>=&|$!]/
-                }, n.languages.nginx = n.languages.extend("clike", {
-                    comment: {
-                        pattern: /(^|[^"{\\])#.*/,
-                        lookbehind: !0
-                    },
-                    keyword: /\b(?:CONTENT_|DOCUMENT_|GATEWAY_|HTTP_|HTTPS|if_not_empty|PATH_|QUERY_|REDIRECT_|REMOTE_|REQUEST_|SCGI|SCRIPT_|SERVER_|http|server|events|location|include|accept_mutex|accept_mutex_delay|access_log|add_after_body|add_before_body|add_header|addition_types|aio|alias|allow|ancient_browser|ancient_browser_value|auth|auth_basic|auth_basic_user_file|auth_http|auth_http_header|auth_http_timeout|autoindex|autoindex_exact_size|autoindex_localtime|break|charset|charset_map|charset_types|chunked_transfer_encoding|client_body_buffer_size|client_body_in_file_only|client_body_in_single_buffer|client_body_temp_path|client_body_timeout|client_header_buffer_size|client_header_timeout|client_max_body_size|connection_pool_size|create_full_put_path|daemon|dav_access|dav_methods|debug_connection|debug_points|default_type|deny|devpoll_changes|devpoll_events|directio|directio_alignment|disable_symlinks|empty_gif|env|epoll_events|error_log|error_page|expires|fastcgi_buffer_size|fastcgi_buffers|fastcgi_busy_buffers_size|fastcgi_cache|fastcgi_cache_bypass|fastcgi_cache_key|fastcgi_cache_lock|fastcgi_cache_lock_timeout|fastcgi_cache_methods|fastcgi_cache_min_uses|fastcgi_cache_path|fastcgi_cache_purge|fastcgi_cache_use_stale|fastcgi_cache_valid|fastcgi_connect_timeout|fastcgi_hide_header|fastcgi_ignore_client_abort|fastcgi_ignore_headers|fastcgi_index|fastcgi_intercept_errors|fastcgi_keep_conn|fastcgi_max_temp_file_size|fastcgi_next_upstream|fastcgi_no_cache|fastcgi_param|fastcgi_pass|fastcgi_pass_header|fastcgi_read_timeout|fastcgi_redirect_errors|fastcgi_send_timeout|fastcgi_split_path_info|fastcgi_store|fastcgi_store_access|fastcgi_temp_file_write_size|fastcgi_temp_path|flv|geo|geoip_city|geoip_country|google_perftools_profiles|gzip|gzip_buffers|gzip_comp_level|gzip_disable|gzip_http_version|gzip_min_length|gzip_proxied|gzip_static|gzip_types|gzip_vary|if|if_modified_since|ignore_invalid_headers|image_filter|image_filter_buffer|image_filter_jpeg_quality|image_filter_sharpen|image_filter_transparency|imap_capabilities|imap_client_buffer|include|index|internal|ip_hash|keepalive|keepalive_disable|keepalive_requests|keepalive_timeout|kqueue_changes|kqueue_events|large_client_header_buffers|limit_conn|limit_conn_log_level|limit_conn_zone|limit_except|limit_rate|limit_rate_after|limit_req|limit_req_log_level|limit_req_zone|limit_zone|lingering_close|lingering_time|lingering_timeout|listen|location|lock_file|log_format|log_format_combined|log_not_found|log_subrequest|map|map_hash_bucket_size|map_hash_max_size|master_process|max_ranges|memcached_buffer_size|memcached_connect_timeout|memcached_next_upstream|memcached_pass|memcached_read_timeout|memcached_send_timeout|merge_slashes|min_delete_depth|modern_browser|modern_browser_value|mp4|mp4_buffer_size|mp4_max_buffer_size|msie_padding|msie_refresh|multi_accept|open_file_cache|open_file_cache_errors|open_file_cache_min_uses|open_file_cache_valid|open_log_file_cache|optimize_server_names|override_charset|pcre_jit|perl|perl_modules|perl_require|perl_set|pid|pop3_auth|pop3_capabilities|port_in_redirect|post_action|postpone_output|protocol|proxy|proxy_buffer|proxy_buffer_size|proxy_buffering|proxy_buffers|proxy_busy_buffers_size|proxy_cache|proxy_cache_bypass|proxy_cache_key|proxy_cache_lock|proxy_cache_lock_timeout|proxy_cache_methods|proxy_cache_min_uses|proxy_cache_path|proxy_cache_use_stale|proxy_cache_valid|proxy_connect_timeout|proxy_cookie_domain|proxy_cookie_path|proxy_headers_hash_bucket_size|proxy_headers_hash_max_size|proxy_hide_header|proxy_http_version|proxy_ignore_client_abort|proxy_ignore_headers|proxy_intercept_errors|proxy_max_temp_file_size|proxy_method|proxy_next_upstream|proxy_no_cache|proxy_pass|proxy_pass_error_message|proxy_pass_header|proxy_pass_request_body|proxy_pass_request_headers|proxy_read_timeout|proxy_redirect|proxy_redirect_errors|proxy_send_lowat|proxy_send_timeout|proxy_set_body|proxy_set_header|proxy_ssl_session_reuse|proxy_store|proxy_store_access|proxy_temp_file_write_size|proxy_temp_path|proxy_timeout|proxy_upstream_fail_timeout|proxy_upstream_max_fails|random_index|read_ahead|real_ip_header|recursive_error_pages|request_pool_size|reset_timedout_connection|resolver|resolver_timeout|return|rewrite|root|rtsig_overflow_events|rtsig_overflow_test|rtsig_overflow_threshold|rtsig_signo|satisfy|satisfy_any|secure_link_secret|send_lowat|send_timeout|sendfile|sendfile_max_chunk|server|server_name|server_name_in_redirect|server_names_hash_bucket_size|server_names_hash_max_size|server_tokens|set|set_real_ip_from|smtp_auth|smtp_capabilities|so_keepalive|source_charset|split_clients|ssi|ssi_silent_errors|ssi_types|ssi_value_length|ssl|ssl_certificate|ssl_certificate_key|ssl_ciphers|ssl_client_certificate|ssl_crl|ssl_dhparam|ssl_engine|ssl_prefer_server_ciphers|ssl_protocols|ssl_session_cache|ssl_session_timeout|ssl_verify_client|ssl_verify_depth|starttls|stub_status|sub_filter|sub_filter_once|sub_filter_types|tcp_nodelay|tcp_nopush|timeout|timer_resolution|try_files|types|types_hash_bucket_size|types_hash_max_size|underscores_in_headers|uninitialized_variable_warn|upstream|use|user|userid|userid_domain|userid_expires|userid_name|userid_p3p|userid_path|userid_service|valid_referers|variables_hash_bucket_size|variables_hash_max_size|worker_connections|worker_cpu_affinity|worker_priority|worker_processes|worker_rlimit_core|worker_rlimit_nofile|worker_rlimit_sigpending|working_directory|xclient|xml_entities|xslt_entities|xslt_stylesheet|xslt_types)\b/i
-                }), n.languages.insertBefore("nginx", "keyword", {
-                    variable: /\$[a-z_]+/i
-                }), n.languages.nim = {
-                    comment: /#.*/,
-                    string: /(?:(?:\b(?!\d)(?:\w|\\x[8-9a-fA-F][0-9a-fA-F])+)?(?:"""[\s\S]*?"""(?!")|"(?:\\[\s\S]|""|[^"\\])*")|'(?:\\(?:\d+|x[\da-fA-F]{2}|.)|[^'])')/,
-                    number: /\b(?:0[xXoObB][\da-fA-F_]+|\d[\d_]*(?:(?!\.\.)\.[\d_]*)?(?:[eE][+-]?\d[\d_]*)?)(?:'?[iuf]\d*)?/,
-                    keyword: /\b(?:addr|as|asm|atomic|bind|block|break|case|cast|concept|const|continue|converter|defer|discard|distinct|do|elif|else|end|enum|except|export|finally|for|from|func|generic|if|import|include|interface|iterator|let|macro|method|mixin|nil|object|out|proc|ptr|raise|ref|return|static|template|try|tuple|type|using|var|when|while|with|without|yield)\b/,
-                    function: {
-                        pattern: /(?:(?!\d)(?:\w|\\x[8-9a-fA-F][0-9a-fA-F])+|`[^`\r\n]+`)\*?(?:\[[^\]]+\])?(?=\s*\()/,
-                        inside: {
-                            operator: /\*$/
-                        }
-                    },
-                    ignore: {
-                        pattern: /`[^`\r\n]+`/,
-                        inside: {
-                            punctuation: /`/
-                        }
-                    },
-                    operator: {
-                        pattern: /(^|[({\[](?=\.\.)|(?![({\[]\.).)(?:(?:[=+\-*\/<>@$~&%|!?^:\\]|\.\.|\.(?![)}\]]))+|\b(?:and|div|of|or|in|is|isnot|mod|not|notin|shl|shr|xor)\b)/m,
-                        lookbehind: !0
-                    },
-                    punctuation: /[({\[]\.|\.[)}\]]|[`(){}\[\],:]/
-                }, n.languages.nix = {
-                    comment: /\/\*[\s\S]*?\*\/|#.*/,
-                    string: {
-                        pattern: /"(?:[^"\\]|\\[\s\S])*"|''(?:(?!'')[\s\S]|''(?:'|\\|\$\{))*''/,
-                        inside: {
-                            interpolation: {
-                                pattern: /(^|(?:^|(?!'').)[^\\])\$\{(?:[^}]|\{[^}]*\})*}/,
-                                lookbehind: !0,
-                                inside: {
-                                    antiquotation: {
-                                        pattern: /^\$(?=\{)/,
-                                        alias: "variable"
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    url: [/\b(?:[a-z]{3,7}:\/\/)[\w\-+%~\/.:#=?&]+/, {
-                        pattern: /([^\/])(?:[\w\-+%~.:#=?&]*(?!\/\/)[\w\-+%~\/.:#=?&])?(?!\/\/)\/[\w\-+%~\/.:#=?&]*/,
-                        lookbehind: !0
-                    }],
-                    antiquotation: {
-                        pattern: /\$(?=\{)/,
-                        alias: "variable"
-                    },
-                    number: /\b\d+\b/,
-                    keyword: /\b(?:assert|builtins|else|if|in|inherit|let|null|or|then|with)\b/,
-                    function: /\b(?:abort|add|all|any|attrNames|attrValues|baseNameOf|compareVersions|concatLists|currentSystem|deepSeq|derivation|dirOf|div|elem(?:At)?|fetch(?:url|Tarball)|filter(?:Source)?|fromJSON|genList|getAttr|getEnv|hasAttr|hashString|head|import|intersectAttrs|is(?:Attrs|Bool|Function|Int|List|Null|String)|length|lessThan|listToAttrs|map|mul|parseDrvName|pathExists|read(?:Dir|File)|removeAttrs|replaceStrings|seq|sort|stringLength|sub(?:string)?|tail|throw|to(?:File|JSON|Path|String|XML)|trace|typeOf)\b|\bfoldl'\B/,
-                    boolean: /\b(?:true|false)\b/,
-                    operator: /[=!<>]=?|\+\+?|\|\||&&|\/\/|->?|[?@]/,
-                    punctuation: /[{}()[\].,:;]/
-                }, n.languages.nix.string.inside.interpolation.inside.rest = n.util.clone(n.languages.nix), n.languages.nsis = {
-                    comment: {
-                        pattern: /(^|[^\\])(\/\*[\w\W]*?\*\/|[#;].*)/,
-                        lookbehind: !0
-                    },
-                    string: /("|')(\\?.)*?\1/,
-                    keyword: {
-                        pattern: /(^\s*)(Abort|Add(BrandingImage|Size)|AdvSplash|Allow(RootDirInstall|SkipFiles)|AutoCloseWindow|Banner|BG(Font|Gradient|Image)|BrandingText|BringToFront|Call(InstDLL)?|Caption|ChangeUI|CheckBitmap|ClearErrors|CompletedText|ComponentText|CopyFiles|CRCCheck|Create(Directory|Font|ShortCut)|Delete(INISec|INIStr|RegKey|RegValue)?|Detail(Print|sButtonText)|Dialer|Dir(Text|Var|Verify)|EnableWindow|Enum(RegKey|RegValue)|Exch|Exec(Shell|Wait)?|ExpandEnvStrings|File(BufSize|Close|ErrorText|Open|Read|ReadByte|ReadUTF16LE|ReadWord|WriteUTF16LE|Seek|Write|WriteByte|WriteWord)?|Find(Close|First|Next|Window)|FlushINI|Get(CurInstType|CurrentAddress|DlgItem|DLLVersion(Local)?|ErrorLevel|FileTime(Local)?|FullPathName|Function(Address|End)?|InstDirError|LabelAddress|TempFileName)|Goto|HideWindow|Icon|If(Abort|Errors|FileExists|RebootFlag|Silent)|InitPluginsDir|Install(ButtonText|Colors|Dir(RegKey)?)|InstProgressFlags|Inst(Type(GetText|SetText)?)|Int(CmpU?|Fmt|Op)|IsWindow|Lang(DLL|String)|License(BkColor|Data|ForceSelection|LangString|Text)|LoadLanguageFile|LockWindow|Log(Set|Text)|Manifest(DPIAware|SupportedOS)|Math|MessageBox|MiscButtonText|Name|Nop|ns(Dialogs|Exec)|NSISdl|OutFile|Page(Callbacks)?|Pop|Push|Quit|Read(EnvStr|INIStr|RegDWORD|RegStr)|Reboot|RegDLL|Rename|RequestExecutionLevel|ReserveFile|Return|RMDir|SearchPath|Section(End|GetFlags|GetInstTypes|GetSize|GetText|Group|In|SetFlags|SetInstTypes|SetSize|SetText)?|SendMessage|Set(AutoClose|BrandingImage|Compress|Compressor(DictSize)?|CtlColors|CurInstType|DatablockOptimize|DateSave|Details(Print|View)|ErrorLevel|Errors|FileAttributes|Font|OutPath|Overwrite|PluginUnload|RebootFlag|RegView|ShellVarContext|Silent)|Show(InstDetails|UninstDetails|Window)|Silent(Install|UnInstall)|Sleep|SpaceTexts|Splash|StartMenu|Str(CmpS?|Cpy|Len)|SubCaption|System|Unicode|Uninstall(ButtonText|Caption|Icon|SubCaption|Text)|UninstPage|UnRegDLL|UserInfo|Var|VI(AddVersionKey|FileVersion|ProductVersion)|VPatch|WindowIcon|Write(INIStr|RegBin|RegDWORD|RegExpandStr|RegStr|Uninstaller)|XPStyle)\b/m,
-                        lookbehind: !0
-                    },
-                    property: /\b(admin|all|auto|both|colored|false|force|hide|highest|lastused|leave|listonly|none|normal|notset|off|on|open|print|show|silent|silentlog|smooth|textonly|true|user|ARCHIVE|FILE_(ATTRIBUTE_ARCHIVE|ATTRIBUTE_NORMAL|ATTRIBUTE_OFFLINE|ATTRIBUTE_READONLY|ATTRIBUTE_SYSTEM|ATTRIBUTE_TEMPORARY)|HK(CR|CU|DD|LM|PD|U)|HKEY_(CLASSES_ROOT|CURRENT_CONFIG|CURRENT_USER|DYN_DATA|LOCAL_MACHINE|PERFORMANCE_DATA|USERS)|ID(ABORT|CANCEL|IGNORE|NO|OK|RETRY|YES)|MB_(ABORTRETRYIGNORE|DEFBUTTON1|DEFBUTTON2|DEFBUTTON3|DEFBUTTON4|ICONEXCLAMATION|ICONINFORMATION|ICONQUESTION|ICONSTOP|OK|OKCANCEL|RETRYCANCEL|RIGHT|RTLREADING|SETFOREGROUND|TOPMOST|USERICON|YESNO)|NORMAL|OFFLINE|READONLY|SHCTX|SHELL_CONTEXT|SYSTEM|TEMPORARY)\b/,
-                    constant: /\${[\w\.:-]+}|\$\([\w\.:-]+\)/i,
-                    variable: /\$\w+/i,
-                    number: /\b-?(0x[\dA-Fa-f]+|\d*\.?\d+([Ee]-?\d+)?)\b/,
-                    operator: /--?|\+\+?|<=?|>=?|==?=?|&&?|\|?\||[?*\/~^%]/,
-                    punctuation: /[{}[\];(),.:]/,
-                    important: {
-                        pattern: /(^\s*)!(addincludedir|addplugindir|appendfile|cd|define|delfile|echo|else|endif|error|execute|finalize|getdllversionsystem|ifdef|ifmacrodef|ifmacrondef|ifndef|if|include|insertmacro|macroend|macro|makensis|packhdr|searchparse|searchreplace|tempfile|undef|verbose|warning)\b/im,
-                        lookbehind: !0
-                    }
-                }, n.languages.objectivec = n.languages.extend("c", {
-                    keyword: /\b(asm|typeof|inline|auto|break|case|char|const|continue|default|do|double|else|enum|extern|float|for|goto|if|int|long|register|return|short|signed|sizeof|static|struct|switch|typedef|union|unsigned|void|volatile|while|in|self|super)\b|(@interface|@end|@implementation|@protocol|@class|@public|@protected|@private|@property|@try|@catch|@finally|@throw|@synthesize|@dynamic|@selector)\b/,
-                    string: /("|')(\\(?:\r\n|[\s\S])|(?!\1)[^\\\r\n])*\1|@"(\\(?:\r\n|[\s\S])|[^"\\\r\n])*"/,
-                    operator: /-[->]?|\+\+?|!=?|<<?=?|>>?=?|==?|&&?|\|\|?|[~^%?*\/@]/
-                }), n.languages.ocaml = {
-                    comment: /\(\*[\s\S]*?\*\)/,
-                    string: [/"(?:\\.|[^\\\r\n"])*"/, /(['`])(?:\\(?:\d+|x[\da-f]+|.)|(?!\1)[^\\\r\n])\1/i],
-                    number: /\b-?(?:0x[\da-f][\da-f_]+|(?:0[bo])?\d[\d_]*\.?[\d_]*(?:e[+-]?[\d_]+)?)/i,
-                    type: {
-                        pattern: /\B['`][a-z\d_]*/i,
-                        alias: "variable"
-                    },
-                    directive: {
-                        pattern: /\B#[a-z\d_]+/i,
-                        alias: "function"
-                    },
-                    keyword: /\b(?:as|assert|begin|class|constraint|do|done|downto|else|end|exception|external|for|fun|function|functor|if|in|include|inherit|initializer|lazy|let|match|method|module|mutable|new|object|of|open|prefix|private|rec|then|sig|struct|to|try|type|val|value|virtual|where|while|with)\b/,
-                    boolean: /\b(?:false|true)\b/,
-                    operator: /:=|[=<>@^|&+\-*\/$%!?~][!$%&\*+\-.\/:<=>?@^|~]*|\b(?:and|asr|land|lor|lxor|lsl|lsr|mod|nor|or)\b/,
-                    punctuation: /[(){}\[\]|_.,:;]/
-                }, n.languages.oz = {
-                    comment: /\/\*[\s\S]*?\*\/|%.*/,
-                    string: /"(?:[^"\\]|\\[\s\S])*"/,
-                    atom: {
-                        pattern: /'(?:[^'\\]|\\.)*'/,
-                        alias: "builtin"
-                    },
-                    keyword: /[$_]|\[\]|\b(?:at|attr|case|catch|choice|class|cond|declare|define|dis|else(?:case|if)?|end|export|fail|false|feat|finally|from|fun|functor|if|import|in|local|lock|meth|nil|not|of|or|prepare|proc|prop|raise|require|self|skip|then|thread|true|try|unit)\b/,
-                    function: [/[a-z][A-Za-z\d]*(?=\()/, {
-                        pattern: /(\{)[A-Z][A-Za-z\d]*/,
-                        lookbehind: !0
-                    }],
-                    number: /\b(?:0[bx][\da-f]+|\d+\.?\d*(?:e~?\d+)?\b)|&(?:[^\\]|\\(?:\d{3}|.))/i,
-                    variable: /\b[A-Z][A-Za-z\d]*|`(?:[^`\\]|\\.)+`/,
-                    "attr-name": /\w+(?=:)/,
-                    operator: /:(?:=|::?)|<[-:=]?|=(?:=|<?:?)|>=?:?|\\=:?|!!?|[|#+\-*\/,~^@]|\b(?:andthen|div|mod|orelse)\b/,
-                    punctuation: /[\[\](){}.:;?]/
-                }, n.languages.parigp = {
-                    comment: /\/\*[\s\S]*?\*\/|\\\\.*/,
-                    string: /"(?:[^"\\]|\\.)*"/,
-                    keyword: function() {
-                        var e = ["breakpoint", "break", "dbg_down", "dbg_err", "dbg_up", "dbg_x", "forcomposite", "fordiv", "forell", "forpart", "forprime", "forstep", "forsubgroup", "forvec", "for", "iferr", "if", "local", "my", "next", "return", "until", "while"];
-                        return e = e.map(function(e) {
-                            return e.split("").join(" *")
-                        }).join("|"), RegExp("\\b(?:" + e + ")\\b")
-                    }(),
-                    function: /\w[\w ]*?(?= *\()/,
-                    number: {
-                        pattern: /((?:\. *\. *)?)(?:\d(?: *\d)*(?: *(?!\. *\.)\.(?: *\d)*)?|\. *\d(?: *\d)*)(?: *e *[+-]? *\d(?: *\d)*)?/i,
-                        lookbehind: !0
-                    },
-                    operator: /\. *\.|[*\/!](?: *=)?|%(?: *=|(?: *#)?(?: *')*)?|\+(?: *[+=])?|-(?: *[-=>])?|<(?:(?: *<)?(?: *=)?| *>)?|>(?: *>)?(?: *=)?|=(?: *=){0,2}|\\(?: *\/)?(?: *=)?|&(?: *&)?|\| *\||['#~^]/,
-                    punctuation: /[\[\]{}().,:;|]/
-                }, n.languages.parser = n.languages.extend("markup", {
-                    keyword: {
-                        pattern: /(^|[^^])(?:\^(?:case|eval|for|if|switch|throw)\b|@(?:BASE|CLASS|GET(?:_DEFAULT)?|OPTIONS|SET_DEFAULT|USE)\b)/,
-                        lookbehind: !0
-                    },
-                    variable: {
-                        pattern: /(^|[^^])\B\$(?:\w+|(?=[.\{]))(?:(?:\.|::?)\w+)*(?:\.|::?)?/,
-                        lookbehind: !0,
-                        inside: {
-                            punctuation: /\.|:+/
-                        }
-                    },
-                    function: {
-                        pattern: /(^|[^^])\B[@^]\w+(?:(?:\.|::?)\w+)*(?:\.|::?)?/,
-                        lookbehind: !0,
-                        inside: {
-                            keyword: {
-                                pattern: /(^@)(?:GET_|SET_)/,
-                                lookbehind: !0
-                            },
-                            punctuation: /\.|:+/
-                        }
-                    },
-                    escape: {
-                        pattern: /\^(?:[$^;@()\[\]{}"':]|#[a-f\d]*)/i,
-                        alias: "builtin"
-                    },
-                    punctuation: /[\[\](){};]/
-                }), n.languages.insertBefore("parser", "keyword", {
-                    "parser-comment": {
-                        pattern: /(\s)#.*/,
-                        lookbehind: !0,
-                        alias: "comment"
-                    },
-                    expression: {
-                        pattern: /(^|[^^])\((?:[^()]|\((?:[^()]|\((?:[^()])*\))*\))*\)/,
-                        lookbehind: !0,
-                        inside: {
-                            string: {
-                                pattern: /(^|[^^])(["'])(?:(?!\2)[^^]|\^[\s\S])*\2/,
-                                lookbehind: !0
-                            },
-                            keyword: n.languages.parser.keyword,
-                            variable: n.languages.parser.variable,
-                            function: n.languages.parser.function,
-                            boolean: /\b(?:true|false)\b/,
-                            number: /\b(?:0x[a-f\d]+|\d+\.?\d*(?:e[+-]?\d+)?)\b/i,
-                            escape: n.languages.parser.escape,
-                            operator: /[~+*\/\\%]|!(?:\|\|?|=)?|&&?|\|\|?|==|<[<=]?|>[>=]?|-[fd]?|\b(?:def|eq|ge|gt|in|is|le|lt|ne)\b/,
-                            punctuation: n.languages.parser.punctuation
-                        }
-                    }
-                }), n.languages.insertBefore("inside", "punctuation", {
-                    expression: n.languages.parser.expression,
-                    keyword: n.languages.parser.keyword,
-                    variable: n.languages.parser.variable,
-                    function: n.languages.parser.function,
-                    escape: n.languages.parser.escape,
-                    "parser-punctuation": {
-                        pattern: n.languages.parser.punctuation,
-                        alias: "punctuation"
-                    }
-                }, n.languages.parser.tag.inside["attr-value"]), n.languages.pascal = {
-                    comment: [/\(\*[\s\S]+?\*\)/, /\{[\s\S]+?\}/, /\/\/.*/],
-                    string: /(?:'(?:''|[^'\r\n])*'|#[&$%]?[a-f\d]+)+|\^[a-z]/i,
-                    keyword: [{
-                        pattern: /(^|[^&])\b(?:absolute|array|asm|begin|case|const|constructor|destructor|do|downto|else|end|file|for|function|goto|if|implementation|inherited|inline|interface|label|nil|object|of|operator|packed|procedure|program|record|reintroduce|repeat|self|set|string|then|to|type|unit|until|uses|var|while|with)\b/i,
-                        lookbehind: !0
-                    }, {
-                        pattern: /(^|[^&])\b(?:dispose|exit|false|new|true)\b/i,
-                        lookbehind: !0
-                    }, {
-                        pattern: /(^|[^&])\b(?:class|dispinterface|except|exports|finalization|finally|initialization|inline|library|on|out|packed|property|raise|resourcestring|threadvar|try)\b/i,
-                        lookbehind: !0
-                    }, {
-                        pattern: /(^|[^&])\b(?:absolute|abstract|alias|assembler|bitpacked|break|cdecl|continue|cppdecl|cvar|default|deprecated|dynamic|enumerator|experimental|export|external|far|far16|forward|generic|helper|implements|index|interrupt|iochecks|local|message|name|near|nodefault|noreturn|nostackframe|oldfpccall|otherwise|overload|override|pascal|platform|private|protected|public|published|read|register|reintroduce|result|safecall|saveregisters|softfloat|specialize|static|stdcall|stored|strict|unaligned|unimplemented|varargs|virtual|write)\b/i,
-                        lookbehind: !0
-                    }],
-                    number: [/[+-]?(?:[&%]\d+|\$[a-f\d]+)/i, /([+-]|\b)\d+(?:\.\d+)?(?:e[+-]?\d+)?/i],
-                    operator: [/\.\.|\*\*|:=|<[<=>]?|>[>=]?|[+\-*\/]=?|[@^=]/i, {
-                        pattern: /(^|[^&])\b(?:and|as|div|exclude|in|include|is|mod|not|or|shl|shr|xor)\b/,
-                        lookbehind: !0
-                    }],
-                    punctuation: /\(\.|\.\)|[()\[\]:;,.]/
-                }, n.languages.perl = {
-                    comment: [{
-                        pattern: /(^\s*)=\w+[\s\S]*?=cut.*/m,
-                        lookbehind: !0
-                    }, {
-                        pattern: /(^|[^\\$])#.*/,
-                        lookbehind: !0
-                    }],
-                    string: [/\b(?:q|qq|qx|qw)\s*([^a-zA-Z0-9\s\{\(\[<])(?:[^\\]|\\[\s\S])*?\1/, /\b(?:q|qq|qx|qw)\s+([a-zA-Z0-9])(?:[^\\]|\\[\s\S])*?\1/, /\b(?:q|qq|qx|qw)\s*\((?:[^()\\]|\\[\s\S])*\)/, /\b(?:q|qq|qx|qw)\s*\{(?:[^{}\\]|\\[\s\S])*\}/, /\b(?:q|qq|qx|qw)\s*\[(?:[^[\]\\]|\\[\s\S])*\]/, /\b(?:q|qq|qx|qw)\s*<(?:[^<>\\]|\\[\s\S])*>/, /("|`)(?:[^\\]|\\[\s\S])*?\1/, /'(?:[^'\\\r\n]|\\.)*'/],
-                    regex: [/\b(?:m|qr)\s*([^a-zA-Z0-9\s\{\(\[<])(?:[^\\]|\\[\s\S])*?\1[msixpodualngc]*/, /\b(?:m|qr)\s+([a-zA-Z0-9])(?:[^\\]|\\.)*?\1[msixpodualngc]*/, /\b(?:m|qr)\s*\((?:[^()\\]|\\[\s\S])*\)[msixpodualngc]*/, /\b(?:m|qr)\s*\{(?:[^{}\\]|\\[\s\S])*\}[msixpodualngc]*/, /\b(?:m|qr)\s*\[(?:[^[\]\\]|\\[\s\S])*\][msixpodualngc]*/, /\b(?:m|qr)\s*<(?:[^<>\\]|\\[\s\S])*>[msixpodualngc]*/, {
-                        pattern: /(^|[^-]\b)(?:s|tr|y)\s*([^a-zA-Z0-9\s\{\(\[<])(?:[^\\]|\\[\s\S])*?\2(?:[^\\]|\\[\s\S])*?\2[msixpodualngcer]*/,
-                        lookbehind: !0
-                    }, {
-                        pattern: /(^|[^-]\b)(?:s|tr|y)\s+([a-zA-Z0-9])(?:[^\\]|\\[\s\S])*?\2(?:[^\\]|\\[\s\S])*?\2[msixpodualngcer]*/,
-                        lookbehind: !0
-                    }, {
-                        pattern: /(^|[^-]\b)(?:s|tr|y)\s*\((?:[^()\\]|\\[\s\S])*\)\s*\((?:[^()\\]|\\[\s\S])*\)[msixpodualngcer]*/,
-                        lookbehind: !0
-                    }, {
-                        pattern: /(^|[^-]\b)(?:s|tr|y)\s*\{(?:[^{}\\]|\\[\s\S])*\}\s*\{(?:[^{}\\]|\\[\s\S])*\}[msixpodualngcer]*/,
-                        lookbehind: !0
-                    }, {
-                        pattern: /(^|[^-]\b)(?:s|tr|y)\s*\[(?:[^[\]\\]|\\[\s\S])*\]\s*\[(?:[^[\]\\]|\\[\s\S])*\][msixpodualngcer]*/,
-                        lookbehind: !0
-                    }, {
-                        pattern: /(^|[^-]\b)(?:s|tr|y)\s*<(?:[^<>\\]|\\[\s\S])*>\s*<(?:[^<>\\]|\\[\s\S])*>[msixpodualngcer]*/,
-                        lookbehind: !0
-                    }, /\/(?:[^\/\\\r\n]|\\.)*\/[msixpodualngc]*(?=\s*(?:$|[\r\n,.;})&|\-+*~<>!?^]|(lt|gt|le|ge|eq|ne|cmp|not|and|or|xor|x)\b))/],
-                    variable: [/[&*$@%]\{\^[A-Z]+\}/, /[&*$@%]\^[A-Z_]/, /[&*$@%]#?(?=\{)/, /[&*$@%]#?((::)*'?(?!\d)[\w$]+)+(::)*/i, /[&*$@%]\d+/, /(?!%=)[$@%][!"#$%&'()*+,\-.\/:;<=>?@[\\\]^_`{|}~]/],
-                    filehandle: {
-                        pattern: /<(?![<=])\S*>|\b_\b/,
-                        alias: "symbol"
-                    },
-                    vstring: {
-                        pattern: /v\d+(\.\d+)*|\d+(\.\d+){2,}/,
-                        alias: "string"
-                    },
-                    function: {
-                        pattern: /sub [a-z0-9_]+/i,
-                        inside: {
-                            keyword: /sub/
-                        }
-                    },
-                    keyword: /\b(any|break|continue|default|delete|die|do|else|elsif|eval|for|foreach|given|goto|if|last|local|my|next|our|package|print|redo|require|say|state|sub|switch|undef|unless|until|use|when|while)\b/,
-                    number: /\b-?(0x[\dA-Fa-f](_?[\dA-Fa-f])*|0b[01](_?[01])*|(\d(_?\d)*)?\.?\d(_?\d)*([Ee][+-]?\d+)?)\b/,
-                    operator: /-[rwxoRWXOezsfdlpSbctugkTBMAC]\b|\+[+=]?|-[-=>]?|\*\*?=?|\/\/?=?|=[=~>]?|~[~=]?|\|\|?=?|&&?=?|<(?:=>?|<=?)?|>>?=?|![~=]?|[%^]=?|\.(?:=|\.\.?)?|[\\?]|\bx(?:=|\b)|\b(lt|gt|le|ge|eq|ne|cmp|not|and|or|xor)\b/,
-                    punctuation: /[{}[\];(),:]/
-                }, n.languages.php = n.languages.extend("clike", {
-                    keyword: /\b(and|or|xor|array|as|break|case|cfunction|class|const|continue|declare|default|die|do|else|elseif|enddeclare|endfor|endforeach|endif|endswitch|endwhile|extends|for|foreach|function|include|include_once|global|if|new|return|static|switch|use|require|require_once|var|while|abstract|interface|public|implements|private|protected|parent|throw|null|echo|print|trait|namespace|final|yield|goto|instanceof|finally|try|catch)\b/i,
-                    constant: /\b[A-Z0-9_]{2,}\b/,
-                    comment: {
-                        pattern: /(^|[^\\])(?:\/\*[\w\W]*?\*\/|\/\/.*)/,
-                        lookbehind: !0,
-                        greedy: !0
-                    }
-                }), n.languages.insertBefore("php", "class-name", {
-                    "shell-comment": {
-                        pattern: /(^|[^\\])#.*/,
-                        lookbehind: !0,
-                        alias: "comment"
-                    }
-                }), n.languages.insertBefore("php", "keyword", {
-                    delimiter: /\?>|<\?(?:php)?/i,
-                    variable: /\$\w+\b/i,
-                    package: {
-                        pattern: /(\\|namespace\s+|use\s+)[\w\\]+/,
-                        lookbehind: !0,
-                        inside: {
-                            punctuation: /\\/
-                        }
-                    }
-                }), n.languages.insertBefore("php", "operator", {
-                    property: {
-                        pattern: /(->)[\w]+/,
-                        lookbehind: !0
-                    }
-                }), n.languages.markup && (n.hooks.add("before-highlight", function(e) {
-                    "php" === e.language && (e.tokenStack = [], e.backupCode = e.code, e.code = e.code.replace(/(?:<\?php|<\?)[\w\W]*?(?:\?>)/gi, function(t) {
-                        return e.tokenStack.push(t), "{{{PHP" + e.tokenStack.length + "}}}"
-                    }))
-                }), n.hooks.add("before-insert", function(e) {
-                    "php" === e.language && (e.code = e.backupCode, delete e.backupCode)
-                }), n.hooks.add("after-highlight", function(e) {
-                    if ("php" === e.language) {
-                        for (var t, i = 0; t = e.tokenStack[i]; i++) e.highlightedCode = e.highlightedCode.replace("{{{PHP" + (i + 1) + "}}}", n.highlight(t, e.grammar, "php").replace(/\$/g, "$$$$"));
-                        e.element.innerHTML = e.highlightedCode
-                    }
-                }), n.hooks.add("wrap", function(e) {
-                    "php" === e.language && "markup" === e.type && (e.content = e.content.replace(/(\{\{\{PHP[0-9]+\}\}\})/g, '<span class="token php">$1</span>'))
-                }), n.languages.insertBefore("php", "comment", {
-                    markup: {
-                        pattern: /<[^?]\/?(.*?)>/,
-                        inside: n.languages.markup
-                    },
-                    php: /\{\{\{PHP[0-9]+\}\}\}/
-                })), n.languages.insertBefore("php", "variable", {
-                    this: /\$this\b/,
-                    global: /\$(?:_(?:SERVER|GET|POST|FILES|REQUEST|SESSION|ENV|COOKIE)|GLOBALS|HTTP_RAW_POST_DATA|argc|argv|php_errormsg|http_response_header)/,
-                    scope: {
-                        pattern: /\b[\w\\]+::/,
-                        inside: {
-                            keyword: /(static|self|parent)/,
-                            punctuation: /(::|\\)/
-                        }
-                    }
-                }), n.languages.powershell = {
-                    comment: [{
-                        pattern: /(^|[^`])<#[\w\W]*?#>/,
-                        lookbehind: !0
-                    }, {
-                        pattern: /(^|[^`])#.*/,
-                        lookbehind: !0
-                    }],
-                    string: [{
-                        pattern: /"(`?[\w\W])*?"/,
-                        greedy: !0,
-                        inside: {
-                            function: {
-                                pattern: /[^`]\$\(.*?\)/,
-                                inside: {}
-                            }
-                        }
-                    }, {
-                        pattern: /'([^']|'')*'/,
-                        greedy: !0
-                    }],
-                    namespace: /\[[a-z][\w\W]*?\]/i,
-                    boolean: /\$(true|false)\b/i,
-                    variable: /\$\w+\b/i,
-                    function: [/\b(Add-(Computer|Content|History|Member|PSSnapin|Type)|Checkpoint-Computer|Clear-(Content|EventLog|History|Item|ItemProperty|Variable)|Compare-Object|Complete-Transaction|Connect-PSSession|ConvertFrom-(Csv|Json|StringData)|Convert-Path|ConvertTo-(Csv|Html|Json|Xml)|Copy-(Item|ItemProperty)|Debug-Process|Disable-(ComputerRestore|PSBreakpoint|PSRemoting|PSSessionConfiguration)|Disconnect-PSSession|Enable-(ComputerRestore|PSBreakpoint|PSRemoting|PSSessionConfiguration)|Enter-PSSession|Exit-PSSession|Export-(Alias|Clixml|Console|Csv|FormatData|ModuleMember|PSSession)|ForEach-Object|Format-(Custom|List|Table|Wide)|Get-(Alias|ChildItem|Command|ComputerRestorePoint|Content|ControlPanelItem|Culture|Date|Event|EventLog|EventSubscriber|FormatData|Help|History|Host|HotFix|Item|ItemProperty|Job|Location|Member|Module|Process|PSBreakpoint|PSCallStack|PSDrive|PSProvider|PSSession|PSSessionConfiguration|PSSnapin|Random|Service|TraceSource|Transaction|TypeData|UICulture|Unique|Variable|WmiObject)|Group-Object|Import-(Alias|Clixml|Csv|LocalizedData|Module|PSSession)|Invoke-(Command|Expression|History|Item|RestMethod|WebRequest|WmiMethod)|Join-Path|Limit-EventLog|Measure-(Command|Object)|Move-(Item|ItemProperty)|New-(Alias|Event|EventLog|Item|ItemProperty|Module|ModuleManifest|Object|PSDrive|PSSession|PSSessionConfigurationFile|PSSessionOption|PSTransportOption|Service|TimeSpan|Variable|WebServiceProxy)|Out-(Default|File|GridView|Host|Null|Printer|String)|Pop-Location|Push-Location|Read-Host|Receive-(Job|PSSession)|Register-(EngineEvent|ObjectEvent|PSSessionConfiguration|WmiEvent)|Remove-(Computer|Event|EventLog|Item|ItemProperty|Job|Module|PSBreakpoint|PSDrive|PSSession|PSSnapin|TypeData|Variable|WmiObject)|Rename-(Computer|Item|ItemProperty)|Reset-ComputerMachinePassword|Resolve-Path|Restart-(Computer|Service)|Restore-Computer|Resume-(Job|Service)|Save-Help|Select-(Object|String|Xml)|Send-MailMessage|Set-(Alias|Content|Date|Item|ItemProperty|Location|PSBreakpoint|PSDebug|PSSessionConfiguration|Service|StrictMode|TraceSource|Variable|WmiInstance)|Show-(Command|ControlPanelItem|EventLog)|Sort-Object|Split-Path|Start-(Job|Process|Service|Sleep|Transaction)|Stop-(Computer|Job|Process|Service)|Suspend-(Job|Service)|Tee-Object|Test-(ComputerSecureChannel|Connection|ModuleManifest|Path|PSSessionConfigurationFile)|Trace-Command|Unblock-File|Undo-Transaction|Unregister-(Event|PSSessionConfiguration)|Update-(FormatData|Help|List|TypeData)|Use-Transaction|Wait-(Event|Job|Process)|Where-Object|Write-(Debug|Error|EventLog|Host|Output|Progress|Verbose|Warning))\b/i, /\b(ac|cat|chdir|clc|cli|clp|clv|compare|copy|cp|cpi|cpp|cvpa|dbp|del|diff|dir|ebp|echo|epal|epcsv|epsn|erase|fc|fl|ft|fw|gal|gbp|gc|gci|gcs|gdr|gi|gl|gm|gp|gps|group|gsv|gu|gv|gwmi|iex|ii|ipal|ipcsv|ipsn|irm|iwmi|iwr|kill|lp|ls|measure|mi|mount|move|mp|mv|nal|ndr|ni|nv|ogv|popd|ps|pushd|pwd|rbp|rd|rdr|ren|ri|rm|rmdir|rni|rnp|rp|rv|rvpa|rwmi|sal|saps|sasv|sbp|sc|select|set|shcm|si|sl|sleep|sls|sort|sp|spps|spsv|start|sv|swmi|tee|trcm|type|write)\b/i],
-                    keyword: /\b(Begin|Break|Catch|Class|Continue|Data|Define|Do|DynamicParam|Else|ElseIf|End|Exit|Filter|Finally|For|ForEach|From|Function|If|InlineScript|Parallel|Param|Process|Return|Sequence|Switch|Throw|Trap|Try|Until|Using|Var|While|Workflow)\b/i,
-                    operator: {
-                        pattern: /(\W?)(!|-(eq|ne|gt|ge|lt|le|sh[lr]|not|b?(and|x?or)|(Not)?(Like|Match|Contains|In)|Replace|Join|is(Not)?|as)\b|-[-=]?|\+[+=]?|[*\/%]=?)/i,
-                        lookbehind: !0
-                    },
-                    punctuation: /[|{}[\];(),.]/
-                }, n.languages.powershell.string[0].inside.boolean = n.languages.powershell.boolean, n.languages.powershell.string[0].inside.variable = n.languages.powershell.variable, n.languages.powershell.string[0].inside.function.inside = n.util.clone(n.languages.powershell), n.languages.processing = n.languages.extend("clike", {
-                    keyword: /\b(?:break|catch|case|class|continue|default|else|extends|final|for|if|implements|import|new|null|private|public|return|static|super|switch|this|try|void|while)\b/,
-                    operator: /<[<=]?|>[>=]?|&&?|\|\|?|[%?]|[!=+\-*\/]=?/
-                }), n.languages.insertBefore("processing", "number", {
-                    constant: /\b(?!XML\b)[A-Z][A-Z\d_]+\b/,
-                    type: {
-                        pattern: /\b(?:boolean|byte|char|color|double|float|int|XML|[A-Z][A-Za-z\d_]*)\b/,
-                        alias: "variable"
-                    }
-                }), n.languages.processing.function.pattern = /[a-z0-9_]+(?=\s*\()/i, n.languages.processing["class-name"].alias = "variable", n.languages.prolog = {
-                    comment: [/%.+/, /\/\*[\s\S]*?\*\//],
-                    string: /(["'])(?:\1\1|\\(?:\r\n|[\s\S])|(?!\1)[^\\\r\n])*\1/,
-                    builtin: /\b(?:fx|fy|xf[xy]?|yfx?)\b/,
-                    variable: /\b[A-Z_]\w*/,
-                    function: /\b[a-z]\w*(?:(?=\()|\/\d+)/,
-                    number: /\b\d+\.?\d*/,
-                    operator: /[:\\=><\-?*@\/;+^|!$.]+|\b(?:is|mod|not|xor)\b/,
-                    punctuation: /[(){}\[\],]/
-                }, n.languages.properties = {
-                    comment: /^[ \t]*[#!].*$/m,
-                    "attr-value": {
-                        pattern: /(^[ \t]*(?:\\(?:\r\n|[\s\S])|[^\\\s:=])+?(?: *[=:] *| ))(?:\\(?:\r\n|[\s\S])|.)+/m,
-                        lookbehind: !0
-                    },
-                    "attr-name": /^[ \t]*(?:\\(?:\r\n|[\s\S])|[^\\\s:=])+?(?= *[ =:]| )/m,
-                    punctuation: /[=:]/
-                }, n.languages.protobuf = n.languages.extend("clike", {
-                    keyword: /\b(package|import|message|enum)\b/,
-                    builtin: /\b(required|repeated|optional|reserved)\b/,
-                    primitive: {
-                        pattern: /\b(double|float|int32|int64|uint32|uint64|sint32|sint64|fixed32|fixed64|sfixed32|sfixed64|bool|string|bytes)\b/,
-                        alias: "symbol"
-                    }
-                }),
-                function(e) {
-                    e.languages.puppet = {
-                        heredoc: [{
-                            pattern: /(@\("([^"\r\n\/):]+)"(?:\/[nrts$uL]*)?\).*(?:\r?\n|\r))(?:.*(?:\r?\n|\r))*?[ \t]*\|?[ \t]*-?[ \t]*\2/,
-                            lookbehind: !0,
-                            alias: "string",
-                            inside: {
-                                punctuation: /(?=\S).*\S(?= *$)/
-                            }
-                        }, {
-                            pattern: /(@\(([^"\r\n\/):]+)(?:\/[nrts$uL]*)?\).*(?:\r?\n|\r))(?:.*(?:\r?\n|\r))*?[ \t]*\|?[ \t]*-?[ \t]*\2/,
-                            lookbehind: !0,
-                            alias: "string",
-                            inside: {
-                                punctuation: /(?=\S).*\S(?= *$)/
-                            }
-                        }, {
-                            pattern: /@\("?(?:[^"\r\n\/):]+)"?(?:\/[nrts$uL]*)?\)/,
-                            alias: "string",
-                            inside: {
-                                punctuation: {
-                                    pattern: /(\().+?(?=\))/,
-                                    lookbehind: !0
-                                }
-                            }
-                        }],
-                        "multiline-comment": {
-                            pattern: /(^|[^\\])\/\*[\s\S]*?\*\//,
-                            lookbehind: !0,
-                            alias: "comment"
-                        },
-                        regex: {
-                            pattern: /((?:\bnode\s+|[~=\(\[\{,]\s*|[=+]>\s*|^\s*))\/(?:[^\/\\]|\\[\s\S])+\/(?:[imx]+\b|\B)/,
-                            lookbehind: !0,
-                            inside: {
-                                "extended-regex": {
-                                    pattern: /^\/(?:[^\/\\]|\\[\s\S])+\/[im]*x[im]*$/,
-                                    inside: {
-                                        comment: /#.*/
-                                    }
-                                }
-                            }
-                        },
-                        comment: {
-                            pattern: /(^|[^\\])#.*/,
-                            lookbehind: !0
-                        },
-                        string: {
-                            pattern: /(["'])(?:\$\{(?:[^'"}]|(["'])(?:(?!\2)[^\\]|\\[\s\S])*\2)+\}|(?!\1)[^\\]|\\[\s\S])*\1/,
-                            inside: {
-                                "double-quoted": {
-                                    pattern: /^"[\s\S]*"$/,
-                                    inside: {}
-                                }
-                            }
-                        },
-                        variable: {
-                            pattern: /\$(?:::)?\w+(?:::\w+)*/,
-                            inside: {
-                                punctuation: /::/
-                            }
-                        },
-                        "attr-name": /(?:\w+|\*)(?=\s*=>)/,
-                        function: [{
-                            pattern: /(\.)(?!\d)\w+/,
-                            lookbehind: !0
-                        }, /\b(?:contain|debug|err|fail|include|info|notice|realize|require|tag|warning)\b|\b(?!\d)\w+(?=\()/],
-                        number: /\b(?:0x[a-f\d]+|\d+(?:\.\d+)?(?:e-?\d+)?)\b/i,
-                        boolean: /\b(?:true|false)\b/,
-                        keyword: /\b(?:application|attr|case|class|consumes|default|define|else|elsif|function|if|import|inherits|node|private|produces|type|undef|unless)\b/,
-                        datatype: {
-                            pattern: /\b(?:Any|Array|Boolean|Callable|Catalogentry|Class|Collection|Data|Default|Enum|Float|Hash|Integer|NotUndef|Numeric|Optional|Pattern|Regexp|Resource|Runtime|Scalar|String|Struct|Tuple|Type|Undef|Variant)\b/,
-                            alias: "symbol"
-                        },
-                        operator: /=[=~>]?|![=~]?|<(?:<\|?|[=~|-])?|>[>=]?|->?|~>|\|>?>?|[*\/%+?]|\b(?:and|in|or)\b/,
-                        punctuation: /[\[\]{}().,;]|:+/
-                    };
-                    var t = [{
-                        pattern: /(^|[^\\])\$\{(?:[^'"{}]|\{[^}]*\}|(["'])(?:(?!\2)[^\\]|\\[\s\S])*\2)+\}/,
-                        lookbehind: !0,
-                        inside: {
-                            "short-variable": {
-                                pattern: /(^\$\{)(?!\w+\()(?:::)?\w+(?:::\w+)*/,
-                                lookbehind: !0,
-                                alias: "variable",
-                                inside: {
-                                    punctuation: /::/
-                                }
-                            },
-                            delimiter: {
-                                pattern: /^\$/,
-                                alias: "variable"
-                            },
-                            rest: e.util.clone(e.languages.puppet)
-                        }
-                    }, {
-                        pattern: /(^|[^\\])\$(?:::)?\w+(?:::\w+)*/,
-                        lookbehind: !0,
-                        alias: "variable",
-                        inside: {
-                            punctuation: /::/
-                        }
-                    }];
-                    e.languages.puppet.heredoc[0].inside.interpolation = t, e.languages.puppet.string.inside["double-quoted"].inside.interpolation = t
-                }(n),
-                function(e) {
-                    e.languages.pure = {
-                        "inline-lang": {
-                            pattern: /%<[\s\S]+?%>/,
-                            inside: {
-                                lang: {
-                                    pattern: /(^%< *)-\*-.+?-\*-/,
-                                    lookbehind: !0,
-                                    alias: "comment"
-                                },
-                                delimiter: {
-                                    pattern: /^%<.*|%>$/,
-                                    alias: "punctuation"
-                                }
-                            }
-                        },
-                        comment: [{
-                            pattern: /(^|[^\\])\/\*[\w\W]*?\*\//,
-                            lookbehind: !0
-                        }, {
-                            pattern: /(^|[^\\:])\/\/.*/,
-                            lookbehind: !0
-                        }, /#!.+/],
-                        string: /"(?:\\.|[^"\\\r\n])*"/,
-                        number: {
-                            pattern: /((?:\.\.)?)(?:\b(?:inf|nan)\b|\b0x[\da-f]+|(?:\b(?:0b)?\d+(?:\.\d)?|\B\.\d)\d*(?:e[+-]?\d+)?L?)/i,
-                            lookbehind: !0
-                        },
-                        keyword: /\b(?:ans|break|bt|case|catch|cd|clear|const|def|del|dump|else|end|exit|extern|false|force|help|if|infix[lr]?|interface|let|ls|mem|namespace|nonfix|NULL|of|otherwise|outfix|override|postfix|prefix|private|public|pwd|quit|run|save|show|stats|then|throw|trace|true|type|underride|using|when|with)\b/,
-                        function: /\b(?:abs|add_(?:(?:fundef|interface|macdef|typedef)(?:_at)?|addr|constdef|vardef)|all|any|applp?|arity|bigintp?|blob(?:_crc|_size|p)?|boolp?|byte_(?:matrix|pointer)|byte_c?string(?:_pointer)?|calloc|cat|catmap|ceil|char[ps]?|check_ptrtag|chr|clear_sentry|clearsym|closurep?|cmatrixp?|cols?|colcat(?:map)?|colmap|colrev|colvector(?:p|seq)?|complex(?:_float_(?:matrix|pointer)|_matrix(?:_view)?|_pointer|p)?|conj|cookedp?|cst|cstring(?:_(?:dup|list|vector))?|curry3?|cyclen?|del_(?:constdef|fundef|interface|macdef|typedef|vardef)|delete|diag(?:mat)?|dim|dmatrixp?|do|double(?:_matrix(?:_view)?|_pointer|p)?|dowith3?|drop|dropwhile|eval(?:cmd)?|exactp|filter|fix|fixity|flip|float(?:_matrix|_pointer)|floor|fold[lr]1?|frac|free|funp?|functionp?|gcd|get(?:_(?:byte|constdef|double|float|fundef|int(?:64)?|interface(?:_typedef)?|long|macdef|pointer|ptrtag|short|sentry|string|typedef|vardef))?|globsym|hash|head|id|im|imatrixp?|index|inexactp|infp|init|insert|int(?:_matrix(?:_view)?|_pointer|p)?|int64_(?:matrix|pointer)|integerp?|iteraten?|iterwhile|join|keys?|lambdap?|last(?:err(?:pos)?)?|lcd|list[2p]?|listmap|make_ptrtag|malloc|map|matcat|matrixp?|max|member|min|nanp|nargs|nmatrixp?|null|numberp?|ord|pack(?:ed)?|pointer(?:_cast|_tag|_type|p)?|pow|pred|ptrtag|put(?:_(?:byte|double|float|int(?:64)?|long|pointer|short|string))?|rationalp?|re|realp?|realloc|recordp?|redim|reduce(?:_with)?|refp?|repeatn?|reverse|rlistp?|round|rows?|rowcat(?:map)?|rowmap|rowrev|rowvector(?:p|seq)?|same|scan[lr]1?|sentry|sgn|short_(?:matrix|pointer)|slice|smatrixp?|sort|split|str|strcat|stream|stride|string(?:_(?:dup|list|vector)|p)?|subdiag(?:mat)?|submat|subseq2?|substr|succ|supdiag(?:mat)?|symbolp?|tail|take|takewhile|thunkp?|transpose|trunc|tuplep?|typep|ubyte|uint(?:64)?|ulong|uncurry3?|unref|unzip3?|update|ushort|vals?|varp?|vector(?:p|seq)?|void|zip3?|zipwith3?)\b/,
-                        special: {
-                            pattern: /\b__[a-z]+__\b/i,
-                            alias: "builtin"
-                        },
-                        operator: /(?=\b_|[^_])[!"#$%&'*+,\-.\/:<=>?@\\^_`|~\u00a1-\u00bf\u00d7-\u00f7\u20d0-\u2bff]+|\b(?:and|div|mod|not|or)\b/,
-                        punctuation: /[(){}\[\];,|]/
-                    };
-                    ["c", {
-                        lang: "c++",
-                        alias: "cpp"
-                    }, "fortran", "ats", "dsp"].forEach(function(t) {
-                        var n = t;
-                        if ("string" != typeof t && (n = t.alias, t = t.lang), e.languages[n]) {
-                            var i = {};
-                            i["inline-lang-" + n] = {
-                                pattern: RegExp("%< *-\\*- *{lang}\\d* *-\\*-[\\s\\S]+?%>".replace("{lang}", t.replace(/([.+*?\/\\(){}\[\]])/g, "\\$1")), "i"),
-                                inside: e.util.clone(e.languages.pure["inline-lang"].inside)
-                            }, i["inline-lang-" + n].inside.rest = e.util.clone(e.languages[n]), e.languages.insertBefore("pure", "inline-lang", i)
-                        }
-                    }), e.languages.c && (e.languages.pure["inline-lang"].inside.rest = e.util.clone(e.languages.c))
-                }(n), n.languages.python = {
-                    "triple-quoted-string": {
-                        pattern: /"""[\s\S]+?"""|'''[\s\S]+?'''/,
-                        alias: "string"
-                    },
-                    comment: {
-                        pattern: /(^|[^\\])#.*/,
-                        lookbehind: !0
-                    },
-                    string: {
-                        pattern: /("|')(?:\\\\|\\?[^\\\r\n])*?\1/,
-                        greedy: !0
-                    },
-                    function: {
-                        pattern: /((?:^|\s)def[ \t]+)[a-zA-Z_][a-zA-Z0-9_]*(?=\()/g,
-                        lookbehind: !0
-                    },
-                    "class-name": {
-                        pattern: /(\bclass\s+)[a-z0-9_]+/i,
-                        lookbehind: !0
-                    },
-                    keyword: /\b(?:as|assert|async|await|break|class|continue|def|del|elif|else|except|exec|finally|for|from|global|if|import|in|is|lambda|pass|print|raise|return|try|while|with|yield)\b/,
-                    boolean: /\b(?:True|False)\b/,
-                    number: /\b-?(?:0[bo])?(?:(?:\d|0x[\da-f])[\da-f]*\.?\d*|\.\d+)(?:e[+-]?\d+)?j?\b/i,
-                    operator: /[-+%=]=?|!=|\*\*?=?|\/\/?=?|<[<=>]?|>[=>]?|[&|^~]|\b(?:or|and|not)\b/,
-                    punctuation: /[{}[\];(),.:]/
-                }, n.languages.q = {
-                    string: /"(?:\\.|[^"\\\r\n])*"/,
-                    comment: [{
-                        pattern: /([\t )\]}])\/.*/,
-                        lookbehind: !0
-                    }, {
-                        pattern: /(^|\r?\n|\r)\/[\t ]*(?:(?:\r?\n|\r)(?:.*(?:\r?\n|\r))*?(?:\\(?=[\t ]*(?:\r?\n|\r))|$)|\S.*)/,
-                        lookbehind: !0
-                    }, /^\\[\t ]*(?:\r?\n|\r)[\s\S]+/m, /^#!.+/m],
-                    symbol: /`(?::\S+|[\w.]*)/,
-                    datetime: {
-                        pattern: /0N[mdzuvt]|0W[dtz]|\d{4}\.\d\d(?:m|\.\d\d(?:T(?:\d\d(?::\d\d(?::\d\d(?:[.:]\d\d\d)?)?)?)?)?[dz]?)|\d\d:\d\d(?::\d\d(?:[.:]\d\d\d)?)?[uvt]?/,
-                        alias: "number"
-                    },
-                    number: /\b-?(?![01]:)(?:0[wn]|0W[hj]?|0N[hje]?|0x[\da-fA-F]+|\d+\.?\d*(?:e[+-]?\d+)?[hjfeb]?)/,
-                    keyword: /\\\w+\b|\b(?:abs|acos|aj0?|all|and|any|asc|asin|asof|atan|attr|avgs?|binr?|by|ceiling|cols|cor|cos|count|cov|cross|csv|cut|delete|deltas|desc|dev|differ|distinct|div|do|dsave|ej|enlist|eval|except|exec|exit|exp|fby|fills|first|fkeys|flip|floor|from|get|getenv|group|gtime|hclose|hcount|hdel|hopen|hsym|iasc|identity|idesc|if|ij|in|insert|inter|inv|keys?|last|like|list|ljf?|load|log|lower|lsq|ltime|ltrim|mavg|maxs?|mcount|md5|mdev|med|meta|mins?|mmax|mmin|mmu|mod|msum|neg|next|not|null|or|over|parse|peach|pj|plist|prds?|prev|prior|rand|rank|ratios|raze|read0|read1|reciprocal|reval|reverse|rload|rotate|rsave|rtrim|save|scan|scov|sdev|select|set|setenv|show|signum|sin|sqrt|ssr?|string|sublist|sums?|sv|svar|system|tables|tan|til|trim|txf|type|uj|ungroup|union|update|upper|upsert|value|var|views?|vs|wavg|where|while|within|wj1?|wsum|ww|xasc|xbar|xcols?|xdesc|xexp|xgroup|xkey|xlog|xprev|xrank)\b/,
-                    adverb: {
-                        pattern: /['\/\\]:?|\beach\b/,
-                        alias: "function"
-                    },
-                    verb: {
-                        pattern: /(?:\B\.\B|\b[01]:|<[=>]?|>=?|[:+\-*%,!?_~=|$&#@^]):?/,
-                        alias: "operator"
-                    },
-                    punctuation: /[(){}\[\];.]/
-                }, n.languages.qore = n.languages.extend("clike", {
-                    comment: {
-                        pattern: /(^|[^\\])(?:\/\*[\w\W]*?\*\/|(?:\/\/|#).*)/,
-                        lookbehind: !0
-                    },
-                    string: /("|')(\\(?:\r\n|[\s\S])|(?!\1)[^\\])*\1/,
-                    variable: /\$(?!\d)\w+\b/,
-                    keyword: /\b(?:abstract|any|assert|binary|bool|boolean|break|byte|case|catch|char|class|code|const|continue|data|default|do|double|else|enum|extends|final|finally|float|for|goto|hash|if|implements|import|inherits|instanceof|int|interface|long|my|native|new|nothing|null|object|our|own|private|reference|rethrow|return|short|soft(?:int|float|number|bool|string|date|list)|static|strictfp|string|sub|super|switch|synchronized|this|throw|throws|transient|try|void|volatile|while)\b/,
-                    number: /\b(?:0b[01]+|0x[\da-f]*\.?[\da-fp\-]+|\d*\.?\d+e?\d*[df]|\d*\.?\d+)\b/i,
-                    boolean: /\b(?:true|false)\b/i,
-                    operator: {
-                        pattern: /(^|[^\.])(?:\+[+=]?|-[-=]?|[!=](?:==?|~)?|>>?=?|<(?:=>?|<=?)?|&[&=]?|\|[|=]?|[*\/%^]=?|[~?])/,
-                        lookbehind: !0
-                    },
-                    function: /\$?\b(?!\d)\w+(?=\()/
-                }), n.languages.r = {
-                    comment: /#.*/,
-                    string: /(['"])(?:\\?.)*?\1/,
-                    "percent-operator": {
-                        pattern: /%[^%\s]*%/,
-                        alias: "operator"
-                    },
-                    boolean: /\b(?:TRUE|FALSE)\b/,
-                    ellipsis: /\.\.(?:\.|\d+)/,
-                    number: [/\b(?:NaN|Inf)\b/, /\b(?:0x[\dA-Fa-f]+(?:\.\d*)?|\d*\.?\d+)(?:[EePp][+-]?\d+)?[iL]?\b/],
-                    keyword: /\b(?:if|else|repeat|while|function|for|in|next|break|NULL|NA|NA_integer_|NA_real_|NA_complex_|NA_character_)\b/,
-                    operator: /->?>?|<(?:=|<?-)?|[>=!]=?|::?|&&?|\|\|?|[+*\/^$@~]/,
-                    punctuation: /[(){}\[\],;]/
-                },
-                function(e) {
-                    var t = e.util.clone(e.languages.javascript);
-                    e.languages.jsx = e.languages.extend("markup", t), e.languages.jsx.tag.pattern = /<\/?[\w\.:-]+\s*(?:\s+[\w\.:-]+(?:=(?:("|')(\\?[\w\W])*?\1|[^\s'">=]+|(\{[\w\W]*?\})))?\s*)*\/?>/i, e.languages.jsx.tag.inside["attr-value"].pattern = /=[^\{](?:('|")[\w\W]*?(\1)|[^\s>]+)/i;
-                    var n = e.util.clone(e.languages.jsx);
-                    delete n.punctuation, n = e.languages.insertBefore("jsx", "operator", {
-                        punctuation: /=(?={)|[{}[\];(),.:]/
-                    }, {
-                        jsx: n
-                    }), e.languages.insertBefore("inside", "attr-value", {
-                        script: {
-                            pattern: /=(\{(?:\{[^}]*\}|[^}])+\})/i,
-                            inside: n,
-                            alias: "language-javascript"
-                        }
-                    }, e.languages.jsx.tag)
-                }(n), n.languages.reason = n.languages.extend("clike", {
-                    comment: {
-                        pattern: /(^|[^\\])\/\*[\w\W]*?\*\//,
-                        lookbehind: !0
-                    },
-                    string: {
-                        pattern: /"(\\(?:\r\n|[\s\S])|[^\\\r\n"])*"/,
-                        greedy: !0
-                    },
-                    "class-name": /\b[A-Z]\w*/,
-                    keyword: /\b(?:and|as|assert|begin|class|constraint|do|done|downto|else|end|exception|external|for|fun|function|functor|if|in|include|inherit|initializer|lazy|let|method|module|mutable|new|nonrec|object|of|open|or|private|rec|sig|struct|switch|then|to|try|type|val|virtual|when|while|with)\b/,
-                    operator: /\.{3}|:[:=]|=(?:==?|>)?|<=?|>=?|[|^?'#!~`]|[+\-*\/]\.?|\b(?:mod|land|lor|lxor|lsl|lsr|asr)\b/
-                }), n.languages.insertBefore("reason", "class-name", {
-                    character: {
-                        pattern: /'(?:\\x[\da-f]{2}|\\o[0-3][0-7][0-7]|\\\d{3}|\\.|[^'])'/,
-                        alias: "string"
-                    },
-                    constructor: {
-                        pattern: /\b[A-Z]\w*\b(?!\s*\.)/,
-                        alias: "variable"
-                    },
-                    label: {
-                        pattern: /\b[a-z]\w*(?=::)/,
-                        alias: "symbol"
-                    }
-                }), delete n.languages.reason.function, n.languages.rest = {
-                    table: [{
-                        pattern: /(\s*)(?:\+[=-]+)+\+(?:\r?\n|\r)(?:\1(?:[+|].+)+[+|](?:\r?\n|\r))+\1(?:\+[=-]+)+\+/,
-                        lookbehind: !0,
-                        inside: {
-                            punctuation: /\||(?:\+[=-]+)+\+/
-                        }
-                    }, {
-                        pattern: /(\s*)(?:=+ +)+=+((?:\r?\n|\r)\1.+)+(?:\r?\n|\r)\1(?:=+ +)+=+(?=(?:\r?\n|\r){2}|\s*$)/,
-                        lookbehind: !0,
-                        inside: {
-                            punctuation: /[=-]+/
-                        }
-                    }],
-                    "substitution-def": {
-                        pattern: /(^\s*\.\. )\|(?:[^|\s](?:[^|]*[^|\s])?)\| [^:]+::/m,
-                        lookbehind: !0,
-                        inside: {
-                            substitution: {
-                                pattern: /^\|(?:[^|\s]|[^|\s][^|]*[^|\s])\|/,
-                                alias: "attr-value",
-                                inside: {
-                                    punctuation: /^\||\|$/
-                                }
-                            },
-                            directive: {
-                                pattern: /( +)[^:]+::/,
-                                lookbehind: !0,
-                                alias: "function",
-                                inside: {
-                                    punctuation: /::$/
-                                }
-                            }
-                        }
-                    },
-                    "link-target": [{
-                        pattern: /(^\s*\.\. )\[[^\]]+\]/m,
-                        lookbehind: !0,
-                        alias: "string",
-                        inside: {
-                            punctuation: /^\[|\]$/
-                        }
-                    }, {
-                        pattern: /(^\s*\.\. )_(?:`[^`]+`|(?:[^:\\]|\\.)+):/m,
-                        lookbehind: !0,
-                        alias: "string",
-                        inside: {
-                            punctuation: /^_|:$/
-                        }
-                    }],
-                    directive: {
-                        pattern: /(^\s*\.\. )[^:]+::/m,
-                        lookbehind: !0,
-                        alias: "function",
-                        inside: {
-                            punctuation: /::$/
-                        }
-                    },
-                    comment: {
-                        pattern: /(^\s*\.\.)(?:(?: .+)?(?:(?:\r?\n|\r).+)+| .+)(?=(?:\r?\n|\r){2}|$)/m,
-                        lookbehind: !0
-                    },
-                    title: [{
-                        pattern: /^(([!"#$%&'()*+,\-.\/:;<=>?@\[\\\]^_`{|}~])\2+)(?:\r?\n|\r).+(?:\r?\n|\r)\1$/m,
-                        inside: {
-                            punctuation: /^[!"#$%&'()*+,\-.\/:;<=>?@\[\\\]^_`{|}~]+|[!"#$%&'()*+,\-.\/:;<=>?@\[\\\]^_`{|}~]+$/,
-                            important: /.+/
-                        }
-                    }, {
-                        pattern: /(^|(?:\r?\n|\r){2}).+(?:\r?\n|\r)([!"#$%&'()*+,\-.\/:;<=>?@\[\\\]^_`{|}~])\2+(?=\r?\n|\r|$)/,
-                        lookbehind: !0,
-                        inside: {
-                            punctuation: /[!"#$%&'()*+,\-.\/:;<=>?@\[\\\]^_`{|}~]+$/,
-                            important: /.+/
-                        }
-                    }],
-                    hr: {
-                        pattern: /((?:\r?\n|\r){2})([!"#$%&'()*+,\-.\/:;<=>?@\[\\\]^_`{|}~])\2{3,}(?=(?:\r?\n|\r){2})/,
-                        lookbehind: !0,
-                        alias: "punctuation"
-                    },
-                    field: {
-                        pattern: /(^\s*):[^:\r\n]+:(?= )/m,
-                        lookbehind: !0,
-                        alias: "attr-name"
-                    },
-                    "command-line-option": {
-                        pattern: /(^\s*)(?:[+-][a-z\d]|(?:\-\-|\/)[a-z\d-]+)(?:[ =](?:[a-z][a-z\d_-]*|<[^<>]+>))?(?:, (?:[+-][a-z\d]|(?:\-\-|\/)[a-z\d-]+)(?:[ =](?:[a-z][a-z\d_-]*|<[^<>]+>))?)*(?=(?:\r?\n|\r)? {2,}\S)/im,
-                        lookbehind: !0,
-                        alias: "symbol"
-                    },
-                    "literal-block": {
-                        pattern: /::(?:\r?\n|\r){2}([ \t]+).+(?:(?:\r?\n|\r)\1.+)*/,
-                        inside: {
-                            "literal-block-punctuation": {
-                                pattern: /^::/,
-                                alias: "punctuation"
-                            }
-                        }
-                    },
-                    "quoted-literal-block": {
-                        pattern: /::(?:\r?\n|\r){2}([!"#$%&'()*+,\-.\/:;<=>?@\[\\\]^_`{|}~]).*(?:(?:\r?\n|\r)\1.*)*/,
-                        inside: {
-                            "literal-block-punctuation": {
-                                pattern: /^(?:::|([!"#$%&'()*+,\-.\/:;<=>?@\[\\\]^_`{|}~])\1*)/m,
-                                alias: "punctuation"
-                            }
-                        }
-                    },
-                    "list-bullet": {
-                        pattern: /(^\s*)(?:[*+\-•‣⁃]|\(?(?:\d+|[a-z]|[ivxdclm]+)\)|(?:\d+|[a-z]|[ivxdclm]+)\.)(?= )/im,
-                        lookbehind: !0,
-                        alias: "punctuation"
-                    },
-                    "doctest-block": {
-                        pattern: /(^\s*)>>> .+(?:(?:\r?\n|\r).+)*/m,
-                        lookbehind: !0,
-                        inside: {
-                            punctuation: /^>>>/
-                        }
-                    },
-                    inline: [{
-                        pattern: /(^|[\s\-:\/'"<(\[{])(?::[^:]+:`.*?`|`.*?`:[^:]+:|(\*\*?|``?|\|)(?!\s).*?[^\s]\2(?=[\s\-.,:;!?\\\/'")\]}]|$))/m,
-                        lookbehind: !0,
-                        inside: {
-                            bold: {
-                                pattern: /(^\*\*).+(?=\*\*$)/,
-                                lookbehind: !0
-                            },
-                            italic: {
-                                pattern: /(^\*).+(?=\*$)/,
-                                lookbehind: !0
-                            },
-                            "inline-literal": {
-                                pattern: /(^``).+(?=``$)/,
-                                lookbehind: !0,
-                                alias: "symbol"
-                            },
-                            role: {
-                                pattern: /^:[^:]+:|:[^:]+:$/,
-                                alias: "function",
-                                inside: {
-                                    punctuation: /^:|:$/
-                                }
-                            },
-                            "interpreted-text": {
-                                pattern: /(^`).+(?=`$)/,
-                                lookbehind: !0,
-                                alias: "attr-value"
-                            },
-                            substitution: {
-                                pattern: /(^\|).+(?=\|$)/,
-                                lookbehind: !0,
-                                alias: "attr-value"
-                            },
-                            punctuation: /\*\*?|``?|\|/
-                        }
-                    }],
-                    link: [{
-                        pattern: /\[[^\]]+\]_(?=[\s\-.,:;!?\\\/'")\]}]|$)/,
-                        alias: "string",
-                        inside: {
-                            punctuation: /^\[|\]_$/
-                        }
-                    }, {
-                        pattern: /(?:\b[a-z\d](?:[_.:+]?[a-z\d]+)*_?_|`[^`]+`_?_|_`[^`]+`)(?=[\s\-.,:;!?\\\/'")\]}]|$)/i,
-                        alias: "string",
-                        inside: {
-                            punctuation: /^_?`|`$|`?_?_$/
-                        }
-                    }],
-                    punctuation: {
-                        pattern: /(^\s*)(?:\|(?= |$)|(?:---?|—|\.\.|__)(?= )|\.\.$)/m,
-                        lookbehind: !0
-                    }
-                }, n.languages.rip = {
-                    comment: /#.*/,
-                    keyword: /(?:=>|->)|\b(?:class|if|else|switch|case|return|exit|try|catch|finally|raise)\b/,
-                    builtin: /@|\bSystem\b/,
-                    boolean: /\b(?:true|false)\b/,
-                    date: /\b\d{4}-\d{2}-\d{2}\b/,
-                    time: /\b\d{2}:\d{2}:\d{2}\b/,
-                    datetime: /\b\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\b/,
-                    character: /\B`[^\s`'",.:;#\/\\()<>\[\]{}]\b/,
-                    regex: {
-                        pattern: /(^|[^\/])\/(?!\/)(\[.+?]|\\.|[^\/\\\r\n])+\/(?=\s*($|[\r\n,.;})]))/,
-                        lookbehind: !0
-                    },
-                    symbol: /:[^\d\s`'",.:;#\/\\()<>\[\]{}][^\s`'",.:;#\/\\()<>\[\]{}]*/,
-                    string: /("|')(\\?.)*?\1/,
-                    number: /[+-]?(?:(?:\d+\.\d+)|(?:\d+))/,
-                    punctuation: /(?:\.{2,3})|[`,.:;=\/\\()<>\[\]{}]/,
-                    reference: /[^\d\s`'",.:;#\/\\()<>\[\]{}][^\s`'",.:;#\/\\()<>\[\]{}]*/
-                }, n.languages.roboconf = {
-                    comment: /#.*/,
-                    keyword: {
-                        pattern: /(^|\s)(?:(?:facet|instance of)(?=[ \t]+[\w-]+[ \t]*\{)|(?:external|import)\b)/,
-                        lookbehind: !0
-                    },
-                    component: {
-                        pattern: /[\w-]+(?=[ \t]*\{)/,
-                        alias: "variable"
-                    },
-                    property: /[\w.-]+(?=[ \t]*:)/,
-                    value: {
-                        pattern: /(=[ \t]*)[^,;]+/,
-                        lookbehind: !0,
-                        alias: "attr-value"
-                    },
-                    optional: {
-                        pattern: /\(optional\)/,
-                        alias: "builtin"
-                    },
-                    wildcard: {
-                        pattern: /(\.)\*/,
-                        lookbehind: !0,
-                        alias: "operator"
-                    },
-                    punctuation: /[{},.;:=]/
-                },
-                function(e) {
-                    e.languages.crystal = e.languages.extend("ruby", {
-                        keyword: [/\b(?:abstract|alias|as|asm|begin|break|case|class|def|do|else|elsif|end|ensure|enum|extend|for|fun|if|ifdef|include|instance_sizeof|lib|macro|module|next|of|out|pointerof|private|protected|rescue|return|require|self|sizeof|struct|super|then|type|typeof|union|unless|until|when|while|with|yield|__DIR__|__FILE__|__LINE__)\b/, {
-                            pattern: /(\.\s*)(?:is_a|responds_to)\?/,
-                            lookbehind: !0
-                        }],
-                        number: /\b(?:0b[01_]*[01]|0o[0-7_]*[0-7]|0x[0-9a-fA-F_]*[0-9a-fA-F]|(?:[0-9](?:[0-9_]*[0-9])?)(?:\.[0-9_]*[0-9])?(?:[eE][+-]?[0-9_]*[0-9])?)(?:_(?:[uif](?:8|16|32|64))?)?\b/
-                    });
-                    var t = e.util.clone(e.languages.crystal);
-                    e.languages.insertBefore("crystal", "string", {
-                        attribute: {
-                            pattern: /@\[.+?\]/,
-                            alias: "attr-name",
-                            inside: {
-                                delimiter: {
-                                    pattern: /^@\[|\]$/,
-                                    alias: "tag"
-                                },
-                                rest: t
-                            }
-                        },
-                        expansion: [{
-                            pattern: /\{\{.+?\}\}/,
-                            inside: {
-                                delimiter: {
-                                    pattern: /^\{\{|\}\}$/,
-                                    alias: "tag"
-                                },
-                                rest: t
-                            }
-                        }, {
-                            pattern: /\{%.+?%\}/,
-                            inside: {
-                                delimiter: {
-                                    pattern: /^\{%|%\}$/,
-                                    alias: "tag"
-                                },
-                                rest: t
-                            }
-                        }]
-                    })
-                }(n), n.languages.rust = {
-                    comment: [{
-                        pattern: /(^|[^\\])\/\*[\w\W]*?\*\//,
-                        lookbehind: !0
-                    }, {
-                        pattern: /(^|[^\\:])\/\/.*/,
-                        lookbehind: !0
-                    }],
-                    string: [/b?r(#*)"(?:\\?.)*?"\1/, /b?("|')(?:\\?.)*?\1/],
-                    keyword: /\b(?:abstract|alignof|as|be|box|break|const|continue|crate|do|else|enum|extern|false|final|fn|for|if|impl|in|let|loop|match|mod|move|mut|offsetof|once|override|priv|pub|pure|ref|return|sizeof|static|self|struct|super|true|trait|type|typeof|unsafe|unsized|use|virtual|where|while|yield)\b/,
-                    attribute: {
-                        pattern: /#!?\[.+?\]/,
-                        alias: "attr-name"
-                    },
-                    function: [/[a-z0-9_]+(?=\s*\()/i, /[a-z0-9_]+!(?=\s*\(|\[)/i],
-                    "macro-rules": {
-                        pattern: /[a-z0-9_]+!/i,
-                        alias: "function"
-                    },
-                    number: /\b-?(?:0x[\dA-Fa-f](?:_?[\dA-Fa-f])*|0o[0-7](?:_?[0-7])*|0b[01](?:_?[01])*|(\d(_?\d)*)?\.?\d(_?\d)*([Ee][+-]?\d+)?)(?:_?(?:[iu](?:8|16|32|64)?|f32|f64))?\b/,
-                    "closure-params": {
-                        pattern: /\|[^|]*\|(?=\s*[{-])/,
-                        inside: {
-                            punctuation: /[\|:,]/,
-                            operator: /[&*]/
-                        }
-                    },
-                    punctuation: /[{}[\];(),:]|\.+|->/,
-                    operator: /[-+*\/%!^=]=?|@|&[&=]?|\|[|=]?|<<?=?|>>?=?/
-                }, n.languages.sas = {
-                    datalines: {
-                        pattern: /^\s*(?:(?:data)?lines|cards);[\s\S]+?(?:\r?\n|\r);/im,
-                        alias: "string",
-                        inside: {
-                            keyword: {
-                                pattern: /^(\s*)(?:(?:data)?lines|cards)/i,
-                                lookbehind: !0
-                            },
-                            punctuation: /;/
-                        }
-                    },
-                    comment: [{
-                        pattern: /(^\s*|;\s*)\*.*;/m,
-                        lookbehind: !0
-                    }, /\/\*[\s\S]+?\*\//],
-                    datetime: {
-                        pattern: /'[^']+'(?:dt?|t)\b/i,
-                        alias: "number"
-                    },
-                    string: /(["'])(?:\1\1|(?!\1)[\s\S])*\1/,
-                    keyword: /\b(?:data|else|format|if|input|proc\s\w+|quit|run|then)\b/i,
-                    number: /(?:\B-|\b)(?:[\da-f]+x|\d+(?:\.\d+)?(?:e[+-]?\d+)?)/i,
-                    operator: /\*\*?|\|\|?|!!?|¦¦?|<[>=]?|>[<=]?|[-+\/=&]|[~¬^]=?|\b(?:eq|ne|gt|lt|ge|le|in|not)\b/i,
-                    punctuation: /[$%@.(){}\[\];,\\]/
-                },
-                function(e) {
-                    e.languages.sass = e.languages.extend("css", {
-                        comment: {
-                            pattern: /^([ \t]*)\/[\/*].*(?:(?:\r?\n|\r)\1[ \t]+.+)*/m,
-                            lookbehind: !0
-                        }
-                    }), e.languages.insertBefore("sass", "atrule", {
-                        "atrule-line": {
-                            pattern: /^(?:[ \t]*)[@+=].+/m,
-                            inside: {
-                                atrule: /(?:@[\w-]+|[+=])/m
-                            }
-                        }
-                    }), delete e.languages.sass.atrule;
-                    var t = /((\$[-_\w]+)|(#\{\$[-_\w]+\}))/i,
-                        n = [/[+*\/%]|[=!]=|<=?|>=?|\b(?:and|or|not)\b/, {
-                            pattern: /(\s+)-(?=\s)/,
-                            lookbehind: !0
-                        }];
-                    e.languages.insertBefore("sass", "property", {
-                        "variable-line": {
-                            pattern: /^[ \t]*\$.+/m,
-                            inside: {
-                                punctuation: /:/,
-                                variable: t,
-                                operator: n
-                            }
-                        },
-                        "property-line": {
-                            pattern: /^[ \t]*(?:[^:\s]+ *:.*|:[^:\s]+.*)/m,
-                            inside: {
-                                property: [/[^:\s]+(?=\s*:)/, {
-                                    pattern: /(:)[^:\s]+/,
-                                    lookbehind: !0
-                                }],
-                                punctuation: /:/,
-                                variable: t,
-                                operator: n,
-                                important: e.languages.sass.important
-                            }
-                        }
-                    }), delete e.languages.sass.property, delete e.languages.sass.important, delete e.languages.sass.selector, e.languages.insertBefore("sass", "punctuation", {
-                        selector: {
-                            pattern: /([ \t]*)\S(?:,?[^,\r\n]+)*(?:,(?:\r?\n|\r)\1[ \t]+\S(?:,?[^,\r\n]+)*)*/,
-                            lookbehind: !0
-                        }
-                    })
-                }(n), n.languages.scss = n.languages.extend("css", {
-                    comment: {
-                        pattern: /(^|[^\\])(?:\/\*[\w\W]*?\*\/|\/\/.*)/,
-                        lookbehind: !0
-                    },
-                    atrule: {
-                        pattern: /@[\w-]+(?:\([^()]+\)|[^(])*?(?=\s+[{;])/,
-                        inside: {
-                            rule: /@[\w-]+/
-                        }
-                    },
-                    url: /(?:[-a-z]+-)*url(?=\()/i,
-                    selector: {
-                        pattern: /(?=\S)[^@;\{\}\(\)]?([^@;\{\}\(\)]|&|#\{\$[-_\w]+\})+(?=\s*\{(\}|\s|[^\}]+(:|\{)[^\}]+))/m,
-                        inside: {
-                            parent: {
-                                pattern: /&/,
-                                alias: "important"
-                            },
-                            placeholder: /%[-_\w]+/,
-                            variable: /\$[-_\w]+|#\{\$[-_\w]+\}/
-                        }
-                    }
-                }), n.languages.insertBefore("scss", "atrule", {
-                    keyword: [/@(?:if|else(?: if)?|for|each|while|import|extend|debug|warn|mixin|include|function|return|content)/i, {
-                        pattern: /( +)(?:from|through)(?= )/,
-                        lookbehind: !0
-                    }]
-                }), n.languages.scss.property = {
-                    pattern: /(?:[\w-]|\$[-_\w]+|#\{\$[-_\w]+\})+(?=\s*:)/i,
-                    inside: {
-                        variable: /\$[-_\w]+|#\{\$[-_\w]+\}/
-                    }
-                }, n.languages.insertBefore("scss", "important", {
-                    variable: /\$[-_\w]+|#\{\$[-_\w]+\}/
-                }), n.languages.insertBefore("scss", "function", {
-                    placeholder: {
-                        pattern: /%[-_\w]+/,
-                        alias: "selector"
-                    },
-                    statement: {
-                        pattern: /\B!(?:default|optional)\b/i,
-                        alias: "keyword"
-                    },
-                    boolean: /\b(?:true|false)\b/,
-                    null: /\bnull\b/,
-                    operator: {
-                        pattern: /(\s)(?:[-+*\/%]|[=!]=|<=?|>=?|and|or|not)(?=\s)/,
-                        lookbehind: !0
-                    }
-                }), n.languages.scss.atrule.inside.rest = n.util.clone(n.languages.scss), n.languages.scala = n.languages.extend("java", {
-                    keyword: /<-|=>|\b(?:abstract|case|catch|class|def|do|else|extends|final|finally|for|forSome|if|implicit|import|lazy|match|new|null|object|override|package|private|protected|return|sealed|self|super|this|throw|trait|try|type|val|var|while|with|yield)\b/,
-                    string: [{
-                        pattern: /"""[\W\w]*?"""/,
-                        greedy: !0
-                    }, {
-                        pattern: /("|')(?:\\\\|\\?[^\\\r\n])*?\1/,
-                        greedy: !0
-                    }],
-                    builtin: /\b(?:String|Int|Long|Short|Byte|Boolean|Double|Float|Char|Any|AnyRef|AnyVal|Unit|Nothing)\b/,
-                    number: /\b(?:0x[\da-f]*\.?[\da-f]+|\d*\.?\d+e?\d*[dfl]?)\b/i,
-                    symbol: /'[^\d\s\\]\w*/
-                }), delete n.languages.scala["class-name"], delete n.languages.scala.function, n.languages.scheme = {
-                    comment: /;.*/,
-                    string: /"(?:[^"\\\r\n]|\\.)*?"|'[^('\s]*/,
-                    keyword: {
-                        pattern: /(\()(?:define(?:-syntax|-library|-values)?|(?:case-)?lambda|let(?:\*|rec)?(?:-values)?|else|if|cond|begin|delay(?:-force)?|parameterize|guard|set!|(?:quasi-)?quote|syntax-rules)/,
-                        lookbehind: !0
-                    },
-                    builtin: {
-                        pattern: /(\()(?:(?:cons|car|cdr|list|call-with-current-continuation|call\/cc|append|abs|apply|eval)\b|null\?|pair\?|boolean\?|eof-object\?|char\?|procedure\?|number\?|port\?|string\?|vector\?|symbol\?|bytevector\?)/,
-                        lookbehind: !0
-                    },
-                    number: {
-                        pattern: /(\s|\))[-+]?[0-9]*\.?[0-9]+(?:\s*[-+]\s*[0-9]*\.?[0-9]+i)?\b/,
-                        lookbehind: !0
-                    },
-                    boolean: /#[tf]/,
-                    operator: {
-                        pattern: /(\()(?:[-+*%\/]|[<>]=?|=>?)/,
-                        lookbehind: !0
-                    },
-                    function: {
-                        pattern: /(\()[^\s()]*(?=\s)/,
-                        lookbehind: !0
-                    },
-                    punctuation: /[()]/
-                }, n.languages.smalltalk = {
-                    comment: /"(?:""|[^"])+"/,
-                    string: /'(?:''|[^'])+'/,
-                    symbol: /#[\da-z]+|#(?:-|([+\/\\*~<>=@%|&?!])\1?)|#(?=\()/i,
-                    "block-arguments": {
-                        pattern: /(\[\s*):[^\[|]*?\|/,
-                        lookbehind: !0,
-                        inside: {
-                            variable: /:[\da-z]+/i,
-                            punctuation: /\|/
-                        }
-                    },
-                    "temporary-variables": {
-                        pattern: /\|[^|]+\|/,
-                        inside: {
-                            variable: /[\da-z]+/i,
-                            punctuation: /\|/
-                        }
-                    },
-                    keyword: /\b(?:nil|true|false|self|super|new)\b/,
-                    character: {
-                        pattern: /\$./,
-                        alias: "string"
-                    },
-                    number: [/\d+r-?[\dA-Z]+(?:\.[\dA-Z]+)?(?:e-?\d+)?/, /(?:\B-|\b)\d+(?:\.\d+)?(?:e-?\d+)?/],
-                    operator: /[<=]=?|:=|~[~=]|\/\/?|\\\\|>[>=]?|[!^+\-*&|,@]/,
-                    punctuation: /[.;:?\[\](){}]/
-                },
-                function(e) {
-                    var t = /\{\*[\w\W]+?\*\}|\{[\w\W]+?\}/g,
-                        n = !1;
-                    e.languages.smarty = e.languages.extend("markup", {
-                        smarty: {
-                            pattern: t,
-                            inside: {
-                                delimiter: {
-                                    pattern: /^\{|\}$/i,
-                                    alias: "punctuation"
-                                },
-                                string: /(["'])(?:\\?.)*?\1/,
-                                number: /\b-?(?:0x[\dA-Fa-f]+|\d*\.?\d+(?:[Ee][-+]?\d+)?)\b/,
-                                variable: [/\$(?!\d)\w+/, /#(?!\d)\w+#/, {
-                                    pattern: /(\.|->)(?!\d)\w+/,
-                                    lookbehind: !0
-                                }, {
-                                    pattern: /(\[)(?!\d)\w+(?=\])/,
-                                    lookbehind: !0
-                                }],
-                                function: [{
-                                    pattern: /(\|\s*)@?(?!\d)\w+/,
-                                    lookbehind: !0
-                                }, /^\/?(?!\d)\w+/, /(?!\d)\w+(?=\()/],
-                                "attr-name": {
-                                    pattern: /\w+\s*=\s*(?:(?!\d)\w+)?/,
-                                    inside: {
-                                        variable: {
-                                            pattern: /(=\s*)(?!\d)\w+/,
-                                            lookbehind: !0
-                                        },
-                                        operator: /=/
-                                    }
-                                },
-                                punctuation: [/[\[\]().,:`]|\->/],
-                                operator: [/[+\-*\/%]|==?=?|[!<>]=?|&&|\|\|?/, /\bis\s+(?:not\s+)?(?:div|even|odd)(?:\s+by)?\b/, /\b(?:eq|neq?|gt|lt|gt?e|lt?e|not|mod|or|and)\b/],
-                                keyword: /\b(?:false|off|on|no|true|yes)\b/
-                            }
-                        }
-                    }), e.languages.insertBefore("smarty", "tag", {
-                        "smarty-comment": {
-                            pattern: /\{\*[\w\W]*?\*\}/,
-                            alias: ["smarty", "comment"]
-                        }
-                    }), e.hooks.add("before-highlight", function(e) {
-                        "smarty" === e.language && (e.tokenStack = [], e.backupCode = e.code, e.code = e.code.replace(t, function(t) {
-                            return "{/literal}" === t && (n = !1), n ? t : ("{literal}" === t && (n = !0), e.tokenStack.push(t), "___SMARTY" + e.tokenStack.length + "___")
-                        }))
-                    }), e.hooks.add("before-insert", function(e) {
-                        "smarty" === e.language && (e.code = e.backupCode, delete e.backupCode)
-                    }), e.hooks.add("after-highlight", function(t) {
-                        if ("smarty" === t.language) {
-                            for (var n, i = 0; n = t.tokenStack[i]; i++) t.highlightedCode = t.highlightedCode.replace("___SMARTY" + (i + 1) + "___", e.highlight(n, t.grammar, "smarty").replace(/\$/g, "$$$$"));
-                            t.element.innerHTML = t.highlightedCode
-                        }
-                    })
-                }(n), n.languages.sql = {
-                    comment: {
-                        pattern: /(^|[^\\])(?:\/\*[\w\W]*?\*\/|(?:--|\/\/|#).*)/,
-                        lookbehind: !0
-                    },
-                    string: {
-                        pattern: /(^|[^@\\])("|')(?:\\?[\s\S])*?\2/,
-                        lookbehind: !0
-                    },
-                    variable: /@[\w.$]+|@("|'|`)(?:\\?[\s\S])+?\1/,
-                    function: /\b(?:COUNT|SUM|AVG|MIN|MAX|FIRST|LAST|UCASE|LCASE|MID|LEN|ROUND|NOW|FORMAT)(?=\s*\()/i,
-                    keyword: /\b(?:ACTION|ADD|AFTER|ALGORITHM|ALL|ALTER|ANALYZE|ANY|APPLY|AS|ASC|AUTHORIZATION|AUTO_INCREMENT|BACKUP|BDB|BEGIN|BERKELEYDB|BIGINT|BINARY|BIT|BLOB|BOOL|BOOLEAN|BREAK|BROWSE|BTREE|BULK|BY|CALL|CASCADED?|CASE|CHAIN|CHAR VARYING|CHARACTER (?:SET|VARYING)|CHARSET|CHECK|CHECKPOINT|CLOSE|CLUSTERED|COALESCE|COLLATE|COLUMN|COLUMNS|COMMENT|COMMIT|COMMITTED|COMPUTE|CONNECT|CONSISTENT|CONSTRAINT|CONTAINS|CONTAINSTABLE|CONTINUE|CONVERT|CREATE|CROSS|CURRENT(?:_DATE|_TIME|_TIMESTAMP|_USER)?|CURSOR|DATA(?:BASES?)?|DATE(?:TIME)?|DBCC|DEALLOCATE|DEC|DECIMAL|DECLARE|DEFAULT|DEFINER|DELAYED|DELETE|DELIMITER(?:S)?|DENY|DESC|DESCRIBE|DETERMINISTIC|DISABLE|DISCARD|DISK|DISTINCT|DISTINCTROW|DISTRIBUTED|DO|DOUBLE(?: PRECISION)?|DROP|DUMMY|DUMP(?:FILE)?|DUPLICATE KEY|ELSE|ENABLE|ENCLOSED BY|END|ENGINE|ENUM|ERRLVL|ERRORS|ESCAPE(?:D BY)?|EXCEPT|EXEC(?:UTE)?|EXISTS|EXIT|EXPLAIN|EXTENDED|FETCH|FIELDS|FILE|FILLFACTOR|FIRST|FIXED|FLOAT|FOLLOWING|FOR(?: EACH ROW)?|FORCE|FOREIGN|FREETEXT(?:TABLE)?|FROM|FULL|FUNCTION|GEOMETRY(?:COLLECTION)?|GLOBAL|GOTO|GRANT|GROUP|HANDLER|HASH|HAVING|HOLDLOCK|IDENTITY(?:_INSERT|COL)?|IF|IGNORE|IMPORT|INDEX|INFILE|INNER|INNODB|INOUT|INSERT|INT|INTEGER|INTERSECT|INTO|INVOKER|ISOLATION LEVEL|JOIN|KEYS?|KILL|LANGUAGE SQL|LAST|LEFT|LIMIT|LINENO|LINES|LINESTRING|LOAD|LOCAL|LOCK|LONG(?:BLOB|TEXT)|MATCH(?:ED)?|MEDIUM(?:BLOB|INT|TEXT)|MERGE|MIDDLEINT|MODIFIES SQL DATA|MODIFY|MULTI(?:LINESTRING|POINT|POLYGON)|NATIONAL(?: CHAR VARYING| CHARACTER(?: VARYING)?| VARCHAR)?|NATURAL|NCHAR(?: VARCHAR)?|NEXT|NO(?: SQL|CHECK|CYCLE)?|NONCLUSTERED|NULLIF|NUMERIC|OFF?|OFFSETS?|ON|OPEN(?:DATASOURCE|QUERY|ROWSET)?|OPTIMIZE|OPTION(?:ALLY)?|ORDER|OUT(?:ER|FILE)?|OVER|PARTIAL|PARTITION|PERCENT|PIVOT|PLAN|POINT|POLYGON|PRECEDING|PRECISION|PREV|PRIMARY|PRINT|PRIVILEGES|PROC(?:EDURE)?|PUBLIC|PURGE|QUICK|RAISERROR|READ(?:S SQL DATA|TEXT)?|REAL|RECONFIGURE|REFERENCES|RELEASE|RENAME|REPEATABLE|REPLICATION|REQUIRE|RESTORE|RESTRICT|RETURNS?|REVOKE|RIGHT|ROLLBACK|ROUTINE|ROW(?:COUNT|GUIDCOL|S)?|RTREE|RULE|SAVE(?:POINT)?|SCHEMA|SELECT|SERIAL(?:IZABLE)?|SESSION(?:_USER)?|SET(?:USER)?|SHARE MODE|SHOW|SHUTDOWN|SIMPLE|SMALLINT|SNAPSHOT|SOME|SONAME|START(?:ING BY)?|STATISTICS|STATUS|STRIPED|SYSTEM_USER|TABLES?|TABLESPACE|TEMP(?:ORARY|TABLE)?|TERMINATED BY|TEXT(?:SIZE)?|THEN|TIMESTAMP|TINY(?:BLOB|INT|TEXT)|TOP?|TRAN(?:SACTIONS?)?|TRIGGER|TRUNCATE|TSEQUAL|TYPES?|UNBOUNDED|UNCOMMITTED|UNDEFINED|UNION|UNIQUE|UNPIVOT|UPDATE(?:TEXT)?|USAGE|USE|USER|USING|VALUES?|VAR(?:BINARY|CHAR|CHARACTER|YING)|VIEW|WAITFOR|WARNINGS|WHEN|WHERE|WHILE|WITH(?: ROLLUP|IN)?|WORK|WRITE(?:TEXT)?)\b/i,
-                    boolean: /\b(?:TRUE|FALSE|NULL)\b/i,
-                    number: /\b-?(?:0x)?\d*\.?[\da-f]+\b/,
-                    operator: /[-+*\/=%^~]|&&?|\|?\||!=?|<(?:=>?|<|>)?|>[>=]?|\b(?:AND|BETWEEN|IN|LIKE|NOT|OR|IS|DIV|REGEXP|RLIKE|SOUNDS LIKE|XOR)\b/i,
-                    punctuation: /[;[\]()`,.]/
-                },
-                function(e) {
-                    var t = {
-                        url: /url\((["']?).*?\1\)/i,
-                        string: /("|')(?:[^\\\r\n]|\\(?:\r\n|[\s\S]))*?\1/,
-                        interpolation: null,
-                        func: null,
-                        important: /\B!(?:important|optional)\b/i,
-                        keyword: {
-                            pattern: /(^|\s+)(?:(?:if|else|for|return|unless)(?=\s+|$)|@[\w-]+)/,
-                            lookbehind: !0
-                        },
-                        hexcode: /#[\da-f]{3,6}/i,
-                        number: /\b\d+(?:\.\d+)?%?/,
-                        boolean: /\b(?:true|false)\b/,
-                        operator: [/~|[+!\/%<>?=]=?|[-:]=|\*[*=]?|\.+|&&|\|\||\B-\B|\b(?:and|in|is(?: a| defined| not|nt)?|not|or)\b/],
-                        punctuation: /[{}()\[\];:,]/
-                    };
-                    t.interpolation = {
-                        pattern: /\{[^\r\n}:]+\}/,
-                        alias: "variable",
-                        inside: e.util.clone(t)
-                    }, t.func = {
-                        pattern: /[\w-]+\([^)]*\).*/,
-                        inside: {
-                            function: /^[^(]+/,
-                            rest: e.util.clone(t)
-                        }
-                    }, e.languages.stylus = {
-                        comment: {
-                            pattern: /(^|[^\\])(\/\*[\w\W]*?\*\/|\/\/.*)/,
-                            lookbehind: !0
-                        },
-                        "atrule-declaration": {
-                            pattern: /(^\s*)@.+/m,
-                            lookbehind: !0,
-                            inside: {
-                                atrule: /^@[\w-]+/,
-                                rest: t
-                            }
-                        },
-                        "variable-declaration": {
-                            pattern: /(^[ \t]*)[\w$-]+\s*.?=[ \t]*(?:(?:\{[^}]*\}|.+)|$)/m,
-                            lookbehind: !0,
-                            inside: {
-                                variable: /^\S+/,
-                                rest: t
-                            }
-                        },
-                        statement: {
-                            pattern: /(^[ \t]*)(?:if|else|for|return|unless)[ \t]+.+/m,
-                            lookbehind: !0,
-                            inside: {
-                                keyword: /^\S+/,
-                                rest: t
-                            }
-                        },
-                        "property-declaration": {
-                            pattern: /((?:^|\{)([ \t]*))(?:[\w-]|\{[^}\r\n]+\})+(?:\s*:\s*|[ \t]+)[^{\r\n]*(?:;|[^{\r\n,](?=$)(?!(\r?\n|\r)(?:\{|\2[ \t]+)))/m,
-                            lookbehind: !0,
-                            inside: {
-                                property: {
-                                    pattern: /^[^\s:]+/,
-                                    inside: {
-                                        interpolation: t.interpolation
-                                    }
-                                },
-                                rest: t
-                            }
-                        },
-                        selector: {
-                            pattern: /(^[ \t]*)(?:(?=\S)(?:[^{}\r\n:()]|::?[\w-]+(?:\([^)\r\n]*\))?|\{[^}\r\n]+\})+)(?:(?:\r?\n|\r)(?:\1(?:(?=\S)(?:[^{}\r\n:()]|::?[\w-]+(?:\([^)\r\n]*\))?|\{[^}\r\n]+\})+)))*(?:,$|\{|(?=(?:\r?\n|\r)(?:\{|\1[ \t]+)))/m,
-                            lookbehind: !0,
-                            inside: {
-                                interpolation: t.interpolation,
-                                punctuation: /[{},]/
-                            }
-                        },
-                        func: t.func,
-                        string: t.string,
-                        interpolation: t.interpolation,
-                        punctuation: /[{}()\[\];:.]/
-                    }
-                }(n), n.languages.swift = n.languages.extend("clike", {
-                    string: {
-                        pattern: /("|')(\\(?:\((?:[^()]|\([^)]+\))+\)|\r\n|[\s\S])|(?!\1)[^\\\r\n])*\1/,
-                        greedy: !0,
-                        inside: {
-                            interpolation: {
-                                pattern: /\\\((?:[^()]|\([^)]+\))+\)/,
-                                inside: {
-                                    delimiter: {
-                                        pattern: /^\\\(|\)$/,
-                                        alias: "variable"
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    keyword: /\b(as|associativity|break|case|catch|class|continue|convenience|default|defer|deinit|didSet|do|dynamic(?:Type)?|else|enum|extension|fallthrough|final|for|func|get|guard|if|import|in|infix|init|inout|internal|is|lazy|left|let|mutating|new|none|nonmutating|operator|optional|override|postfix|precedence|prefix|private|Protocol|public|repeat|required|rethrows|return|right|safe|self|Self|set|static|struct|subscript|super|switch|throws?|try|Type|typealias|unowned|unsafe|var|weak|where|while|willSet|__(?:COLUMN__|FILE__|FUNCTION__|LINE__))\b/,
-                    number: /\b([\d_]+(\.[\de_]+)?|0x[a-f0-9_]+(\.[a-f0-9p_]+)?|0b[01_]+|0o[0-7_]+)\b/i,
-                    constant: /\b(nil|[A-Z_]{2,}|k[A-Z][A-Za-z_]+)\b/,
-                    atrule: /@\b(IB(?:Outlet|Designable|Action|Inspectable)|class_protocol|exported|noreturn|NS(?:Copying|Managed)|objc|UIApplicationMain|auto_closure)\b/,
-                    builtin: /\b([A-Z]\S+|abs|advance|alignof(?:Value)?|assert|contains|count(?:Elements)?|debugPrint(?:ln)?|distance|drop(?:First|Last)|dump|enumerate|equal|filter|find|first|getVaList|indices|isEmpty|join|last|lexicographicalCompare|map|max(?:Element)?|min(?:Element)?|numericCast|overlaps|partition|print(?:ln)?|reduce|reflect|reverse|sizeof(?:Value)?|sort(?:ed)?|split|startsWith|stride(?:of(?:Value)?)?|suffix|swap|toDebugString|toString|transcode|underestimateCount|unsafeBitCast|with(?:ExtendedLifetime|Unsafe(?:MutablePointers?|Pointers?)|VaList))\b/
-                }), n.languages.swift.string.inside.interpolation.inside.rest = n.util.clone(n.languages.swift), n.languages.tcl = {
-                    comment: {
-                        pattern: /(^|[^\\])#.*/,
-                        lookbehind: !0
-                    },
-                    string: /"(?:[^"\\\r\n]|\\(?:\r\n|[\s\S]))*"/,
-                    variable: [{
-                        pattern: /(\$)(?:::)?(?:[a-zA-Z0-9]+::)*[a-zA-Z0-9_]+/,
-                        lookbehind: !0
-                    }, {
-                        pattern: /(\$){[^}]+}/,
-                        lookbehind: !0
-                    }, {
-                        pattern: /(^\s*set[ \t]+)(?:::)?(?:[a-zA-Z0-9]+::)*[a-zA-Z0-9_]+/m,
-                        lookbehind: !0
-                    }],
-                    function: {
-                        pattern: /(^\s*proc[ \t]+)[^\s]+/m,
-                        lookbehind: !0
-                    },
-                    builtin: [{
-                        pattern: /(^\s*)(?:proc|return|class|error|eval|exit|for|foreach|if|switch|while|break|continue)\b/m,
-                        lookbehind: !0
-                    }, /\b(elseif|else)\b/],
-                    scope: {
-                        pattern: /(^\s*)(global|upvar|variable)\b/m,
-                        lookbehind: !0,
-                        alias: "constant"
-                    },
-                    keyword: {
-                        pattern: /(^\s*|\[)(after|append|apply|array|auto_(?:execok|import|load|mkindex|qualify|reset)|automkindex_old|bgerror|binary|catch|cd|chan|clock|close|concat|dde|dict|encoding|eof|exec|expr|fblocked|fconfigure|fcopy|file(?:event|name)?|flush|gets|glob|history|http|incr|info|interp|join|lappend|lassign|lindex|linsert|list|llength|load|lrange|lrepeat|lreplace|lreverse|lsearch|lset|lsort|math(?:func|op)|memory|msgcat|namespace|open|package|parray|pid|pkg_mkIndex|platform|puts|pwd|re_syntax|read|refchan|regexp|registry|regsub|rename|Safe_Base|scan|seek|set|socket|source|split|string|subst|Tcl|tcl(?:_endOfWord|_findLibrary|startOf(?:Next|Previous)Word|wordBreak(?:After|Before)|test|vars)|tell|time|tm|trace|unknown|unload|unset|update|uplevel|vwait)\b/m,
-                        lookbehind: !0
-                    },
-                    operator: /!=?|\*\*?|==|&&?|\|\|?|<[=<]?|>[=>]?|[-+~\/%?^]|\b(?:eq|ne|in|ni)\b/,
-                    punctuation: /[{}()\[\]]/
-                },
-                function(e) {
-                    var t = "(?:\\([^|)]+\\)|\\[[^\\]]+\\]|\\{[^}]+\\})+",
-                        n = {
-                            css: {
-                                pattern: /\{[^}]+\}/,
-                                inside: {
-                                    rest: e.languages.css
-                                }
-                            },
-                            "class-id": {
-                                pattern: /(\()[^)]+(?=\))/,
-                                lookbehind: !0,
-                                alias: "attr-value"
-                            },
-                            lang: {
-                                pattern: /(\[)[^\]]+(?=\])/,
-                                lookbehind: !0,
-                                alias: "attr-value"
-                            },
-                            punctuation: /[\\\/]\d+|\S/
-                        };
-                    e.languages.textile = e.languages.extend("markup", {
-                        phrase: {
-                            pattern: /(^|\r|\n)\S[\s\S]*?(?=$|\r?\n\r?\n|\r\r)/,
-                            lookbehind: !0,
-                            inside: {
-                                "block-tag": {
-                                    pattern: RegExp("^[a-z]\\w*(?:" + t + "|[<>=()])*\\."),
-                                    inside: {
-                                        modifier: {
-                                            pattern: RegExp("(^[a-z]\\w*)(?:" + t + "|[<>=()])+(?=\\.)"),
-                                            lookbehind: !0,
-                                            inside: e.util.clone(n)
-                                        },
-                                        tag: /^[a-z]\w*/,
-                                        punctuation: /\.$/
-                                    }
-                                },
-                                list: {
-                                    pattern: RegExp("^[*#]+(?:" + t + ")?\\s+.+", "m"),
-                                    inside: {
-                                        modifier: {
-                                            pattern: RegExp("(^[*#]+)" + t),
-                                            lookbehind: !0,
-                                            inside: e.util.clone(n)
-                                        },
-                                        punctuation: /^[*#]+/
-                                    }
-                                },
-                                table: {
-                                    pattern: RegExp("^(?:(?:" + t + "|[<>=()^~])+\\.\\s*)?(?:\\|(?:(?:" + t + "|[<>=()^~_]|[\\\\/]\\d+)+\\.)?[^|]*)+\\|", "m"),
-                                    inside: {
-                                        modifier: {
-                                            pattern: RegExp("(^|\\|(?:\\r?\\n|\\r)?)(?:" + t + "|[<>=()^~_]|[\\\\/]\\d+)+(?=\\.)"),
-                                            lookbehind: !0,
-                                            inside: e.util.clone(n)
-                                        },
-                                        punctuation: /\||^\./
-                                    }
-                                },
-                                inline: {
-                                    pattern: RegExp("(\\*\\*|__|\\?\\?|[*_%@+\\-^~])(?:" + t + ")?.+?\\1"),
-                                    inside: {
-                                        bold: {
-                                            pattern: RegExp("((^\\*\\*?)(?:" + t + ")?).+?(?=\\2)"),
-                                            lookbehind: !0
-                                        },
-                                        italic: {
-                                            pattern: RegExp("((^__?)(?:" + t + ")?).+?(?=\\2)"),
-                                            lookbehind: !0
-                                        },
-                                        cite: {
-                                            pattern: RegExp("(^\\?\\?(?:" + t + ")?).+?(?=\\?\\?)"),
-                                            lookbehind: !0,
-                                            alias: "string"
-                                        },
-                                        code: {
-                                            pattern: RegExp("(^@(?:" + t + ")?).+?(?=@)"),
-                                            lookbehind: !0,
-                                            alias: "keyword"
-                                        },
-                                        inserted: {
-                                            pattern: RegExp("(^\\+(?:" + t + ")?).+?(?=\\+)"),
-                                            lookbehind: !0
-                                        },
-                                        deleted: {
-                                            pattern: RegExp("(^-(?:" + t + ")?).+?(?=-)"),
-                                            lookbehind: !0
-                                        },
-                                        span: {
-                                            pattern: RegExp("(^%(?:" + t + ")?).+?(?=%)"),
-                                            lookbehind: !0
-                                        },
-                                        modifier: {
-                                            pattern: RegExp("(^\\*\\*|__|\\?\\?|[*_%@+\\-^~])" + t),
-                                            lookbehind: !0,
-                                            inside: e.util.clone(n)
-                                        },
-                                        punctuation: /[*_%?@+\-^~]+/
-                                    }
-                                },
-                                "link-ref": {
-                                    pattern: /^\[[^\]]+\]\S+$/m,
-                                    inside: {
-                                        string: {
-                                            pattern: /(\[)[^\]]+(?=\])/,
-                                            lookbehind: !0
-                                        },
-                                        url: {
-                                            pattern: /(\])\S+$/,
-                                            lookbehind: !0
-                                        },
-                                        punctuation: /[\[\]]/
-                                    }
-                                },
-                                link: {
-                                    pattern: RegExp('"(?:' + t + ')?[^"]+":.+?(?=[^\\w/]?(?:\\s|$))'),
-                                    inside: {
-                                        text: {
-                                            pattern: RegExp('(^"(?:' + t + ')?)[^"]+(?=")'),
-                                            lookbehind: !0
-                                        },
-                                        modifier: {
-                                            pattern: RegExp('(^")' + t),
-                                            lookbehind: !0,
-                                            inside: e.util.clone(n)
-                                        },
-                                        url: {
-                                            pattern: /(:).+/,
-                                            lookbehind: !0
-                                        },
-                                        punctuation: /[":]/
-                                    }
-                                },
-                                image: {
-                                    pattern: RegExp("!(?:" + t + "|[<>=()])*[^!\\s()]+(?:\\([^)]+\\))?!(?::.+?(?=[^\\w/]?(?:\\s|$)))?"),
-                                    inside: {
-                                        source: {
-                                            pattern: RegExp("(^!(?:" + t + "|[<>=()])*)[^!\\s()]+(?:\\([^)]+\\))?(?=!)"),
-                                            lookbehind: !0,
-                                            alias: "url"
-                                        },
-                                        modifier: {
-                                            pattern: RegExp("(^!)(?:" + t + "|[<>=()])+"),
-                                            lookbehind: !0,
-                                            inside: e.util.clone(n)
-                                        },
-                                        url: {
-                                            pattern: /(:).+/,
-                                            lookbehind: !0
-                                        },
-                                        punctuation: /[!:]/
-                                    }
-                                },
-                                footnote: {
-                                    pattern: /\b\[\d+\]/,
-                                    alias: "comment",
-                                    inside: {
-                                        punctuation: /\[|\]/
-                                    }
-                                },
-                                acronym: {
-                                    pattern: /\b[A-Z\d]+\([^)]+\)/,
-                                    inside: {
-                                        comment: {
-                                            pattern: /(\()[^)]+(?=\))/,
-                                            lookbehind: !0
-                                        },
-                                        punctuation: /[()]/
-                                    }
-                                },
-                                mark: {
-                                    pattern: /\b\((TM|R|C)\)/,
-                                    alias: "comment",
-                                    inside: {
-                                        punctuation: /[()]/
-                                    }
-                                }
-                            }
-                        }
-                    });
-                    var i = {
-                        inline: e.util.clone(e.languages.textile.phrase.inside.inline),
-                        link: e.util.clone(e.languages.textile.phrase.inside.link),
-                        image: e.util.clone(e.languages.textile.phrase.inside.image),
-                        footnote: e.util.clone(e.languages.textile.phrase.inside.footnote),
-                        acronym: e.util.clone(e.languages.textile.phrase.inside.acronym),
-                        mark: e.util.clone(e.languages.textile.phrase.inside.mark)
-                    };
-                    e.languages.textile.tag.pattern = /<\/?(?!\d)[a-z0-9]+(?:\s+[^\s>\/=]+(?:=(?:("|')(?:\\\1|\\?(?!\1)[\w\W])*\1|[^\s'">=]+))?)*\s*\/?>/i, e.languages.textile.phrase.inside.inline.inside.bold.inside = i, e.languages.textile.phrase.inside.inline.inside.italic.inside = i, e.languages.textile.phrase.inside.inline.inside.inserted.inside = i, e.languages.textile.phrase.inside.inline.inside.deleted.inside = i, e.languages.textile.phrase.inside.inline.inside.span.inside = i, e.languages.textile.phrase.inside.table.inside.inline = i.inline, e.languages.textile.phrase.inside.table.inside.link = i.link, e.languages.textile.phrase.inside.table.inside.image = i.image, e.languages.textile.phrase.inside.table.inside.footnote = i.footnote, e.languages.textile.phrase.inside.table.inside.acronym = i.acronym, e.languages.textile.phrase.inside.table.inside.mark = i.mark
-                }(n), n.languages.twig = {
-                    comment: /\{#[\s\S]*?#\}/,
-                    tag: {
-                        pattern: /\{\{[\s\S]*?\}\}|\{%[\s\S]*?%\}/,
-                        inside: {
-                            ld: {
-                                pattern: /^(?:\{\{\-?|\{%\-?\s*\w+)/,
-                                inside: {
-                                    punctuation: /^(?:\{\{|\{%)\-?/,
-                                    keyword: /\w+/
-                                }
-                            },
-                            rd: {
-                                pattern: /\-?(?:%\}|\}\})$/,
-                                inside: {
-                                    punctuation: /.*/
-                                }
-                            },
-                            string: {
-                                pattern: /("|')(?:\\?.)*?\1/,
-                                inside: {
-                                    punctuation: /^['"]|['"]$/
-                                }
-                            },
-                            keyword: /\b(?:even|if|odd)\b/,
-                            boolean: /\b(?:true|false|null)\b/,
-                            number: /\b-?(?:0x[\dA-Fa-f]+|\d*\.?\d+([Ee][-+]?\d+)?)\b/,
-                            operator: [{
-                                pattern: /(\s)(?:and|b\-and|b\-xor|b\-or|ends with|in|is|matches|not|or|same as|starts with)(?=\s)/,
-                                lookbehind: !0
-                            }, /[=<>]=?|!=|\*\*?|\/\/?|\?:?|[-+~%|]/],
-                            property: /\b[a-zA-Z_][a-zA-Z0-9_]*\b/,
-                            punctuation: /[()\[\]{}:.,]/
-                        }
-                    },
-                    other: {
-                        pattern: /\S(?:[\s\S]*\S)?/,
-                        inside: n.languages.markup
-                    }
-                }, n.languages.typescript = n.languages.extend("javascript", {
-                    keyword: /\b(break|case|catch|class|const|continue|debugger|default|delete|do|else|enum|export|extends|false|finally|for|from|function|get|if|implements|import|in|instanceof|interface|let|new|null|package|private|protected|public|return|set|static|super|switch|this|throw|true|try|typeof|var|void|while|with|yield|module|declare|constructor|string|Function|any|number|boolean|Array|enum)\b/
-                }), n.languages.ts = n.languages.typescript, n.languages.verilog = {
-                    comment: /\/\/.*|\/\*[\w\W]*?\*\//,
-                    string: /"(?:\\(?:\r\n|[\s\S])|[^"\\\r\n])*"/,
-                    property: /\B\$\w+\b/,
-                    constant: /\B`\w+\b/,
-                    function: /[a-z\d_]+(?=\()/i,
-                    keyword: /\b(?:alias|and|assert|assign|assume|automatic|before|begin|bind|bins|binsof|bit|break|buf|bufif0|bufif1|byte|class|case|casex|casez|cell|chandle|clocking|cmos|config|const|constraint|context|continue|cover|covergroup|coverpoint|cross|deassign|default|defparam|design|disable|dist|do|edge|else|end|endcase|endclass|endclocking|endconfig|endfunction|endgenerate|endgroup|endinterface|endmodule|endpackage|endprimitive|endprogram|endproperty|endspecify|endsequence|endtable|endtask|enum|event|expect|export|extends|extern|final|first_match|for|force|foreach|forever|fork|forkjoin|function|generate|genvar|highz0|highz1|if|iff|ifnone|ignore_bins|illegal_bins|import|incdir|include|initial|inout|input|inside|instance|int|integer|interface|intersect|join|join_any|join_none|large|liblist|library|local|localparam|logic|longint|macromodule|matches|medium|modport|module|nand|negedge|new|nmos|nor|noshowcancelled|not|notif0|notif1|null|or|output|package|packed|parameter|pmos|posedge|primitive|priority|program|property|protected|pull0|pull1|pulldown|pullup|pulsestyle_onevent|pulsestyle_ondetect|pure|rand|randc|randcase|randsequence|rcmos|real|realtime|ref|reg|release|repeat|return|rnmos|rpmos|rtran|rtranif0|rtranif1|scalared|sequence|shortint|shortreal|showcancelled|signed|small|solve|specify|specparam|static|string|strong0|strong1|struct|super|supply0|supply1|table|tagged|task|this|throughout|time|timeprecision|timeunit|tran|tranif0|tranif1|tri|tri0|tri1|triand|trior|trireg|type|typedef|union|unique|unsigned|use|uwire|var|vectored|virtual|void|wait|wait_order|wand|weak0|weak1|while|wildcard|wire|with|within|wor|xnor|xor)\b/,
-                    important: /\b(?:always_latch|always_comb|always_ff|always)\b ?@?/,
-                    number: /\B##?\d+|(?:\b\d+)?'[odbh] ?[\da-fzx_?]+|\b\d*[._]?\d+(?:e[-+]?\d+)?/i,
-                    operator: /[-+{}^~%*\/?=!<>&|]+/,
-                    punctuation: /[[\];(),.:]/
-                }, n.languages.vhdl = {
-                    comment: /--.+/,
-                    "vhdl-vectors": {
-                        pattern: /\b[oxb]"[\da-f_]+"|"[01uxzwlh-]+"/i,
-                        alias: "number"
-                    },
-                    "quoted-function": {
-                        pattern: /"\S+?"(?=\()/,
-                        alias: "function"
-                    },
-                    string: /"(?:[^\\\r\n]|\\?(?:\r\n|[\s\S]))*?"/,
-                    constant: /\b(?:use|library)\b/i,
-                    keyword: /\b(?:'active|'ascending|'base|'delayed|'driving|'driving_value|'event|'high|'image|'instance_name|'last_active|'last_event|'last_value|'left|'leftof|'length|'low|'path_name|'pos|'pred|'quiet|'range|'reverse_range|'right|'rightof|'simple_name|'stable|'succ|'transaction|'val|'value|access|after|alias|all|architecture|array|assert|attribute|begin|block|body|buffer|bus|case|component|configuration|constant|disconnect|downto|else|elsif|end|entity|exit|file|for|function|generate|generic|group|guarded|if|impure|in|inertial|inout|is|label|library|linkage|literal|loop|map|new|next|null|of|on|open|others|out|package|port|postponed|procedure|process|pure|range|record|register|reject|report|return|select|severity|shared|signal|subtype|then|to|transport|type|unaffected|units|until|use|variable|wait|when|while|with)\b/i,
-                    boolean: /\b(?:true|false)\b/i,
-                    function: /[a-z0-9_]+(?=\()/i,
-                    number: /'[01uxzwlh-]'|\b(?:\d+#[\da-f_.]+#|\d[\d_.]*)(?:e[-+]?\d+)?/i,
-                    operator: /[<>]=?|:=|[-+*\/&=]|\b(?:abs|not|mod|rem|sll|srl|sla|sra|rol|ror|and|or|nand|xnor|xor|nor)\b/i,
-                    punctuation: /[{}[\];(),.:]/
-                }, n.languages.vim = {
-                    string: /"(?:[^"\\\r\n]|\\.)*"|'(?:[^'\r\n]|'')*'/,
-                    comment: /".*/,
-                    function: /\w+(?=\()/,
-                    keyword: /\b(?:ab|abbreviate|abc|abclear|abo|aboveleft|al|all|arga|argadd|argd|argdelete|argdo|arge|argedit|argg|argglobal|argl|arglocal|ar|args|argu|argument|as|ascii|bad|badd|ba|ball|bd|bdelete|be|bel|belowright|bf|bfirst|bl|blast|bm|bmodified|bn|bnext|bN|bNext|bo|botright|bp|bprevious|brea|break|breaka|breakadd|breakd|breakdel|breakl|breaklist|br|brewind|bro|browse|bufdo|b|buffer|buffers|bun|bunload|bw|bwipeout|ca|cabbrev|cabc|cabclear|caddb|caddbuffer|cad|caddexpr|caddf|caddfile|cal|call|cat|catch|cb|cbuffer|cc|ccl|cclose|cd|ce|center|cex|cexpr|cf|cfile|cfir|cfirst|cgetb|cgetbuffer|cgete|cgetexpr|cg|cgetfile|c|change|changes|chd|chdir|che|checkpath|checkt|checktime|cla|clast|cl|clist|clo|close|cmapc|cmapclear|cnew|cnewer|cn|cnext|cN|cNext|cnf|cnfile|cNfcNfile|cnorea|cnoreabbrev|col|colder|colo|colorscheme|comc|comclear|comp|compiler|conf|confirm|con|continue|cope|copen|co|copy|cpf|cpfile|cp|cprevious|cq|cquit|cr|crewind|cuna|cunabbrev|cu|cunmap|cw|cwindow|debugg|debuggreedy|delc|delcommand|d|delete|delf|delfunction|delm|delmarks|diffg|diffget|diffoff|diffpatch|diffpu|diffput|diffsplit|diffthis|diffu|diffupdate|dig|digraphs|di|display|dj|djump|dl|dlist|dr|drop|ds|dsearch|dsp|dsplit|earlier|echoe|echoerr|echom|echomsg|echon|e|edit|el|else|elsei|elseif|em|emenu|endfo|endfor|endf|endfunction|endfun|en|endif|endt|endtry|endw|endwhile|ene|enew|ex|exi|exit|exu|exusage|f|file|files|filetype|fina|finally|fin|find|fini|finish|fir|first|fix|fixdel|fo|fold|foldc|foldclose|folddoc|folddoclosed|foldd|folddoopen|foldo|foldopen|for|fu|fun|function|go|goto|gr|grep|grepa|grepadd|ha|hardcopy|h|help|helpf|helpfind|helpg|helpgrep|helpt|helptags|hid|hide|his|history|ia|iabbrev|iabc|iabclear|if|ij|ijump|il|ilist|imapc|imapclear|in|inorea|inoreabbrev|isearch|isp|isplit|iuna|iunabbrev|iu|iunmap|j|join|ju|jumps|k|keepalt|keepj|keepjumps|kee|keepmarks|laddb|laddbuffer|lad|laddexpr|laddf|laddfile|lan|language|la|last|later|lb|lbuffer|lc|lcd|lch|lchdir|lcl|lclose|let|left|lefta|leftabove|lex|lexpr|lf|lfile|lfir|lfirst|lgetb|lgetbuffer|lgete|lgetexpr|lg|lgetfile|lgr|lgrep|lgrepa|lgrepadd|lh|lhelpgrep|l|list|ll|lla|llast|lli|llist|lmak|lmake|lm|lmap|lmapc|lmapclear|lnew|lnewer|lne|lnext|lN|lNext|lnf|lnfile|lNf|lNfile|ln|lnoremap|lo|loadview|loc|lockmarks|lockv|lockvar|lol|lolder|lop|lopen|lpf|lpfile|lp|lprevious|lr|lrewind|ls|lt|ltag|lu|lunmap|lv|lvimgrep|lvimgrepa|lvimgrepadd|lw|lwindow|mak|make|ma|mark|marks|mat|match|menut|menutranslate|mk|mkexrc|mks|mksession|mksp|mkspell|mkvie|mkview|mkv|mkvimrc|mod|mode|m|move|mzf|mzfile|mz|mzscheme|nbkey|new|n|next|N|Next|nmapc|nmapclear|noh|nohlsearch|norea|noreabbrev|nu|number|nun|nunmap|omapc|omapclear|on|only|o|open|opt|options|ou|ounmap|pc|pclose|ped|pedit|pe|perl|perld|perldo|po|pop|popu|popu|popup|pp|ppop|pre|preserve|prev|previous|p|print|P|Print|profd|profdel|prof|profile|promptf|promptfind|promptr|promptrepl|ps|psearch|pta|ptag|ptf|ptfirst|ptj|ptjump|ptl|ptlast|ptn|ptnext|ptN|ptNext|ptp|ptprevious|ptr|ptrewind|pts|ptselect|pu|put|pw|pwd|pyf|pyfile|py|python|qa|qall|q|quit|quita|quitall|r|read|rec|recover|redi|redir|red|redo|redr|redraw|redraws|redrawstatus|reg|registers|res|resize|ret|retab|retu|return|rew|rewind|ri|right|rightb|rightbelow|rub|ruby|rubyd|rubydo|rubyf|rubyfile|ru|runtime|rv|rviminfo|sal|sall|san|sandbox|sa|sargument|sav|saveas|sba|sball|sbf|sbfirst|sbl|sblast|sbm|sbmodified|sbn|sbnext|sbN|sbNext|sbp|sbprevious|sbr|sbrewind|sb|sbuffer|scripte|scriptencoding|scrip|scriptnames|se|set|setf|setfiletype|setg|setglobal|setl|setlocal|sf|sfind|sfir|sfirst|sh|shell|sign|sil|silent|sim|simalt|sla|slast|sl|sleep|sm|smagic|sm|smap|smapc|smapclear|sme|smenu|sn|snext|sN|sNext|sni|sniff|sno|snomagic|snor|snoremap|snoreme|snoremenu|sor|sort|so|source|spelld|spelldump|spe|spellgood|spelli|spellinfo|spellr|spellrepall|spellu|spellundo|spellw|spellwrong|sp|split|spr|sprevious|sre|srewind|sta|stag|startg|startgreplace|star|startinsert|startr|startreplace|stj|stjump|st|stop|stopi|stopinsert|sts|stselect|sun|sunhide|sunm|sunmap|sus|suspend|sv|sview|syncbind|t|tab|tabc|tabclose|tabd|tabdo|tabe|tabedit|tabf|tabfind|tabfir|tabfirst|tabl|tablast|tabm|tabmove|tabnew|tabn|tabnext|tabN|tabNext|tabo|tabonly|tabp|tabprevious|tabr|tabrewind|tabs|ta|tag|tags|tc|tcl|tcld|tcldo|tclf|tclfile|te|tearoff|tf|tfirst|th|throw|tj|tjump|tl|tlast|tm|tm|tmenu|tn|tnext|tN|tNext|to|topleft|tp|tprevious|tr|trewind|try|ts|tselect|tu|tu|tunmenu|una|unabbreviate|u|undo|undoj|undojoin|undol|undolist|unh|unhide|unlet|unlo|unlockvar|unm|unmap|up|update|verb|verbose|ve|version|vert|vertical|vie|view|vim|vimgrep|vimgrepa|vimgrepadd|vi|visual|viu|viusage|vmapc|vmapclear|vne|vnew|vs|vsplit|vu|vunmap|wa|wall|wh|while|winc|wincmd|windo|winp|winpos|win|winsize|wn|wnext|wN|wNext|wp|wprevious|wq|wqa|wqall|w|write|ws|wsverb|wv|wviminfo|X|xa|xall|x|xit|xm|xmap|xmapc|xmapclear|xme|xmenu|XMLent|XMLns|xn|xnoremap|xnoreme|xnoremenu|xu|xunmap|y|yank)\b/,
-                    builtin: /\b(?:autocmd|acd|ai|akm|aleph|allowrevins|altkeymap|ambiwidth|ambw|anti|antialias|arab|arabic|arabicshape|ari|arshape|autochdir|autoindent|autoread|autowrite|autowriteall|aw|awa|background|backspace|backup|backupcopy|backupdir|backupext|backupskip|balloondelay|ballooneval|balloonexpr|bdir|bdlay|beval|bex|bexpr|bg|bh|bin|binary|biosk|bioskey|bk|bkc|bomb|breakat|brk|browsedir|bs|bsdir|bsk|bt|bufhidden|buflisted|buftype|casemap|ccv|cdpath|cedit|cfu|ch|charconvert|ci|cin|cindent|cink|cinkeys|cino|cinoptions|cinw|cinwords|clipboard|cmdheight|cmdwinheight|cmp|cms|columns|com|comments|commentstring|compatible|complete|completefunc|completeopt|consk|conskey|copyindent|cot|cpo|cpoptions|cpt|cscopepathcomp|cscopeprg|cscopequickfix|cscopetag|cscopetagorder|cscopeverbose|cspc|csprg|csqf|cst|csto|csverb|cuc|cul|cursorcolumn|cursorline|cwh|debug|deco|def|define|delcombine|dex|dg|dict|dictionary|diff|diffexpr|diffopt|digraph|dip|dir|directory|dy|ea|ead|eadirection|eb|ed|edcompatible|ef|efm|ei|ek|enc|encoding|endofline|eol|ep|equalalways|equalprg|errorbells|errorfile|errorformat|esckeys|et|eventignore|expandtab|exrc|fcl|fcs|fdc|fde|fdi|fdl|fdls|fdm|fdn|fdo|fdt|fen|fenc|fencs|fex|ff|ffs|fileencoding|fileencodings|fileformat|fileformats|fillchars|fk|fkmap|flp|fml|fmr|foldcolumn|foldenable|foldexpr|foldignore|foldlevel|foldlevelstart|foldmarker|foldmethod|foldminlines|foldnestmax|foldtext|formatexpr|formatlistpat|formatoptions|formatprg|fp|fs|fsync|ft|gcr|gd|gdefault|gfm|gfn|gfs|gfw|ghr|gp|grepformat|grepprg|gtl|gtt|guicursor|guifont|guifontset|guifontwide|guiheadroom|guioptions|guipty|guitablabel|guitabtooltip|helpfile|helpheight|helplang|hf|hh|hi|hidden|highlight|hk|hkmap|hkmapp|hkp|hl|hlg|hls|hlsearch|ic|icon|iconstring|ignorecase|im|imactivatekey|imak|imc|imcmdline|imd|imdisable|imi|iminsert|ims|imsearch|inc|include|includeexpr|incsearch|inde|indentexpr|indentkeys|indk|inex|inf|infercase|insertmode|isf|isfname|isi|isident|isk|iskeyword|isprint|joinspaces|js|key|keymap|keymodel|keywordprg|km|kmp|kp|langmap|langmenu|laststatus|lazyredraw|lbr|lcs|linebreak|lines|linespace|lisp|lispwords|listchars|loadplugins|lpl|lsp|lz|macatsui|magic|makeef|makeprg|matchpairs|matchtime|maxcombine|maxfuncdepth|maxmapdepth|maxmem|maxmempattern|maxmemtot|mco|mef|menuitems|mfd|mh|mis|mkspellmem|ml|mls|mm|mmd|mmp|mmt|modeline|modelines|modifiable|modified|more|mouse|mousef|mousefocus|mousehide|mousem|mousemodel|mouses|mouseshape|mouset|mousetime|mp|mps|msm|mzq|mzquantum|nf|nrformats|numberwidth|nuw|odev|oft|ofu|omnifunc|opendevice|operatorfunc|opfunc|osfiletype|pa|para|paragraphs|paste|pastetoggle|patchexpr|patchmode|path|pdev|penc|pex|pexpr|pfn|ph|pheader|pi|pm|pmbcs|pmbfn|popt|preserveindent|previewheight|previewwindow|printdevice|printencoding|printexpr|printfont|printheader|printmbcharset|printmbfont|printoptions|prompt|pt|pumheight|pvh|pvw|qe|quoteescape|readonly|remap|report|restorescreen|revins|rightleft|rightleftcmd|rl|rlc|ro|rs|rtp|ruf|ruler|rulerformat|runtimepath|sbo|sc|scb|scr|scroll|scrollbind|scrolljump|scrolloff|scrollopt|scs|sect|sections|secure|sel|selection|selectmode|sessionoptions|sft|shcf|shellcmdflag|shellpipe|shellquote|shellredir|shellslash|shelltemp|shelltype|shellxquote|shiftround|shiftwidth|shm|shortmess|shortname|showbreak|showcmd|showfulltag|showmatch|showmode|showtabline|shq|si|sidescroll|sidescrolloff|siso|sj|slm|smartcase|smartindent|smarttab|smc|smd|softtabstop|sol|spc|spell|spellcapcheck|spellfile|spelllang|spellsuggest|spf|spl|splitbelow|splitright|sps|sr|srr|ss|ssl|ssop|stal|startofline|statusline|stl|stmp|su|sua|suffixes|suffixesadd|sw|swapfile|swapsync|swb|swf|switchbuf|sws|sxq|syn|synmaxcol|syntax|tabline|tabpagemax|tabstop|tagbsearch|taglength|tagrelative|tagstack|tal|tb|tbi|tbidi|tbis|tbs|tenc|term|termbidi|termencoding|terse|textauto|textmode|textwidth|tgst|thesaurus|tildeop|timeout|timeoutlen|title|titlelen|titleold|titlestring|toolbar|toolbariconsize|top|tpm|tsl|tsr|ttimeout|ttimeoutlen|ttm|tty|ttybuiltin|ttyfast|ttym|ttymouse|ttyscroll|ttytype|tw|tx|uc|ul|undolevels|updatecount|updatetime|ut|vb|vbs|vdir|verbosefile|vfile|viewdir|viewoptions|viminfo|virtualedit|visualbell|vop|wak|warn|wb|wc|wcm|wd|weirdinvert|wfh|wfw|whichwrap|wi|wig|wildchar|wildcharm|wildignore|wildmenu|wildmode|wildoptions|wim|winaltkeys|window|winfixheight|winfixwidth|winheight|winminheight|winminwidth|winwidth|wiv|wiw|wm|wmh|wmnu|wmw|wop|wrap|wrapmargin|wrapscan|writeany|writebackup|writedelay|ww|noacd|noai|noakm|noallowrevins|noaltkeymap|noanti|noantialias|noar|noarab|noarabic|noarabicshape|noari|noarshape|noautochdir|noautoindent|noautoread|noautowrite|noautowriteall|noaw|noawa|nobackup|noballooneval|nobeval|nobin|nobinary|nobiosk|nobioskey|nobk|nobl|nobomb|nobuflisted|nocf|noci|nocin|nocindent|nocompatible|noconfirm|noconsk|noconskey|nocopyindent|nocp|nocscopetag|nocscopeverbose|nocst|nocsverb|nocuc|nocul|nocursorcolumn|nocursorline|nodeco|nodelcombine|nodg|nodiff|nodigraph|nodisable|noea|noeb|noed|noedcompatible|noek|noendofline|noeol|noequalalways|noerrorbells|noesckeys|noet|noex|noexpandtab|noexrc|nofen|nofk|nofkmap|nofoldenable|nogd|nogdefault|noguipty|nohid|nohidden|nohk|nohkmap|nohkmapp|nohkp|nohls|noic|noicon|noignorecase|noim|noimc|noimcmdline|noimd|noincsearch|noinf|noinfercase|noinsertmode|nois|nojoinspaces|nojs|nolazyredraw|nolbr|nolinebreak|nolisp|nolist|noloadplugins|nolpl|nolz|noma|nomacatsui|nomagic|nomh|noml|nomod|nomodeline|nomodifiable|nomodified|nomore|nomousef|nomousefocus|nomousehide|nonu|nonumber|noodev|noopendevice|nopaste|nopi|nopreserveindent|nopreviewwindow|noprompt|nopvw|noreadonly|noremap|norestorescreen|norevins|nori|norightleft|norightleftcmd|norl|norlc|noro|nors|noru|noruler|nosb|nosc|noscb|noscrollbind|noscs|nosecure|nosft|noshellslash|noshelltemp|noshiftround|noshortname|noshowcmd|noshowfulltag|noshowmatch|noshowmode|nosi|nosm|nosmartcase|nosmartindent|nosmarttab|nosmd|nosn|nosol|nospell|nosplitbelow|nosplitright|nospr|nosr|nossl|nosta|nostartofline|nostmp|noswapfile|noswf|nota|notagbsearch|notagrelative|notagstack|notbi|notbidi|notbs|notermbidi|noterse|notextauto|notextmode|notf|notgst|notildeop|notimeout|notitle|noto|notop|notr|nottimeout|nottybuiltin|nottyfast|notx|novb|novisualbell|nowa|nowarn|nowb|noweirdinvert|nowfh|nowfw|nowildmenu|nowinfixheight|nowinfixwidth|nowiv|nowmnu|nowrap|nowrapscan|nowrite|nowriteany|nowritebackup|nows|invacd|invai|invakm|invallowrevins|invaltkeymap|invanti|invantialias|invar|invarab|invarabic|invarabicshape|invari|invarshape|invautochdir|invautoindent|invautoread|invautowrite|invautowriteall|invaw|invawa|invbackup|invballooneval|invbeval|invbin|invbinary|invbiosk|invbioskey|invbk|invbl|invbomb|invbuflisted|invcf|invci|invcin|invcindent|invcompatible|invconfirm|invconsk|invconskey|invcopyindent|invcp|invcscopetag|invcscopeverbose|invcst|invcsverb|invcuc|invcul|invcursorcolumn|invcursorline|invdeco|invdelcombine|invdg|invdiff|invdigraph|invdisable|invea|inveb|inved|invedcompatible|invek|invendofline|inveol|invequalalways|inverrorbells|invesckeys|invet|invex|invexpandtab|invexrc|invfen|invfk|invfkmap|invfoldenable|invgd|invgdefault|invguipty|invhid|invhidden|invhk|invhkmap|invhkmapp|invhkp|invhls|invhlsearch|invic|invicon|invignorecase|invim|invimc|invimcmdline|invimd|invincsearch|invinf|invinfercase|invinsertmode|invis|invjoinspaces|invjs|invlazyredraw|invlbr|invlinebreak|invlisp|invlist|invloadplugins|invlpl|invlz|invma|invmacatsui|invmagic|invmh|invml|invmod|invmodeline|invmodifiable|invmodified|invmore|invmousef|invmousefocus|invmousehide|invnu|invnumber|invodev|invopendevice|invpaste|invpi|invpreserveindent|invpreviewwindow|invprompt|invpvw|invreadonly|invremap|invrestorescreen|invrevins|invri|invrightleft|invrightleftcmd|invrl|invrlc|invro|invrs|invru|invruler|invsb|invsc|invscb|invscrollbind|invscs|invsecure|invsft|invshellslash|invshelltemp|invshiftround|invshortname|invshowcmd|invshowfulltag|invshowmatch|invshowmode|invsi|invsm|invsmartcase|invsmartindent|invsmarttab|invsmd|invsn|invsol|invspell|invsplitbelow|invsplitright|invspr|invsr|invssl|invsta|invstartofline|invstmp|invswapfile|invswf|invta|invtagbsearch|invtagrelative|invtagstack|invtbi|invtbidi|invtbs|invtermbidi|invterse|invtextauto|invtextmode|invtf|invtgst|invtildeop|invtimeout|invtitle|invto|invtop|invtr|invttimeout|invttybuiltin|invttyfast|invtx|invvb|invvisualbell|invwa|invwarn|invwb|invweirdinvert|invwfh|invwfw|invwildmenu|invwinfixheight|invwinfixwidth|invwiv|invwmnu|invwrap|invwrapscan|invwrite|invwriteany|invwritebackup|invws|t_AB|t_AF|t_al|t_AL|t_bc|t_cd|t_ce|t_Ce|t_cl|t_cm|t_Co|t_cs|t_Cs|t_CS|t_CV|t_da|t_db|t_dl|t_DL|t_EI|t_F1|t_F2|t_F3|t_F4|t_F5|t_F6|t_F7|t_F8|t_F9|t_fs|t_IE|t_IS|t_k1|t_K1|t_k2|t_k3|t_K3|t_k4|t_K4|t_k5|t_K5|t_k6|t_K6|t_k7|t_K7|t_k8|t_K8|t_k9|t_K9|t_KA|t_kb|t_kB|t_KB|t_KC|t_kd|t_kD|t_KD|t_ke|t_KE|t_KF|t_KG|t_kh|t_KH|t_kI|t_KI|t_KJ|t_KK|t_kl|t_KL|t_kN|t_kP|t_kr|t_ks|t_ku|t_le|t_mb|t_md|t_me|t_mr|t_ms|t_nd|t_op|t_RI|t_RV|t_Sb|t_se|t_Sf|t_SI|t_so|t_sr|t_te|t_ti|t_ts|t_ue|t_us|t_ut|t_vb|t_ve|t_vi|t_vs|t_WP|t_WS|t_xs|t_ZH|t_ZR)\b/,
-                    number: /\b(?:0x[\da-f]+|\d+(?:\.\d+)?)\b/i,
-                    operator: /\|\||&&|[-+.]=?|[=!](?:[=~][#?]?)?|[<>]=?[#?]?|[*\/%?]|\b(?:is(?:not)?)\b/,
-                    punctuation: /[{}[\](),;:]/
-                }, n.languages.wiki = n.languages.extend("markup", {
-                    "block-comment": {
-                        pattern: /(^|[^\\])\/\*[\w\W]*?\*\//,
-                        lookbehind: !0,
-                        alias: "comment"
-                    },
-                    heading: {
-                        pattern: /^(=+).+?\1/m,
-                        inside: {
-                            punctuation: /^=+|=+$/,
-                            important: /.+/
-                        }
-                    },
-                    emphasis: {
-                        pattern: /('{2,5}).+?\1/,
-                        inside: {
-                            "bold italic": {
-                                pattern: /(''''').+?(?=\1)/,
-                                lookbehind: !0
-                            },
-                            bold: {
-                                pattern: /(''')[^'](?:.*?[^'])?(?=\1)/,
-                                lookbehind: !0
-                            },
-                            italic: {
-                                pattern: /('')[^'](?:.*?[^'])?(?=\1)/,
-                                lookbehind: !0
-                            },
-                            punctuation: /^''+|''+$/
-                        }
-                    },
-                    hr: {
-                        pattern: /^-{4,}/m,
-                        alias: "punctuation"
-                    },
-                    url: [/ISBN +(?:97[89][ -]?)?(?:\d[ -]?){9}[\dx]\b|(?:RFC|PMID) +\d+/i, /\[\[.+?\]\]|\[.+?\]/],
-                    variable: [/__[A-Z]+__/, /\{{3}.+?\}{3}/, /\{\{.+?}}/],
-                    symbol: [/^#redirect/im, /~{3,5}/],
-                    "table-tag": {
-                        pattern: /((?:^|[|!])[|!])[^|\r\n]+\|(?!\|)/m,
-                        lookbehind: !0,
-                        inside: {
-                            "table-bar": {
-                                pattern: /\|$/,
-                                alias: "punctuation"
-                            },
-                            rest: n.languages.markup.tag.inside
-                        }
-                    },
-                    punctuation: /^(?:\{\||\|\}|\|-|[*#:;!|])|\|\||!!/m
-                }), n.languages.insertBefore("wiki", "tag", {
-                    nowiki: {
-                        pattern: /<(nowiki|pre|source)\b[\w\W]*?>[\w\W]*?<\/\1>/i,
-                        inside: {
-                            tag: {
-                                pattern: /<(?:nowiki|pre|source)\b[\w\W]*?>|<\/(?:nowiki|pre|source)>/i,
-                                inside: n.languages.markup.tag.inside
-                            }
-                        }
-                    }
-                }), n.languages.xojo = {
-                    comment: {
-                        pattern: /(?:'|\/\/|Rem\b).+/i,
-                        inside: {
-                            keyword: /^Rem/i
-                        }
-                    },
-                    string: {
-                        pattern: /"(?:""|[^"])*"/,
-                        greedy: !0
-                    },
-                    number: [/(?:\b|\B[.-])(?:\d+\.?\d*)(?:E[+-]?\d+)?/i, /&[bchou][a-z\d]+/i],
-                    symbol: /#(?:If|Else|ElseIf|Endif|Pragma)\b/i,
-                    keyword: /\b(?:AddHandler|App|Array|As(?:signs)?|By(?:Ref|Val)|Break|Call|Case|Catch|Const|Continue|CurrentMethodName|Declare|Dim|Do(?:wnTo)?|Each|Else(?:If)?|End|Exit|Extends|False|Finally|For|Global|If|In|Lib|Loop|Me|Next|Nil|Optional|ParamArray|Raise(?:Event)?|ReDim|Rem|RemoveHandler|Return|Select|Self|Soft|Static|Step|Super|Then|To|True|Try|Ubound|Until|Using|Wend|While)\b/i,
-                    operator: /<[=>]?|>=?|[+\-*\/\\^=]|\b(?:AddressOf|And|Ctype|IsA?|Mod|New|Not|Or|Xor|WeakAddressOf)\b/i,
-                    punctuation: /[.,;:()]/
-                }, n.languages.yaml = {
-                    scalar: {
-                        pattern: /([\-:]\s*(![^\s]+)?[ \t]*[|>])[ \t]*(?:((?:\r?\n|\r)[ \t]+)[^\r\n]+(?:\3[^\r\n]+)*)/,
-                        lookbehind: !0,
-                        alias: "string"
-                    },
-                    comment: /#.*/,
-                    key: {
-                        pattern: /(\s*(?:^|[:\-,[{\r\n?])[ \t]*(![^\s]+)?[ \t]*)[^\r\n{[\]},#\s]+?(?=\s*:\s)/,
-                        lookbehind: !0,
-                        alias: "atrule"
-                    },
-                    directive: {
-                        pattern: /(^[ \t]*)%.+/m,
-                        lookbehind: !0,
-                        alias: "important"
-                    },
-                    datetime: {
-                        pattern: /([:\-,[{]\s*(![^\s]+)?[ \t]*)(\d{4}-\d\d?-\d\d?([tT]|[ \t]+)\d\d?:\d{2}:\d{2}(\.\d*)?[ \t]*(Z|[-+]\d\d?(:\d{2})?)?|\d{4}-\d{2}-\d{2}|\d\d?:\d{2}(:\d{2}(\.\d*)?)?)(?=[ \t]*($|,|]|}))/m,
-                        lookbehind: !0,
-                        alias: "number"
-                    },
-                    boolean: {
-                        pattern: /([:\-,[{]\s*(![^\s]+)?[ \t]*)(true|false)[ \t]*(?=$|,|]|})/im,
-                        lookbehind: !0,
-                        alias: "important"
-                    },
-                    null: {
-                        pattern: /([:\-,[{]\s*(![^\s]+)?[ \t]*)(null|~)[ \t]*(?=$|,|]|})/im,
-                        lookbehind: !0,
-                        alias: "important"
-                    },
-                    string: {
-                        pattern: /([:\-,[{]\s*(![^\s]+)?[ \t]*)("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')(?=[ \t]*($|,|]|}))/m,
-                        lookbehind: !0
-                    },
-                    number: {
-                        pattern: /([:\-,[{]\s*(![^\s]+)?[ \t]*)[+\-]?(0x[\da-f]+|0o[0-7]+|(\d+\.?\d*|\.?\d+)(e[\+\-]?\d+)?|\.inf|\.nan)[ \t]*(?=$|,|]|})/im,
-                        lookbehind: !0
-                    },
-                    tag: /![^\s]+/,
-                    important: /[&*][\w]+/,
-                    punctuation: /---|[:[\]{}\-,|>?]|\.\.\./
-                }, "undefined" != typeof self && self.Prism && self.document && n.hooks.add("complete", function(e) {
-                    if (e.code) {
-                        var t = e.element.parentNode,
-                            n = /\s*\bline-numbers\b\s*/;
-                        if (t && /pre/i.test(t.nodeName) && (n.test(t.className) || n.test(e.element.className)) && !e.element.querySelector(".line-numbers-rows")) {
-                            n.test(e.element.className) && (e.element.className = e.element.className.replace(n, "")), n.test(t.className) || (t.className += " line-numbers");
-                            var i, a = e.code.match(/\n(?!$)/g),
-                                r = a ? a.length + 1 : 1,
-                                o = new Array(r + 1);
-                            o = o.join("<span></span>"), (i = document.createElement("span")).setAttribute("aria-hidden", "true"), i.className = "line-numbers-rows", i.innerHTML = o, t.hasAttribute("data-start") && (t.style.counterReset = "linenumber " + (parseInt(t.getAttribute("data-start"), 10) - 1)), e.element.appendChild(i)
-                        }
-                    }
-                })
-        });
+              }
 
-    function Fe() {
-        
-        this._init()
+              return [elm, vueConfig];
+            })
+        );
+      }
+
+      // Mount
+      for (var i$1 = 0, list$1 = vueMountData; i$1 < list$1.length; i$1 += 1) {
+        var ref = list$1[i$1];
+        var mountElm = ref[0];
+        var vueConfig = ref[1];
+
+        var isVueAttr = 'data-isvue';
+        var isSkipElm =
+          // Is an invalid tag
+          mountElm.matches('pre, script') ||
+          // Is a mounted instance
+          isMountedVue(mountElm) ||
+          // Has mounted instance(s)
+          mountElm.querySelector(("[" + isVueAttr + "]"));
+
+        if (!isSkipElm) {
+          mountElm.setAttribute(isVueAttr, '');
+
+          if (vueVersion === 2) {
+            vueConfig.el = undefined;
+            new window.Vue(vueConfig).$mount(mountElm);
+          } else if (vueVersion === 3) {
+            var app = window.Vue.createApp(vueConfig);
+
+            // Register global vueComponents
+            vueComponentNames.forEach(function (name) {
+              var config = docsifyConfig.vueComponents[name];
+
+              app.component(name, config);
+            });
+
+            app.mount(mountElm);
+          }
+        }
+      }
     }
-    var Be = Fe.prototype;
-    Be._init = function() {
-        this.config = o || {}, (e = this)._hooks = {}, e._lifecycle = {}, ["init", "mounted", "beforeEach", "afterEach", "doneEach", "ready"].forEach(function(t) {
-            var n = e._hooks[t] = [];
-            e._lifecycle[t] = function(e) {
-                return n.push(e)
+  }
+
+  function renderNameLink(vm) {
+    var el = getNode('.app-name-link');
+    var nameLink = vm.config.nameLink;
+    var path = vm.route.path;
+
+    if (!el) {
+      return;
+    }
+
+    if (isPrimitive(vm.config.nameLink)) {
+      el.setAttribute('href', nameLink);
+    } else if (typeof nameLink === 'object') {
+      var match = Object.keys(nameLink).filter(
+        function (key) { return path.indexOf(key) > -1; }
+      )[0];
+
+      el.setAttribute('href', nameLink[match]);
+    }
+  }
+
+  /** @typedef {import('../Docsify').Constructor} Constructor */
+
+  /**
+   * @template {!Constructor} T
+   * @param {T} Base - The class to extend
+   */
+  function Render(Base) {
+    return /*@__PURE__*/(function (Base) {
+      function Render () {
+        Base.apply(this, arguments);
+      }
+
+      if ( Base ) Render.__proto__ = Base;
+      Render.prototype = Object.create( Base && Base.prototype );
+      Render.prototype.constructor = Render;
+
+      Render.prototype._renderTo = function _renderTo (el, content, replace) {
+        var node = getNode(el);
+        if (node) {
+          node[replace ? 'outerHTML' : 'innerHTML'] = content;
+        }
+      };
+
+      Render.prototype._renderSidebar = function _renderSidebar (text) {
+        var ref = this.config;
+        var maxLevel = ref.maxLevel;
+        var subMaxLevel = ref.subMaxLevel;
+        var loadSidebar = ref.loadSidebar;
+        var hideSidebar = ref.hideSidebar;
+
+        if (hideSidebar) {
+          // FIXME : better styling solution
+          [
+            document.querySelector('aside.sidebar'),
+            document.querySelector('button.sidebar-toggle') ]
+            .filter(function (e) { return !!e; })
+            .forEach(function (node) { return node.parentNode.removeChild(node); });
+          document.querySelector('section.content').style.right = 'unset';
+          document.querySelector('section.content').style.left = 'unset';
+          document.querySelector('section.content').style.position = 'relative';
+          document.querySelector('section.content').style.width = '100%';
+          return null;
+        }
+
+        this._renderTo('.sidebar-nav', this.compiler.sidebar(text, maxLevel));
+        var activeEl = getAndActive(this.router, '.sidebar-nav', true, true);
+        if (loadSidebar && activeEl) {
+          activeEl.parentNode.innerHTML +=
+            this.compiler.subSidebar(subMaxLevel) || '';
+        } else {
+          // Reset toc
+          this.compiler.subSidebar();
+        }
+
+        // Bind event
+        this._bindEventOnRendered(activeEl);
+      };
+
+      Render.prototype._bindEventOnRendered = function _bindEventOnRendered (activeEl) {
+        var ref = this.config;
+        var autoHeader = ref.autoHeader;
+
+        scrollActiveSidebar(this.router);
+
+        if (autoHeader && activeEl) {
+          var main = getNode('#main');
+          var firstNode = main.children[0];
+          if (firstNode && firstNode.tagName !== 'H1') {
+            var h1 = this.compiler.header(activeEl.innerText, 1);
+            var wrapper = create('div', h1);
+            before(main, wrapper.children[0]);
+          }
+        }
+      };
+
+      Render.prototype._renderNav = function _renderNav (text) {
+        text && this._renderTo('nav', this.compiler.compile(text));
+        if (this.config.loadNavbar) {
+          getAndActive(this.router, 'nav');
+        }
+      };
+
+      Render.prototype._renderMain = function _renderMain (text, opt, next) {
+        var this$1 = this;
+        if ( opt === void 0 ) opt = {};
+
+        if (!text) {
+          return renderMain.call(this, text);
+        }
+
+        this.callHook('beforeEach', text, function (result) {
+          var html;
+          var callback = function () {
+            if (opt.updatedAt) {
+              html = formatUpdated(
+                html,
+                opt.updatedAt,
+                this$1.config.formatUpdated
+              );
             }
+
+            this$1.callHook('afterEach', html, function (hookData) {
+              renderMain.call(this$1, hookData);
+              next();
+            });
+          };
+
+          if (this$1.isHTML) {
+            html = this$1.result = text;
+            callback();
+          } else {
+            prerenderEmbed(
+              {
+                compiler: this$1.compiler,
+                raw: result,
+              },
+              function (tokens) {
+                html = this$1.compiler.compile(tokens);
+                callback();
+              }
+            );
+          }
         });
-        var e;
-        [].concat((t = this).config.plugins).forEach(function(e) {
-            return r(e) && e(t._lifecycle, t)
-        });
-        var t;
-        d(this, "init"),
-            function(e) {
-                var t, n = e.config;
-                t = "history" === (n.routerMode || "hash") && g ? new Ne(n) : new Ie(n), e.router = t, Re(e), Le = e.route, t.onchange(function(t) {
-                    Re(e), e._updateRender(), Le.path !== e.route.path ? (e.$fetch(), Le = e.route) : e.$resetEvents()
-                })
-            }(this), _e(this), Oe(this),
-            function(e) {
-                var t = e.config.loadSidebar;
-                if (e.rendered) {
-                    var n = le(e.router, ".sidebar-nav", !0, !0);
-                    t && n && (n.parentNode.innerHTML += window.__SUB_SIDEBAR__), e._bindEventOnRendered(n), e.$resetEvents(), d(e, "doneEach"), d(e, "ready")
-                } else e.$fetch(function(t) {
-                    return d(e, "ready")
-                })
-            }(this), d(this, "mounted")
-    };
-    Be.route = {};
-    (Ue = Be)._renderTo = function(e, t, n) {
-        var i = h(e);
-        i && (i[n ? "outerHTML" : "innerHTML"] = t)
-    }, Ue._renderSidebar = function(e) {
-        var t = this.config,
-            n = t.maxLevel,
-            i = t.subMaxLevel,
-            a = t.loadSidebar,
-            r = t.showLevel,
-            o = this.compiler.sidebar(e, n);
-        if (r) {
-            var s = (new DOMParser).parseFromString(o, "text/xml");
-            s.children.length > 0 && (function e(t, n, i) {
-                for (var a = 0; a < t.children.length; a++) {
-                    var r = t.children[a];
-                    "ul" !== r.nodeName ? void 0 !== r.children && 0 !== r.children.length ? (e(r, n, i), i++) : r.innerHTML = "<b>" + n + i + ".</b> " + r.innerHTML : (e(r, n + i + ".", 1), i++)
-                }
-            }(s.children[0], "", 1), o = (new XMLSerializer).serializeToString(s))
+      };
+
+      Render.prototype._renderCover = function _renderCover (text, coverOnly) {
+        var el = getNode('.cover');
+
+        toggleClass(
+          getNode('main'),
+          coverOnly ? 'add' : 'remove',
+          'hidden'
+        );
+        if (!text) {
+          toggleClass(el, 'remove', 'show');
+          return;
         }
-        this._renderTo(".sidebar-nav", o);
-        var l = le(this.router, ".sidebar-nav", !0, !0);
-        a && l ? l.parentNode.innerHTML += this.compiler.subSidebar(i) || "" : this.compiler.subSidebar(), this._bindEventOnRendered(l)
-    }, Ue._bindEventOnRendered = function(e) {
-        var t = this.config,
-            n = t.autoHeader,
-            i = t.auto2top;
-        if (function(e) {
-                var t = E(".cover.show");
-                he = t ? t.offsetHeight : 0;
-                for (var n = h(".sidebar"), i = y(n, "li"), a = 0, r = i.length; a < r; a += 1) {
-                    var o = i[a],
-                        s = o.querySelector("a");
-                    if (s) {
-                        var l = s.getAttribute("href");
-                        if ("/" !== l) {
-                            var c = e.parse(l),
-                                d = c.query.id,
-                                u = c.path;
-                            d && (l = be(u, d))
-                        }
-                        l && (ue[decodeURIComponent(l)] = o)
-                    }
-                }
-                if (!p) {
-                    var g = e.getCurrentPath();
-                    _("scroll", function() {
-                        return fe(g)
-                    }), T("scroll", function() {
-                        return fe(g)
-                    }), T(n, "mouseover", function() {
-                        pe = !0
-                    }), T(n, "mouseleave", function() {
-                        pe = !1
-                    })
-                }
-            }(this.router), n && e) {
-            var a = h("#main"),
-                r = a.children[0];
-            if (r && "H1" !== r.tagName) {
-                var o = v("h1");
-                o.innerText = e.innerText, w(a, o)
+
+        toggleClass(el, 'add', 'show');
+
+        var html = this.coverIsHTML ? text : this.compiler.cover(text);
+
+        var m = html
+          .trim()
+          .match('<p><img.*?data-origin="(.*?)"[^a]+alt="(.*?)">([^<]*?)</p>$');
+
+        if (m) {
+          if (m[2] === 'color') {
+            el.style.background = m[1] + (m[3] || '');
+          } else {
+            var path = m[1];
+
+            toggleClass(el, 'add', 'has-mask');
+            if (!isAbsolutePath(m[1])) {
+              path = getPath(this.router.getBasePath(), m[1]);
             }
+
+            el.style.backgroundImage = "url(" + path + ")";
+            el.style.backgroundSize = 'cover';
+            el.style.backgroundPosition = 'center center';
+          }
+
+          html = html.replace(m[0], '');
         }
-        i && (s = i, void 0 === s && (s = 0), Ee.scrollTop = !0 === s ? 0 : Number(s));
-        var s
-    }, Ue._renderNav = function(e) {
-        e && this._renderTo("nav", this.compiler.compile(e)), le(this.router, "nav")
-    }, Ue._renderMain = function(e, t, n) {
-        var i = this;
-        if (void 0 === t && (t = {}), !e) return Te.call(this, e);
-        this.compiler.calTocStart(e), d(this, "beforeEach", e, function(e) {
-            var a, r = function() {
-                t.updatedAt && (a = we(a, t.updatedAt, i.config.formatUpdated)), d(i, "afterEach", a, function(e) {
-                    return Te.call(i, e)
-                })
-            };
-            i.isHTML ? (a = i.result, r(), n()) : ve({
-                compiler: i.compiler,
-                raw: e
-            }, function(e) {
-                a = i.compiler.compile(e), r(), n()
-            })
-        })
-    }, Ue._renderCover = function(e, t) {
-        var n = h(".cover");
-        if (A(h("main"), t ? "add" : "remove", "hidden"), e) {
-            A(n, "add", "show");
-            var i = this.coverIsHTML ? e : this.compiler.cover(e),
-                a = i.trim().match('<p><img.*?data-origin="(.*?)"[^a]+alt="(.*?)">([^<]*?)</p>$');
-            if (a) {
-                if ("color" === a[2]) n.style.background = a[1] + (a[3] || "");
-                else {
-                    var r = a[1];
-                    A(n, "add", "has-mask"), Q(a[1]) || (r = X(this.router.getBasePath(), a[1])), n.style.backgroundImage = "url(" + r + ")", n.style.backgroundSize = "cover", n.style.backgroundPosition = "center center"
-                }
-                i = i.replace(a[0], "")
-            }
-            this._renderTo(".cover-main", i), se()
-        } else A(n, "remove", "show")
-    }, Ue._updateRender = function() {
-        ! function(e) {
-            var t = h(".app-name-link"),
-                n = e.config.nameLink,
-                a = e.route.path;
-            if (t)
-                if (i(e.config.nameLink)) t.setAttribute("href", n);
-                else if ("object" == typeof n) {
-                var r = Object.keys(n).filter(function(e) {
-                    return a.indexOf(e) > -1
-                })[0];
-                t.setAttribute("href", n[r])
-            }
-        }(this)
-    };
-    var Ue;
-    ! function(e) {
-        var t;
-        e._fetch = function(e) {
-            var n = this;
-            void 0 === e && (e = a);
-            var i = this.route,
-                r = i.path,
-                o = Z(i.query, ["id"]),
-                s = this.config,
-                l = s.loadNavbar,
-                c = s.loadSidebar,
-                d = s.requestHeaders;
-            t && t.abort && t.abort(), t = P(this.router.getFile(r) + o, !0, d), this.isHTML = /\.html$/g.test(r);
-            var u = function() {
-                if (!c) return e();
-                Pe(r, o, c, function(t) {
-                    n._renderSidebar(t), e()
-                }, n, !0)
-            };
-            t.then(function(e, t) {
-                n._renderMain(e, t, u)
-            }, function(e) {
-                n._renderMain(null, {}, u)
-            }), l && Pe(r, o, l, function(e) {
-                return n._renderNav(e)
-            }, this, !0)
-        }, e._fetchCover = function() {
-            var e = this,
-                t = this.config,
-                n = t.coverpage,
-                i = t.requestHeaders,
-                a = this.route.query,
-                r = J(this.route.path);
-            if (n) {
-                var o = null,
-                    s = this.route.path;
-                if ("string" == typeof n) "/" === s && (o = n);
-                else if (Array.isArray(n)) o = n.indexOf(s) > -1 && "_coverpage";
-                else {
-                    var l = n[s];
-                    o = !0 === l ? "_coverpage" : l
-                }
-                var c = !!o && this.config.onlyCover;
-                return o ? (o = this.router.getFile(r + o), this.coverIsHTML = /\.html$/g.test(o), P(o + Z(a, ["id"]), !1, i).then(function(t) {
-                    return e._renderCover(t, c)
-                })) : this._renderCover(null, c), c
-            }
-        }, e.$fetch = function(e) {
-            var t = this;
-            void 0 === e && (e = a);
-            var n = function() {
-                d(t, "doneEach"), e()
-            };
-            this._fetchCover() ? n() : this._fetch(function(e) {
-                t.$resetEvents(), n()
-            })
+
+        this._renderTo('.cover-main', html);
+        sticky();
+      };
+
+      Render.prototype._updateRender = function _updateRender () {
+        // Render name link
+        renderNameLink(this);
+      };
+
+      Render.prototype.initRender = function initRender () {
+        var config = this.config;
+
+        // Init markdown compiler
+        this.compiler = new Compiler(config, this.router);
+        {
+          /* eslint-disable-next-line camelcase */
+          window.__current_docsify_compiler__ = this.compiler;
         }
-    }(Be), Be.$resetEvents = function() {
-        Se(this.route.path, this.route.query.id), le(this.router, "nav")
+
+        var id = config.el || '#app';
+        var navEl = find('nav') || create('nav');
+
+        var el = find(id);
+        var html = '';
+        var navAppendToTarget = body;
+
+        if (el) {
+          if (config.repo) {
+            html += corner(config.repo, config.cornerExternalLinkTarget);
+          }
+
+          if (config.coverpage) {
+            html += cover();
+          }
+
+          if (config.logo) {
+            var isBase64 = /^data:image/.test(config.logo);
+            var isExternal = /(?:http[s]?:)?\/\//.test(config.logo);
+            var isRelative = /^\./.test(config.logo);
+
+            if (!isBase64 && !isExternal && !isRelative) {
+              config.logo = getPath(this.router.getBasePath(), config.logo);
+            }
+          }
+
+          html += main(config);
+          // Render main app
+          this._renderTo(el, html, true);
+        } else {
+          this.rendered = true;
+        }
+
+        if (config.mergeNavbar && isMobile) {
+          navAppendToTarget = find('.sidebar');
+        } else {
+          navEl.classList.add('app-nav');
+
+          if (!config.repo) {
+            navEl.classList.add('no-badge');
+          }
+        }
+
+        // Add nav
+        if (config.loadNavbar) {
+          before(navAppendToTarget, navEl);
+        }
+
+        if (config.themeColor) {
+          $.head.appendChild(
+            create('div', theme(config.themeColor)).firstElementChild
+          );
+          // Polyfll
+          cssVars(config.themeColor);
+        }
+
+        this._updateRender();
+        toggleClass(body, 'ready');
+      };
+
+      return Render;
+    }(Base));
+  }
+
+  /* eslint-disable no-unused-vars */
+
+  function loadNested(path, qs, file, next, vm, first) {
+    path = first ? path : path.replace(/\/$/, '');
+    path = getParentPath(path);
+
+    if (!path) {
+      return;
+    }
+
+    get(
+      vm.router.getFile(path + file) + qs,
+      false,
+      vm.config.requestHeaders
+    ).then(next, function (_) { return loadNested(path, qs, file, next, vm); });
+  }
+
+  /** @typedef {import('../Docsify').Constructor} Constructor */
+
+  /**
+   * @template {!Constructor} T
+   * @param {T} Base - The class to extend
+   */
+  function Fetch(Base) {
+    var last;
+
+    var abort = function () { return last && last.abort && last.abort(); };
+    var request = function (url, hasbar, requestHeaders) {
+      abort();
+      last = get(url, true, requestHeaders);
+      return last;
     };
+
+    var get404Path = function (path, config) {
+      var notFoundPage = config.notFoundPage;
+      var ext = config.ext;
+      var defaultPath = '_404' + (ext || '.md');
+      var key;
+      var path404;
+
+      switch (typeof notFoundPage) {
+        case 'boolean':
+          path404 = defaultPath;
+          break;
+        case 'string':
+          path404 = notFoundPage;
+          break;
+
+        case 'object':
+          key = Object.keys(notFoundPage)
+            .sort(function (a, b) { return b.length - a.length; })
+            .filter(function (k) { return path.match(new RegExp('^' + k)); })[0];
+
+          path404 = (key && notFoundPage[key]) || defaultPath;
+          break;
+      }
+
+      return path404;
+    };
+
+    return /*@__PURE__*/(function (Base) {
+      function Fetch () {
+        Base.apply(this, arguments);
+      }
+
+      if ( Base ) Fetch.__proto__ = Base;
+      Fetch.prototype = Object.create( Base && Base.prototype );
+      Fetch.prototype.constructor = Fetch;
+
+      Fetch.prototype._loadSideAndNav = function _loadSideAndNav (path, qs, loadSidebar, cb) {
+        var this$1 = this;
+
+        return function () {
+          if (!loadSidebar) {
+            return cb();
+          }
+
+          var fn = function (result) {
+            this$1._renderSidebar(result);
+            cb();
+          };
+
+          // Load sidebar
+          loadNested(path, qs, loadSidebar, fn, this$1, true);
+        };
+      };
+
+      Fetch.prototype._fetch = function _fetch (cb) {
+        var this$1 = this;
+        if ( cb === void 0 ) cb = noop;
+
+        var ref = this.route;
+        var query = ref.query;
+        var ref$1 = this.route;
+        var path = ref$1.path;
+
+        // Prevent loading remote content via URL hash
+        // Ex: https://foo.com/#//bar.com/file.md
+        if (isExternal(path)) {
+          history.replaceState(null, '', '#');
+          this.router.normalize();
+        } else {
+          var qs = stringifyQuery(query, ['id']);
+          var ref$2 = this.config;
+          var loadNavbar = ref$2.loadNavbar;
+          var requestHeaders = ref$2.requestHeaders;
+          var loadSidebar = ref$2.loadSidebar;
+          // Abort last request
+
+          var file = this.router.getFile(path);
+
+          this.isRemoteUrl = isExternal(file);
+          // Current page is html
+          this.isHTML = /\.html$/g.test(file);
+
+          // create a handler that should be called if content was fetched successfully
+          var contentFetched = function (text, opt) {
+            this$1._renderMain(
+              text,
+              opt,
+              this$1._loadSideAndNav(path, qs, loadSidebar, cb)
+            );
+          };
+
+          // and a handler that is called if content failed to fetch
+          var contentFailedToFetch = function (_) {
+            this$1._fetchFallbackPage(path, qs, cb) || this$1._fetch404(file, qs, cb);
+          };
+
+          // attempt to fetch content from a virtual route, and fallback to fetching the actual file
+          if (!this.isRemoteUrl) {
+            this.matchVirtualRoute(path).then(function (contents) {
+              if (typeof contents === 'string') {
+                contentFetched(contents);
+              } else {
+                request(file + qs, true, requestHeaders).then(
+                  contentFetched,
+                  contentFailedToFetch
+                );
+              }
+            });
+          } else {
+            // if the requested url is not local, just fetch the file
+            request(file + qs, true, requestHeaders).then(
+              contentFetched,
+              contentFailedToFetch
+            );
+          }
+
+          // Load nav
+          loadNavbar &&
+            loadNested(
+              path,
+              qs,
+              loadNavbar,
+              function (text) { return this$1._renderNav(text); },
+              this,
+              true
+            );
+        }
+      };
+
+      Fetch.prototype._fetchCover = function _fetchCover () {
+        var this$1 = this;
+
+        var ref = this.config;
+        var coverpage = ref.coverpage;
+        var requestHeaders = ref.requestHeaders;
+        var query = this.route.query;
+        var root = getParentPath(this.route.path);
+
+        if (coverpage) {
+          var path = null;
+          var routePath = this.route.path;
+          if (typeof coverpage === 'string') {
+            if (routePath === '/') {
+              path = coverpage;
+            }
+          } else if (Array.isArray(coverpage)) {
+            path = coverpage.indexOf(routePath) > -1 && '_coverpage';
+          } else {
+            var cover = coverpage[routePath];
+            path = cover === true ? '_coverpage' : cover;
+          }
+
+          var coverOnly = Boolean(path) && this.config.onlyCover;
+          if (path) {
+            path = this.router.getFile(root + path);
+            this.coverIsHTML = /\.html$/g.test(path);
+            get(path + stringifyQuery(query, ['id']), false, requestHeaders).then(
+              function (text) { return this$1._renderCover(text, coverOnly); }
+            );
+          } else {
+            this._renderCover(null, coverOnly);
+          }
+
+          return coverOnly;
+        }
+      };
+
+      Fetch.prototype.$fetch = function $fetch (cb, $resetEvents) {
+        var this$1 = this;
+        if ( cb === void 0 ) cb = noop;
+        if ( $resetEvents === void 0 ) $resetEvents = this.$resetEvents.bind(this);
+
+        var done = function () {
+          this$1.callHook('doneEach');
+          cb();
+        };
+
+        var onlyCover = this._fetchCover();
+
+        if (onlyCover) {
+          done();
+        } else {
+          this._fetch(function () {
+            $resetEvents();
+            done();
+          });
+        }
+      };
+
+      Fetch.prototype._fetchFallbackPage = function _fetchFallbackPage (path, qs, cb) {
+        var this$1 = this;
+        if ( cb === void 0 ) cb = noop;
+
+        var ref = this.config;
+        var requestHeaders = ref.requestHeaders;
+        var fallbackLanguages = ref.fallbackLanguages;
+        var loadSidebar = ref.loadSidebar;
+
+        if (!fallbackLanguages) {
+          return false;
+        }
+
+        var local = path.split('/')[1];
+
+        if (fallbackLanguages.indexOf(local) === -1) {
+          return false;
+        }
+
+        var newPath = this.router.getFile(
+          path.replace(new RegExp(("^/" + local)), '')
+        );
+        var req = request(newPath + qs, true, requestHeaders);
+
+        req.then(
+          function (text, opt) { return this$1._renderMain(
+              text,
+              opt,
+              this$1._loadSideAndNav(path, qs, loadSidebar, cb)
+            ); },
+          function () { return this$1._fetch404(path, qs, cb); }
+        );
+
+        return true;
+      };
+
+      /**
+       * Load the 404 page
+       * @param {String} path URL to be loaded
+       * @param {*} qs TODO: define
+       * @param {Function} cb Callback
+       * @returns {Boolean} True if the requested page is not found
+       * @private
+       */
+      Fetch.prototype._fetch404 = function _fetch404 (path, qs, cb) {
+        var this$1 = this;
+        if ( cb === void 0 ) cb = noop;
+
+        var ref = this.config;
+        var loadSidebar = ref.loadSidebar;
+        var requestHeaders = ref.requestHeaders;
+        var notFoundPage = ref.notFoundPage;
+
+        var fnLoadSideAndNav = this._loadSideAndNav(path, qs, loadSidebar, cb);
+        if (notFoundPage) {
+          var path404 = get404Path(path, this.config);
+
+          request(this.router.getFile(path404), true, requestHeaders).then(
+            function (text, opt) { return this$1._renderMain(text, opt, fnLoadSideAndNav); },
+            function () { return this$1._renderMain(null, {}, fnLoadSideAndNav); }
+          );
+          return true;
+        }
+
+        this._renderMain(null, {}, fnLoadSideAndNav);
+        return false;
+      };
+
+      Fetch.prototype.initFetch = function initFetch () {
+        var this$1 = this;
+
+        var ref = this.config;
+        var loadSidebar = ref.loadSidebar;
+
+        // Server-Side Rendering
+        if (this.rendered) {
+          var activeEl = getAndActive(this.router, '.sidebar-nav', true, true);
+          if (loadSidebar && activeEl) {
+            activeEl.parentNode.innerHTML += window.__SUB_SIDEBAR__;
+          }
+
+          this._bindEventOnRendered(activeEl);
+          this.$resetEvents();
+          this.callHook('doneEach');
+          this.callHook('ready');
+        } else {
+          this.$fetch(function (_) { return this$1.callHook('ready'); });
+        }
+      };
+
+      return Fetch;
+    }(Base));
+  }
+
+  /** @typedef {import('../Docsify').Constructor} Constructor */
+
+  /**
+   * @template {!Constructor} T
+   * @param {T} Base - The class to extend
+   */
+  function Events(Base) {
+    return /*@__PURE__*/(function (Base) {
+      function Events () {
+        Base.apply(this, arguments);
+      }
+
+      if ( Base ) Events.__proto__ = Base;
+      Events.prototype = Object.create( Base && Base.prototype );
+      Events.prototype.constructor = Events;
+
+      Events.prototype.$resetEvents = function $resetEvents (source) {
+        var this$1 = this;
+
+        var ref = this.config;
+        var auto2top = ref.auto2top;
+
+        (function () {
+          // Rely on the browser's scroll auto-restoration when going back or forward
+          if (source === 'history') {
+            return;
+          }
+          // Scroll to ID if specified
+          if (this$1.route.query.id) {
+            scrollIntoView(this$1.route.path, this$1.route.query.id);
+          }
+          // Scroll to top if a link was clicked and auto2top is enabled
+          if (source === 'navigate') {
+            auto2top && scroll2Top(auto2top);
+          }
+        })();
+
+        if (this.config.loadNavbar) {
+          getAndActive(this.router, 'nav');
+        }
+      };
+
+      Events.prototype.initEvent = function initEvent () {
+        // Bind toggle button
+        btn('button.sidebar-toggle', this.router);
+        collapse('.sidebar', this.router);
+        // Bind sticky effect
+        if (this.config.coverpage) {
+          !isMobile && on('scroll', sticky);
+        } else {
+          body.classList.add('sticky');
+        }
+      };
+
+      return Events;
+    }(Base));
+  }
+
+  /**
+   * Adds beginning of input (^) and end of input ($) assertions if needed into a regex string
+   * @param {string} matcher the string to match
+   * @returns {string}
+   */
+  function makeExactMatcher(matcher) {
+    var matcherWithBeginningOfInput = startsWith(matcher, '^')
+      ? matcher
+      : ("^" + matcher);
+
+    var matcherWithBeginningAndEndOfInput = endsWith(
+      matcherWithBeginningOfInput,
+      '$'
+    )
+      ? matcherWithBeginningOfInput
+      : (matcherWithBeginningOfInput + "$");
+
+    return matcherWithBeginningAndEndOfInput;
+  }
+
+  /** @typedef {((value: any) => void) => void} OnNext */
+  /** @typedef {(value: any) => void} NextFunction */
+
+  /**
+   * Creates a pair of a function and an event emitter.
+   * When the function is called, the event emitter calls the given callback with the value that was passed to the function.
+   * @returns {[NextFunction, OnNext]}
+   */
+  function createNextFunction() {
+    var storedCb = function () { return null; };
+
+    function next(value) {
+      storedCb(value);
+    }
+
+    function onNext(cb) {
+      storedCb = cb;
+    }
+
+    return [next, onNext];
+  }
+
+  /** @typedef {import('../Docsify').Constructor} Constructor */
+
+  /** @typedef {Record<string, string | VirtualRouteHandler>} VirtualRoutesMap */
+  /** @typedef {(route: string, match: RegExpMatchArray | null) => string | void | Promise<string | void> } VirtualRouteHandler */
+
+  /**
+   * @template {!Constructor} T
+   * @param {T} Base - The class to extend
+   */
+  function VirtualRoutes(Base) {
+    return /*@__PURE__*/(function (Base) {
+      function VirtualRoutes () {
+        Base.apply(this, arguments);
+      }
+
+      if ( Base ) VirtualRoutes.__proto__ = Base;
+      VirtualRoutes.prototype = Object.create( Base && Base.prototype );
+      VirtualRoutes.prototype.constructor = VirtualRoutes;
+
+      VirtualRoutes.prototype.routes = function routes () {
+        return this.config.routes || {};
+      };
+
+      /**
+       * Attempts to match the given path with a virtual route.
+       * @param {string} path the path of the route to match
+       * @returns {Promise<string | null>} resolves to string if route was matched, otherwise null
+       */
+      VirtualRoutes.prototype.matchVirtualRoute = function matchVirtualRoute (path) {
+        var virtualRoutes = this.routes();
+        var virtualRoutePaths = Object.keys(virtualRoutes);
+
+        var done = function () { return null; };
+
+        /**
+         * This is a tail recursion that iterates over all the available routes.
+         * It can result in one of two ways:
+         * 1. Call itself (essentially reviewing the next route)
+         * 2. Call the "done" callback with the result (either the contents, or "null" if no match was found)
+         */
+        function asyncMatchNextRoute() {
+          var virtualRoutePath = virtualRoutePaths.shift();
+          if (!virtualRoutePath) {
+            return done(null);
+          }
+
+          var matcher = makeExactMatcher(virtualRoutePath);
+          var matched = path.match(matcher);
+
+          if (!matched) {
+            return asyncMatchNextRoute();
+          }
+
+          var virtualRouteContentOrFn = virtualRoutes[virtualRoutePath];
+
+          if (typeof virtualRouteContentOrFn === 'string') {
+            var contents = virtualRouteContentOrFn;
+            return done(contents);
+          }
+
+          if (typeof virtualRouteContentOrFn === 'function') {
+            var fn = virtualRouteContentOrFn;
+
+            var ref = createNextFunction();
+            var next = ref[0];
+            var onNext = ref[1];
+            onNext(function (contents) {
+              if (typeof contents === 'string') {
+                return done(contents);
+              } else if (contents === false) {
+                return done(null);
+              } else {
+                return asyncMatchNextRoute();
+              }
+            });
+
+            if (fn.length <= 2) {
+              var returnedValue = fn(path, matched);
+              return next(returnedValue);
+            } else {
+              return fn(path, matched, next);
+            }
+          }
+
+          return asyncMatchNextRoute();
+        }
+
+        return {
+          then: function (cb) {
+            done = cb;
+            asyncMatchNextRoute();
+          },
+        };
+      };
+
+      return VirtualRoutes;
+    }(Base));
+  }
+
+
+
+  var util = /*#__PURE__*/Object.freeze({
+    __proto__: null,
+    cached: cached,
+    hyphenate: hyphenate,
+    hasOwn: hasOwn,
+    merge: merge,
+    isPrimitive: isPrimitive,
+    noop: noop,
+    isFn: isFn,
+    isExternal: isExternal,
+    inBrowser: inBrowser,
+    isMobile: isMobile,
+    supportsPushState: supportsPushState,
+    parseQuery: parseQuery,
+    stringifyQuery: stringifyQuery,
+    isAbsolutePath: isAbsolutePath,
+    removeParams: removeParams,
+    getParentPath: getParentPath,
+    cleanPath: cleanPath,
+    resolvePath: resolvePath,
+    getPath: getPath,
+    replaceSlug: replaceSlug
+  });
+
+  // TODO This is deprecated, kept for backwards compatibility. Remove in next
+  // major release. We'll tell people to get everything from the DOCSIFY global
+  // when using the global build, but we'll highly recommend for them to import
+  // from the ESM build (f.e. lib/docsify.esm.js and lib/docsify.min.esm.js).
+  function initGlobalAPI () {
     window.Docsify = {
-            util: De,
-            dom: C,
-            get: P,
-            slugify: q
-        }, window.DocsifyCompiler = re, window.marked = G, window.Prism = Me, Fe.version = "4.6.3",
-        function(e) {
+      util: util,
+      dom: dom,
+      get: get,
+      slugify: slugify,
+      version: '4.13.0',
+    };
+    window.DocsifyCompiler = Compiler;
+    window.marked = marked_1;
+    window.Prism = prism;
+  }
 
-            var t = document.readyState;
-            if ("complete" === t || "interactive" === t) return setTimeout(e, 0);
-            document.addEventListener("DOMContentLoaded", e);
+  /** @typedef {import('../Docsify').Constructor} Constructor */
 
-        }(function(e) {
+  /**
+   * @template {!Constructor} T
+   * @param {T} Base - The class to extend
+   */
+  function Lifecycle(Base) {
+    return /*@__PURE__*/(function (Base) {
+      function Lifecycle () {
+        Base.apply(this, arguments);
+      }
 
-            return new Fe
-        })
-}();
+      if ( Base ) Lifecycle.__proto__ = Base;
+      Lifecycle.prototype = Object.create( Base && Base.prototype );
+      Lifecycle.prototype.constructor = Lifecycle;
+
+      Lifecycle.prototype.initLifecycle = function initLifecycle () {
+        var this$1 = this;
+
+        var hooks = [
+          'init',
+          'mounted',
+          'beforeEach',
+          'afterEach',
+          'doneEach',
+          'ready' ];
+
+        this._hooks = {};
+        this._lifecycle = {};
+
+        hooks.forEach(function (hook) {
+          var arr = (this$1._hooks[hook] = []);
+          this$1._lifecycle[hook] = function (fn) { return arr.push(fn); };
+        });
+      };
+
+      Lifecycle.prototype.callHook = function callHook (hookName, data, next) {
+        if ( next === void 0 ) next = noop;
+
+        var queue = this._hooks[hookName];
+        var catchPluginErrors = this.config.catchPluginErrors;
+
+        var step = function (index) {
+          var hookFn = queue[index];
+
+          if (index >= queue.length) {
+            next(data);
+          } else if (typeof hookFn === 'function') {
+            var errTitle = 'Docsify plugin error';
+
+            if (hookFn.length === 2) {
+              try {
+                hookFn(data, function (result) {
+                  data = result;
+                  step(index + 1);
+                });
+              } catch (err) {
+                if (catchPluginErrors) {
+                  console.error(errTitle, err);
+                } else {
+                  throw err;
+                }
+
+                step(index + 1);
+              }
+            } else {
+              try {
+                var result = hookFn(data);
+
+                data = result === undefined ? data : result;
+                step(index + 1);
+              } catch (err) {
+                if (catchPluginErrors) {
+                  console.error(errTitle, err);
+                } else {
+                  throw err;
+                }
+
+                step(index + 1);
+              }
+            }
+          } else {
+            step(index + 1);
+          }
+        };
+
+        step(0);
+      };
+
+      return Lifecycle;
+    }(Base));
+  }
+
+  /** @typedef {new (...args: any[]) => any} Constructor */
+
+  // eslint-disable-next-line new-cap
+  var Docsify = /*@__PURE__*/(function (superclass) {
+    function Docsify() {
+      superclass.call(this);
+
+      this.config = config(this);
+
+      this.initLifecycle(); // Init hooks
+      this.initPlugin(); // Install plugins
+      this.callHook('init');
+      this.initRouter(); // Add router
+      this.initRender(); // Render base DOM
+      this.initEvent(); // Bind events
+      this.initFetch(); // Fetch data
+      this.callHook('mounted');
+    }
+
+    if ( superclass ) Docsify.__proto__ = superclass;
+    Docsify.prototype = Object.create( superclass && superclass.prototype );
+    Docsify.prototype.constructor = Docsify;
+
+    Docsify.prototype.initPlugin = function initPlugin () {
+      var this$1 = this;
+
+      [].concat(this.config.plugins).forEach(function (fn) {
+        try {
+          isFn(fn) && fn(this$1._lifecycle, this$1);
+        } catch (err) {
+          if (this$1.config.catchPluginErrors) {
+            var errTitle = 'Docsify plugin error';
+            console.error(errTitle, err);
+          } else {
+            throw err;
+          }
+        }
+      });
+    };
+
+    return Docsify;
+  }(Fetch(
+    // eslint-disable-next-line new-cap
+    Events(Render(VirtualRoutes(Router(Lifecycle(Object)))))
+  )));
+
+  /**
+   * Global API
+   */
+  initGlobalAPI();
+
+  /**
+   * Run Docsify
+   */
+  // eslint-disable-next-line no-unused-vars
+  documentReady(function (_) { return new Docsify(); });
+
+}());
