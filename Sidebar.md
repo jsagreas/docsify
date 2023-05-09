@@ -1,33 +1,24 @@
 * 前端
-  * [Html](pages/Frontend/Html/Index.md)
-  * [主题](zh-cn/themes.md)
-  * [使用插件](zh-cn/plugins.md)
-  * [Markdown 配置](zh-cn/markdown.md)
-  * [代码高亮](zh-cn/language-highlight.md)
+  * [HTML](pages/Frontend/Html/Index.md)
+  * [CSS](zh-cn/themes.md)
+  * [Javascript](zh-cn/plugins.md)
+  * [TypeScript](zh-cn/markdown.md)
+  * [Vue](zh-cn/markdown.md)
+  * [Angular](zh-cn/language-highlight.md)
+  * [React](zh-cn/plugins.md)
+  * [jQuery](zh-cn/markdown.md)
+  * [Node.js](zh-cn/language-highlight.md)
 
 * 后端
-  * [配置项](zh-cn/configuration.md)
+  * [C](zh-cn/configuration.md)
+  * [C++](zh-cn/themes.md)
+  * [Java](zh-cn/plugins.md)
+  * [Markdown 配置](zh-cn/markdown.md)
+  * [代码高亮](zh-cn/language-highlight.md)
   * [主题](zh-cn/themes.md)
   * [使用插件](zh-cn/plugins.md)
   * [Markdown 配置](zh-cn/markdown.md)
   * [代码高亮](zh-cn/language-highlight.md)
- 
-* 数据库
-  * [配置项](zh-cn/configuration.md)
-  * [主题](zh-cn/themes.md)
-  * [使用插件](zh-cn/plugins.md)
-  * [Markdown 配置](zh-cn/markdown.md)
-  * [代码高亮](zh-cn/language-highlight.md)
-
-* 运维
-  * [配置项](zh-cn/configuration.md)
-  * [主题](zh-cn/themes.md)
-  * [使用插件](zh-cn/plugins.md)
-  * [Markdown 配置](zh-cn/markdown.md)
-  * [代码高亮](zh-cn/language-highlight.md)
-
-* 大数据
-  * [配置项](zh-cn/configuration.md)
   * [主题](zh-cn/themes.md)
   * [使用插件](zh-cn/plugins.md)
   * [Markdown 配置](zh-cn/markdown.md)
@@ -39,62 +30,68 @@
   * [使用插件](zh-cn/plugins.md)
   * [Markdown 配置](zh-cn/markdown.md)
   * [代码高亮](zh-cn/language-highlight.md)
-  
-* 理论
+  * [主题](zh-cn/themes.md)
+  * [使用插件](zh-cn/plugins.md)
+  * [Markdown 配置](zh-cn/markdown.md)
+  * [主题](zh-cn/themes.md)
+  * [使用插件](zh-cn/plugins.md)
+  * [Markdown 配置](zh-cn/markdown.md)
+  * [代码高亮](zh-cn/language-highlight.md)
+ 
+* 数据库
   * [配置项](zh-cn/configuration.md)
+  * [主题](zh-cn/themes.md)
+  * [使用插件](zh-cn/plugins.md)
+  * [Markdown 配置](zh-cn/markdown.md)
+  * [代码高亮](zh-cn/language-highlight.md)
+  * [主题](zh-cn/themes.md)
+  * [使用插件](zh-cn/plugins.md)
+  * [Markdown 配置](zh-cn/markdown.md)
+  * [代码高亮](zh-cn/language-highlight.md)
+  * [主题](zh-cn/themes.md)
+  * [使用插件](zh-cn/plugins.md)
+  * [Markdown 配置](zh-cn/markdown.md)
+  * [代码高亮](zh-cn/language-highlight.md)
   * [主题](zh-cn/themes.md)
   * [使用插件](zh-cn/plugins.md)
   * [Markdown 配置](zh-cn/markdown.md)
   * [代码高亮](zh-cn/language-highlight.md)
 
-* 数学
+* 系统&运维
   * [配置项](zh-cn/configuration.md)
+  * [主题](zh-cn/themes.md)
+  * [使用插件](zh-cn/plugins.md)
+  * [Markdown 配置](zh-cn/markdown.md)
+  * [代码高亮](zh-cn/language-highlight.md)
+    * [配置项](zh-cn/configuration.md)
+  * [主题](zh-cn/themes.md)
+  * [使用插件](zh-cn/plugins.md)
+  * [Markdown 配置](zh-cn/markdown.md)
+  * [代码高亮](zh-cn/language-highlight.md)
+  * [主题](zh-cn/themes.md)
+  * [使用插件](zh-cn/plugins.md)
+  * [Markdown 配置](zh-cn/markdown.md)
+  * [代码高亮](zh-cn/language-highlight.md)
   * [主题](zh-cn/themes.md)
   * [使用插件](zh-cn/plugins.md)
   * [Markdown 配置](zh-cn/markdown.md)
   * [代码高亮](zh-cn/language-highlight.md)
 
-* 物理
+* 云计算&大数据
   * [配置项](zh-cn/configuration.md)
+  * [主题](zh-cn/themes.md)
+  * [使用插件](zh-cn/plugins.md)
+  * [Markdown 配置](zh-cn/markdown.md)
+  * [代码高亮](zh-cn/language-highlight.md)
+  * [主题](zh-cn/themes.md)
+  * [使用插件](zh-cn/plugins.md)
+  * [Markdown 配置](zh-cn/markdown.md)
+  * [代码高亮](zh-cn/language-highlight.md)
   * [主题](zh-cn/themes.md)
   * [使用插件](zh-cn/plugins.md)
   * [Markdown 配置](zh-cn/markdown.md)
   * [代码高亮](zh-cn/language-highlight.md)
 
-* 经济
-  * [配置项](zh-cn/configuration.md)
-  * [主题](zh-cn/themes.md)
-  * [使用插件](zh-cn/plugins.md)
-  * [Markdown 配置](zh-cn/markdown.md)
-  * [代码高亮](zh-cn/language-highlight.md)
-
-* 办公
-  * [配置项](zh-cn/configuration.md)
-  * [主题](zh-cn/themes.md)
-  * [使用插件](zh-cn/plugins.md)
-  * [Markdown 配置](zh-cn/markdown.md)
-  * [代码高亮](zh-cn/language-highlight.md)
-
-* 工具
-  * [配置项](zh-cn/configuration.md)
-  * [主题](zh-cn/themes.md)
-  * [使用插件](zh-cn/plugins.md)
-  * [Markdown 配置](zh-cn/markdown.md)
-  * [代码高亮](zh-cn/language-highlight.md)
-
-* 阅读
-  * [配置项](zh-cn/configuration.md)
-  * [主题](zh-cn/themes.md)
-  * [使用插件](zh-cn/plugins.md)
-  * [Markdown 配置](zh-cn/markdown.md)
-  * [代码高亮](zh-cn/language-highlight.md)
-
-* 导航
-  * [配置项](zh-cn/configuration.md)
-  * [主题](zh-cn/themes.md)
-  * [使用插件](zh-cn/plugins.md)
-  * [Markdown 配置](zh-cn/markdown.md)
-  * [代码高亮](zh-cn/language-highlight.md)
 
 
 - **Links**
