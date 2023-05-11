@@ -46,7 +46,7 @@
 * <span class="iconfont icon-daohang"></span> 导航
   * [编程网站](zh-cn/configuration.md)
 
-* <span class=" fa fa-github"></span> GitHub
+* [<span class=" fa fa-github"></span> GitHub](https://github.com/jsagreas/docsify)
 
 - 
 - 

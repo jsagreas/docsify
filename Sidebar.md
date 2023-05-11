@@ -42,8 +42,8 @@
 
 * 系统&运维
   * [linux](zh-cn/configuration.md)
-  * [主题](zh-cn/themes.md)
-  * [使用插件](zh-cn/plugins.md)
+  * [shell](zh-cn/themes.md)
+  * [ansible](zh-cn/plugins.md)
   * [Markdown 配置](zh-cn/markdown.md)
   * [代码高亮](zh-cn/language-highlight.md)
   * [主题](zh-cn/themes.md)
@@ -54,7 +54,17 @@
   * [HBase](zh-cn/themes.md)
   * [kafka](zh-cn/plugins.md)
   * [HDFS](zh-cn/markdown.md)
-
+  * [HBase](zh-cn/configuration.md)
+  * [flink](zh-cn/themes.md)
+  * [zookeeper](zh-cn/plugins.md)
+  * [spark](zh-cn/markdown.md)
+  * [Prometheus](zh-cn/plugins.md)
+  * [Kubernetes](zh-cn/markdown.md)
+  * [Hive](zh-cn/themes.md)
+  * [zookeeper](zh-cn/plugins.md)
+  * [spark](zh-cn/markdown.md)
+  * [Prometheus](zh-cn/plugins.md)
+  * [Kubernetes](zh-cn/markdown.md)
 
 
 
