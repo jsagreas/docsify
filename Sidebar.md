@@ -1,24 +1,24 @@
 * 前端
   * [HTML](pages/Frontend/Html/Index.md)
-  * [CSS](zh-cn/themes.md)
-  * [Javascript](zh-cn/plugins.md)
-  * [TypeScript](zh-cn/markdown.md)
-  * [Vue](zh-cn/markdown.md)
-  * [Angular](zh-cn/language-highlight.md)
-  * [React](zh-cn/plugins.md)
-  * [jQuery](zh-cn/markdown.md)
-  * [Node.js](zh-cn/language-highlight.md)
+  * [CSS](pages/Frontend/Css/Index.md)
+  * [Javascript](pages/Frontend/Javascript/Index.md)
+  * [TypeScript](pages/Frontend/TypeScript/Index.md)
+  * [Vue](pages/Frontend/Vue/Index.md)
+  * [Angular](pages/Frontend/Angular/Index.md)
+  * [React](pages/Frontend/React/Index.md)
+  * [Node.js](pages/Frontend/NodeJs/Index.md)
+
 
 
 * 后端
-  * [C](zh-cn/configuration.md)
-  * [C++](zh-cn/themes.md)
-  * [Java](zh-cn/plugins.md)
-  * [Python](zh-cn/markdown.md)
-  * [php](zh-cn/language-highlight.md)
-  * [go](zh-cn/themes.md)
-  * [rust](zh-cn/themes.md)
-  * [Assembly](zh-cn/themes.md)
+  * [C](pages/Frontend/Html/Index.md)
+  * [C++](pages/Frontend/Html/Index.md)
+  * [Java](pages/Frontend/Html/Index.md)
+  * [Python](pages/Frontend/Html/Index.md)
+  * [php](pages/Frontend/Html/Index.md)
+  * [go](pages/Frontend/Html/Index.md)
+  * [rust](pages/Frontend/Html/Index.md)
+  * [Assembly](pages/Frontend/Html/Index.md)
 
 
 
@@ -28,7 +28,7 @@
   * [微信小程序](zh-cn/plugins.md)
 
 
- 
+
 * 数据库
   * [MySQL](zh-cn/configuration.md)
   * [tidb](zh-cn/themes.md)
@@ -40,13 +40,20 @@
 
 
 
+
 * 系统&运维
   * [linux](zh-cn/configuration.md)
   * [shell](zh-cn/themes.md)
   * [ansible](zh-cn/plugins.md)
-  * [Markdown 配置](zh-cn/markdown.md)
-  * [代码高亮](zh-cn/language-highlight.md)
-  * [主题](zh-cn/themes.md)
+  * [Docker](zh-cn/markdown.md)
+  * [Kubernetes](zh-cn/markdown.md)
+  * [ZABBIX](zh-cn/plugins.md)
+  * [Prometheus](zh-cn/plugins.md)
+  * [Grafana](zh-cn/plugins.md)
+  * [JENKINS](zh-cn/plugins.md)
+  * [NGINX](zh-cn/plugins.md)
+  * [APACHE](zh-cn/plugins.md)
+
 
 
 * 云计算&大数据
@@ -58,13 +65,12 @@
   * [flink](zh-cn/themes.md)
   * [zookeeper](zh-cn/plugins.md)
   * [spark](zh-cn/markdown.md)
-  * [Prometheus](zh-cn/plugins.md)
   * [Kubernetes](zh-cn/markdown.md)
   * [Hive](zh-cn/themes.md)
   * [zookeeper](zh-cn/plugins.md)
   * [spark](zh-cn/markdown.md)
-  * [Prometheus](zh-cn/plugins.md)
-  * [Kubernetes](zh-cn/markdown.md)
+
+
 
 
 
