@@ -23,52 +23,49 @@
 
 
 * 移动端
-  * [android](zh-cn/configuration.md)
-  * [ios](zh-cn/themes.md)
-  * [微信小程序](zh-cn/plugins.md)
+  * [android](pages/configuration.md)
+  * [ios](pages/themes.md)
+  * [微信小程序](pages/plugins.md)
 
 
 
 * 数据库
-  * [MySQL](zh-cn/configuration.md)
-  * [tidb](zh-cn/themes.md)
-  * [Oracle](zh-cn/themes.md)
-  * [Redis](zh-cn/plugins.md)
-  * [MongoDB](zh-cn/markdown.md)
-  * [PostgreSQL](zh-cn/language-highlight.md)
-  * [Elasticsearch](zh-cn/themes.md)
+  * [Mysql](pages/configuration.md)
+  * [tidb](pages/themes.md)
+  * [Oracle](pages/themes.md)
+  * [Redis](pages/plugins.md)
+  * [MongoDB](pages/markdown.md)
+  * [PostgreSQL](pages/language-highlight.md)
+  * [Elasticsearch](pages/themes.md)
 
 
 
 
 * 系统&运维
-  * [linux](zh-cn/configuration.md)
-  * [shell](zh-cn/themes.md)
-  * [ansible](zh-cn/plugins.md)
-  * [Docker](zh-cn/markdown.md)
-  * [Kubernetes](zh-cn/markdown.md)
-  * [ZABBIX](zh-cn/plugins.md)
-  * [Prometheus](zh-cn/plugins.md)
-  * [Grafana](zh-cn/plugins.md)
-  * [JENKINS](zh-cn/plugins.md)
-  * [NGINX](zh-cn/plugins.md)
-  * [APACHE](zh-cn/plugins.md)
+  * [linux](pages/configuration.md)
+  * [shell](pages/themes.md)
+  * [ansible](pages/plugins.md)
+  * [Docker](pages/markdown.md)
+  * [Kubernetes](pages/markdown.md)
+  * [ZABBIX](pages/plugins.md)
+  * [Prometheus](pages/plugins.md)
+  * [Grafana](pages/plugins.md)
+  * [JENKINS](pages/plugins.md)
+  * [NGINX](pages/plugins.md)
+  * [APACHE](pages/plugins.md)
 
 
 
 * 云计算&大数据
-  * [Hadoop](zh-cn/configuration.md)
-  * [HBase](zh-cn/themes.md)
-  * [kafka](zh-cn/plugins.md)
-  * [HDFS](zh-cn/markdown.md)
-  * [HBase](zh-cn/configuration.md)
-  * [flink](zh-cn/themes.md)
-  * [zookeeper](zh-cn/plugins.md)
-  * [spark](zh-cn/markdown.md)
-  * [Kubernetes](zh-cn/markdown.md)
-  * [Hive](zh-cn/themes.md)
-  * [zookeeper](zh-cn/plugins.md)
-  * [spark](zh-cn/markdown.md)
+  * [Hadoop](pages/configuration.md)
+  * [HBase](pages/themes.md)
+  * [kafka](pages/plugins.md)
+  * [HDFS](pages/markdown.md)
+  * [HBase](pages/configuration.md)
+  * [flink](pages/themes.md)
+  * [zookeeper](pages/plugins.md)
+  * [spark](pages/markdown.md)
+  * [Hive](pages/themes.md)
 
 
 
