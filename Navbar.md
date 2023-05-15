@@ -62,12 +62,6 @@
 
 - 
 - 
-- 
-- 
-- 
-- 
-- 
-
 
 - <span class="iconfont  icon-taiyang1-copy" style="margin-right:-25px;"></span>
 - 
