@@ -148,43 +148,14 @@
     ],
 
 
-
-
-
-
-
-
-
-      search: 'auto', // default
-
-      search: [
-      '/',            // => /README.md
-      '/guide',       // => /guide.md
-      '/get-started', // => /get-started.md
-      '/zh-cn/',      // => /zh-cn/README.md
-      ],
-
-
-
-
       search:{  // complete configuration parameters
         maxAge: 86400000, // Expiration time, the default one day
-        paths: [], // or 'auto'
         placeholder: '搜索',
-        placeholder: { // Localization
-        '/zh-cn/': '搜索',
-        '/': '搜索',
-        },
-        noData: 'No Results!',
-        noData: { // Localization
-        '/zh-cn/': '找不到结果',
-        '/': 'No Results',
-        },
-        depth: 2,// Headline depth, 1 - 6
+        depth: 6,// Headline depth, 1 - 6
         hideOtherSidebarContent: false, // whether or not to hide other sidebar content
         namespace: 'website-1', // To avoid search index collision   // between multiple websites under the same domain
-        pathNamespaces: ['/zh-cn', '/ru-ru', '/ru-ru/v1'],
-        pathNamespaces: /^(\/(zh-cn|ru-ru))?(\/(v1|v2))?/,
+        // pathNamespaces: ['/zh-cn', '/ru-ru', '/ru-ru/v1'],
+        // pathNamespaces: /^(\/(zh-cn|ru-ru))?(\/(v1|v2))?/,
       }, 
 
 
