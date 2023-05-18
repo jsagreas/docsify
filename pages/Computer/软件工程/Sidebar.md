@@ -1,16 +1,7 @@
 * 第一章
-  * [Html](pages/Frontend/Html/Index.md)
-  * [主题](zh-cn/themes.md)
-  * [使用插件](zh-cn/plugins.md)
-  * [Markdown 配置](zh-cn/markdown.md)
-  * [代码高亮](zh-cn/language-highlight.md)
+  * [1](pages/Index.md)
+
+
 * 第二章
-  * [Html](pages/Frontend/Html/Index.md)
-  * [主题](zh-cn/themes.md)
-  * [使用插件](zh-cn/plugins.md)
-  * [Markdown 配置](zh-cn/markdown.md)
-  * [代码高亮](zh-cn/language-highlight.md)
-
-
-- **Links**
+  * [2](pages/Index.md)
 
