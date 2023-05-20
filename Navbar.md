@@ -32,24 +32,23 @@
   * [电学](pages/Physics/电学/Index.md)
 
 * <span class="iconfont icon-yunwei"></span>经济
-  * [西方经济学](pages/Economics/Index.md)
-  * [税收基础](pages/Economics/Index.md)
-  * [金融基础](pages/Economics/Index.md)
+  * [西方经济学](pages/Economics/西方经济学/Index.md)
+  * [税收基础](pages/Economics/税收基础/Index.md)
+  * [金融基础](pages/Economics/金融基础/Index.md)
 
-  * [金融市场](pages/Economics/Index.md)
-  * [商业银行经营管理](pages/Economics/Index.md)
-  * [会计学概论](pages/Economics/Index.md)
-  * [金融营销基础](pages/Economics/Index.md)
-  * [合同法理论与实务](pages/Economics/Index.md)
+  * [金融市场](pages/Economics/金融市场/Index.md)
+  * [商业银行经营管理](pages/Economics/商业银行经营管理/Index.md)
+  * [会计学概论](pages/Economics/会计学概论/Index.md)
+  * [金融营销基础](pages/Economics/金融营销基础/Index.md)
+  * [合同法理论与实务](pages/Economics/合同法理论与实务/Index.md)
 
-  * [金融企业会计](pages/Economics/Index.md)
-  * [互联网金融概论](pages/Economics/Index.md)
-  * [财务会计](pages/Economics/Index.md)
-  * [营销团队管理](pages/Economics/Index.md)
+  * [金融企业会计](pages/Economics/金融企业会计/Index.md)
+  * [互联网金融概论](pages/Economics/互联网金融概论/Index.md)
+  * [财务会计](pages/Economics/财务会计/Index.md)
 
-  * [金融专题讲座](pages/Economics/Index.md)
-  * [金融风险概论](pages/Economics/Index.md)
-  * [个人理财](pages/Economics/Index.md)
+  * [金融专题讲座](pages/Economics/金融专题讲座/Index.md)
+  * [金融风险概论](pages/Economics/金融风险概论/Index.md)
+  * [个人理财](pages/Economics/个人理财/Index.md)
 
 * <span class="iconfont icon-office1"></span>办公
   * [Excel](pages/Office/Excel/Index.md)
