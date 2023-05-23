@@ -477,7 +477,7 @@ body.sticky .sidebar-toggle {
 
 body.close .sidebar {
     /* transform: translateX(-300px); */
-    transform: translateX(-280px)!important;
+    transform: translateX(-300px)!important;
 }
 
 body.close .sidebar-toggle {
@@ -1067,7 +1067,7 @@ code .token {
 }
 
 nav{
-    width: calc(100% - 260px);
+    width: calc(100% - 300px);
     /* background: var(--sidebar-background); */
     border-bottom: 1px solid hsl( 113 , 0% , 89%);
     /* box-shadow: 0 1px 2px rgb(225, 222, 220); */
@@ -1093,7 +1093,7 @@ body.close   nav {
 .sidebar{
     border-right: 1px solid #a6acb5;
     /* box-shadow: 0 1px 2px rgb(225, 222, 220); */
-    width: 260px !important;
+    width: 300px !important;
 
 
 
