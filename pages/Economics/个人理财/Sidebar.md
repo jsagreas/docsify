@@ -1,5 +1,5 @@
 * 第⼀章 个⼈理财基础知识
-  * [1](pages/Index.md)
+  * [1](pages/Economics/个人理财/第1章/1.md)
 * 第⼆章 银⾏理财
   * [2](pages/Index.md)
 * 第三章 证券理财
