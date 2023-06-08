@@ -68,6 +68,8 @@
 
 
 
+
+
 * 计算机
   * [软件工程](pages/Computer/软件工程/Index.md)
   * [操作系统](pages/Computer/操作系统/Index.md)
@@ -82,10 +84,12 @@
   * [C++语言程序设计](pages/Computer/C++语言程序设计/Index.md)
   * [高级语言程序设计](pages/Computer/高级语言程序设计/Index.md)
 
+ 
+
 
 
 * 理论知识
-  * [数学基础](pages/Math/数学基础/Index.md)
+  * [数学基础](pages/Math/数学基础/代数.md)
   * [线性代数](pages/Math/线性代数/Index.md)
   * [离散数学](pages/Math/离散数学/Index.md)
   * [高等数学-工专](pages/Math/高等数学-工专/Index.md)
