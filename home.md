@@ -1,3 +1,4 @@
+<h2 id="docsify"><a href="#/?id=docsify" data-id="docsify" class="anchor"><span>docsify</span></a></h2>
 
 home:100: 首页
 
@@ -321,3 +322,41 @@ This project is licensed under the MIT License. See the [LICENSE](https://github
 
 
 For example `😀` will be parsed to <img src="https://twemoji.maxcdn.com/v/12.1.5/72x72/1f600.png" alt="happy" style="zoom:25%;" />
+
+
+<!-- tabs:start -->
+
+#### **English**
+
+Hello!
+
+#### **French**
+
+Bonjour!
+
+#### **Italian**
+
+Ciao!
+
+<!-- tabs:end -->
+
+
+```swimlanes-io
+title: Simple example
+A -> B: Ping
+B --> A: Pong
+```
+
+
+
+<swimlanes-io>
+title: Simple example
+A -> B: Ping
+note:
+```
+{
+    // code block
+}
+```
+B --> A: Pong
+</swimlanes-io>

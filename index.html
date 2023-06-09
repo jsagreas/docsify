@@ -22,20 +22,15 @@
 
 
 <style>
-  /*加重描述strong*/
-  .markdown-section strong {
-      color: rgb(98, 75, 230);
-  }
-  /*滚动条样式 start*/
-  /* 滚动条宽度 */
-  ::-webkit-scrollbar{width:4px;}
-  /* 滚动条颜色 */
-  ::-webkit-scrollbar-thumb{
-  background: #33a9dc;
-  background-image: linear-gradient(#6ecd56, #33a9dc, #cb6196, #c16290);
-  border-radius: 2em;
+  :root {
+    --docsifytabs-border-color: #ededed;
+    --docsifytabs-tab-highlight-color: purple;
   }
 </style>
+
+
+
+
 
 
 
@@ -106,12 +101,15 @@
       hideSidebar: false,
       mergeNavbar: true,
 
-
+      coverpage: {
+      '/': 'cover.md',
+     '/zh-cn/': 'Cover.md'
+      },
 
       auto2top: true,
 
 
-      homepage: 'home.md',
+      homepage: 'Home.md',
 
       externalLinkTarget: '_blank', // default: '_blank'
       cornerExternalLinkTarget: '_blank', // default: '_blank'
@@ -287,6 +285,15 @@
           },
 
 
+    tabs: {
+    persist    : true,      // default
+    sync       : true,      // default
+    theme      : 'classic', // default
+    tabComments: true,      // default
+    tabHeadings: true       // default
+   },
+
+
 
 
 
@@ -332,15 +339,26 @@
 
 <script src="//unpkg.com/docsify-footer-enh/dist/docsify-footer-enh.min.js"></script>
 
-
+<script src="https://cdn.jsdelivr.net/npm/docsify-tabs@1"></script>
 
 <!-- docsify-mustache插件 -->
 <script src="//cdn.jsdelivr.net/npm/docsify-mustache"></script>
 <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/front-matter.min.js"></script>
 
+
+
+
+
+<script src="//unpkg.com/docsify-swimlanes-io@latest/dist/docsify-swimlanes-io.js"></script> 
+
+
+
+
+
 <!-- docsify-valine评论插件 -->
 <!-- <script src='//unpkg.com/valine/dist/Valine.min.js'></script>
 <script src="//unpkg.com/docsify-valine/dist/docsify-valine.min.js"></script> -->
+
 
 
 
