@@ -1,3 +1,18 @@
+* 导航
+  * [编程网站](pages/Navigation/Program/Index.md)
+  * [英语网站](pages/Navigation/Egnlish/Index.md)
+  * [新闻网站](pages/Navigation/News/Index.md)
+  * [搜索网站](pages/Navigation/Search/Index.md)
+
+
+
+* 工具软件
+  * [IDEA](pages/Tools/IDEA/Index.md)
+  * [GIT](pages/Tools/Git/Index.md)
+
+
+
+
 * 前端
   * [HTML](pages/Frontend/Html/Index.md)
   * [CSS](pages/Frontend/Css/Index.md)
@@ -114,20 +129,6 @@
   * [随笔](pages/Read/Personal/Index.md)
   * [记录](pages/Read/Recods/Index.md)
   * [书单](pages/Read/Books/Index.md)
-
-
-
-* 工具软件
-  * [IDEA](pages/Tools/IDEA/Index.md)
-  * [GIT](pages/Tools/Git/Index.md)
-
-
-* 导航
-  * [编程网站](pages/Navigation/Program/Index.md)
-  * [英语网站](pages/Navigation/Egnlish/Index.md)
-  * [新闻网站](pages/Navigation/News/Index.md)
-  * [搜索网站](pages/Navigation/Search/Index.md)
-
 
 
 

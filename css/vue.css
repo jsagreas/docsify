@@ -314,22 +314,39 @@ main.hidden {
     padding-left: 20px
 }
 
-.sidebar::-webkit-scrollbar {
+/* .sidebar::-webkit-scrollbar {
     width: 4px
 }
 
 .sidebar::-webkit-scrollbar-thumb {
     background: transparent;
     border-radius: 4px
-}
+} */
 
-.sidebar:hover::-webkit-scrollbar-thumb {
+/* .sidebar:hover::-webkit-scrollbar-thumb {
     background: hsla(0, 0%, 53.3%, .4)
-}
+} */
 
 .sidebar:hover::-webkit-scrollbar-track {
     background: hsla(0, 0%, 53.3%, .1)
 }
+
+
+  /*加重描述strong*/
+.markdown-section strong {
+    color: rgb(98, 75, 230);
+}
+/*滚动条样式 start*/
+/* 滚动条宽度 */
+::-webkit-scrollbar{width:4px;}
+/* 滚动条颜色 */
+::-webkit-scrollbar-thumb{
+background: #33a9dc;
+background-image: linear-gradient(#6ecd56, #33a9dc, #cb6196, #c16290);
+border-radius: 2em;
+}
+
+
 
 .sidebar-toggle {
     background-color: transparent;
@@ -1123,3 +1140,7 @@ body.close   nav {
     background-position:21px center;
 } */
 
+
+
+
+    

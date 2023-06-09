@@ -18,6 +18,30 @@
 
 </style>
 
+
+
+
+<style>
+  /*加重描述strong*/
+  .markdown-section strong {
+      color: rgb(98, 75, 230);
+  }
+  /*滚动条样式 start*/
+  /* 滚动条宽度 */
+  ::-webkit-scrollbar{width:4px;}
+  /* 滚动条颜色 */
+  ::-webkit-scrollbar-thumb{
+  background: #33a9dc;
+  background-image: linear-gradient(#6ecd56, #33a9dc, #cb6196, #c16290);
+  border-radius: 2em;
+  }
+</style>
+
+
+
+
+
+
    <link rel="icon" href="images/icon.png" type="image/x-icon"/>
    <link rel="stylesheet" href="css/vue.css">
    <!-- <link rel="stylesheet" href="css/prism-clike.css"> -->
@@ -63,6 +87,7 @@
       language:'chinese'
       },
 
+
       nameLink: '/',
 
       themeColor: '',
@@ -103,6 +128,7 @@
 
 
 
+
       copyCode: {
       buttonText : '复制',
       errorText  : 'Error',
@@ -115,6 +141,65 @@
       formatUpdated: function(time) {
       return time;
       },
+      
+
+      'flexible-alerts': {
+      style: 'flat'
+      },
+
+      
+      'flexible-alerts': {
+      note: {
+        label: "Hinweis"
+      },
+      tip: {
+        label: "Tipp"
+      },
+      warning: {
+        label: "Warnung"
+      },
+      attention: {
+        label: "Achtung"
+      }
+     },
+
+
+     'flexible-alerts': {
+      note: {
+        label: {
+          '/de-DE/': 'Hinweis',
+          '/': 'Note'
+        }
+      },
+      tip: {
+        label: {
+          '/de-DE/': 'Tipp',
+          '/': 'Tip'
+        }
+      },
+      warning: {
+        label: {
+          '/de-DE/': 'Warnung',
+          '/': 'Warning'
+        }
+      },
+      attention: {
+        label: {
+          '/de-DE/': 'Achtung',
+          '/': 'Attention'
+        }
+      }
+      },
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -148,7 +233,9 @@
       //     );
       //   });
       // }
+
     ],
+
 
 
 
@@ -172,6 +259,34 @@
       //  cookies:    '' ,  
       //  onBody:     true            
       // },
+      footer: {
+      copy: '<span>Acme &copy; 2023</span>',
+      auth: 'by Me',
+      pre: '<hr/>',
+      style: 'text-align: right;',
+      class: 'className',
+    },
+
+
+
+    mustache: {
+    data: [
+      'doc/vars.json',
+      'doc/pom.xml',
+      {
+        question: 'What is your favorite number?'
+      }
+    ]
+    },
+
+
+     // docsify-valine (defaults)
+     Valine: {
+              appId: '<APP_ID>',
+              appKey: '<APP_Key>'
+          },
+
+
 
 
 
@@ -207,12 +322,26 @@
   <script src="//cdn.jsdelivr.net/npm/docsify-latex@0"></script>
 
 
-
+<!-- Latest -->
+<script src="https://unpkg.com/docsify-plugin-flexible-alerts"></script>
 
 <!-- <script src="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.js"></script>
 <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.css" />
 
 <script src="//cdn.jsdelivr.net/npm/docsify-latex@0"></script> -->
+
+<script src="//unpkg.com/docsify-footer-enh/dist/docsify-footer-enh.min.js"></script>
+
+
+
+<!-- docsify-mustache插件 -->
+<script src="//cdn.jsdelivr.net/npm/docsify-mustache"></script>
+<script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/front-matter.min.js"></script>
+
+<!-- docsify-valine评论插件 -->
+<!-- <script src='//unpkg.com/valine/dist/Valine.min.js'></script>
+<script src="//unpkg.com/docsify-valine/dist/docsify-valine.min.js"></script> -->
+
 
 
 </body>
