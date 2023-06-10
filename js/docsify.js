@@ -9251,6 +9251,7 @@
     var el = getNode('.app-name-link');
     var nameLink = vm.config.nameLink;
     var path = vm.route.path;
+    alert(nameLink)
 
     if (!el) {
       return;
