@@ -1,36 +1,36 @@
 - Getting started
-  - [Quick start](pages/Website/docsify/DOCSIFY-DEPLOY/quickstart.md)
-  - [Writing more pages](pages/Website/docsify/DOCSIFY-DEPLOY/more-pages.md)
-  - [Custom navbar](pages/Website/docsify/DOCSIFY-DEPLOY/custom-navbar.md)
-  - [Cover page](pages/Website/docsify/DOCSIFY-DEPLOY/cover.md)
+  - [Quick start](pages/Website/docsify/docsify-deploy/quickstart.md)
+  - [Writing more pages](pages/Website/docsify/docsify-deploy/more-pages.md)
+  - [Custom navbar](pages/Website/docsify/docsify-deploy/custom-navbar.md)
+  - [Cover page](pages/Website/docsify/docsify-deploy/cover.md)
 
 
 
 - Customization
-  - [Configuration](pages/Website/docsify/DOCSIFY-DEPLOY/configuration.md)
-  - [Themes](pages/Website/docsify/DOCSIFY-DEPLOY/themes.md)
-  - [List of Plugins](pages/Website/docsify/DOCSIFY-DEPLOY/plugins.md)
-  - [Write a Plugin](pages/Website/docsify/DOCSIFY-DEPLOY/write-a-plugin.md)
-  - [Markdown configuration](pages/Website/docsify/DOCSIFY-DEPLOY/markdown.md)
-  - [Language highlighting](pages/Website/docsify/DOCSIFY-DEPLOY/language-highlight.md)
-  - [Emoji](pages/Website/docsify/DOCSIFY-DEPLOY/emoji.md)
+  - [Configuration](pages/Website/docsify/docsify-deploy/configuration.md)
+  - [Themes](pages/Website/docsify/docsify-deploy/themes.md)
+  - [List of Plugins](pages/Website/docsify/docsify-deploy/plugins.md)
+  - [Write a Plugin](pages/Website/docsify/docsify-deploy/write-a-plugin.md)
+  - [Markdown configuration](pages/Website/docsify/docsify-deploy/markdown.md)
+  - [Language highlighting](pages/Website/docsify/docsify-deploy/language-highlight.md)
+  - [Emoji](pages/Website/docsify/docsify-deploy/emoji.md)
 
 
 
 - Guide
-  - [Deploy](pages/Website/docsify/DOCSIFY-DEPLOY/deploy.md)
-  - [Helpers](pages/Website/docsify/DOCSIFY-DEPLOY/helpers.md)
-  - [Vue compatibility](pages/Website/docsify/DOCSIFY-DEPLOY/vue.md)
-  - [CDN](pages/Website/docsify/DOCSIFY-DEPLOY/cdn.md)
-  - [Offline Mode (PWA)](pages/Website/docsify/DOCSIFY-DEPLOY/pwa.md)
-  - [Server-Side Rendering (SSR)](pages/Website/docsify/DOCSIFY-DEPLOY/ssr.md)
-  - [Embed Files](pages/Website/docsify/DOCSIFY-DEPLOY/embed-files.md)
+  - [Deploy](pages/Website/docsify/docsify-deploy/deploy.md)
+  - [Helpers](pages/Website/docsify/docsify-deploy/helpers.md)
+  - [Vue compatibility](pages/Website/docsify/docsify-deploy/vue.md)
+  - [CDN](pages/Website/docsify/docsify-deploy/cdn.md)
+  - [Offline Mode (PWA)](pages/Website/docsify/docsify-deploy/pwa.md)
+  - [Server-Side Rendering (SSR)](pages/Website/docsify/docsify-deploy/ssr.md)
+  - [Embed Files](pages/Website/docsify/docsify-deploy/embed-files.md)
 
 
 - Awesome docsify
-  - [Awesome docsify](pages/Website/docsify/DOCSIFY-DEPLOY/awesome.md)
+  - [Awesome docsify](pages/Website/docsify/docsify-deploy/awesome.md)
 
 
 
 - Awesome docsify
-  - [Awesome docsify](pages/Website/docsify/DOCSIFY-DEPLOY/awesome.md)
+  - [Awesome docsify](pages/Website/docsify/docsify-deploy/awesome.md)
