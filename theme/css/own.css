@@ -1,17 +1,39 @@
 pre[class*="language-"] {
 	padding: 1em;
 	margin: 0.5em 0;
+	/* 代码块横向滚动条 */
 	overflow-x: auto!important;
 	
 }		
 
+.markdown-section pre>code {
+    font-size: 0.9rem!important;
+	color: #525252;
+	padding-top:10px!important;
+	padding-bottom:10px!important;
+	display: block!important;
+	/* line-height: 1.5rem!important; */
+    /* font-size: .8rem!important; */
+    /* padding: 2.2em 5px!important; */
+    line-height: inherit!important;
+    /* margin: 0 2px!important; */
+    /* max-width: inherit!important; */
+    /* overflow: inherit!important; */
+    /* white-space: inherit!important; */
+}
 
+.line-numbers .line-numbers-rows {
+	padding-top:10px!important;
+    font-size: 100%!important;
+    /* line-height: 1.4130858779rem!important; */
+    /* line-height: 1.53rem!important; */
+	line-height: inherit!important;
+}
 
 
 .sidebar:hover::-webkit-scrollbar-track {
     background: rgba(9, 9, 9, 0.1)
 }
-
 
   /*加重描述strong*/
 .markdown-section strong {
@@ -38,11 +60,15 @@ body::-webkit-scrollbar-thumb{
 	/* height: auto!important;  */
 }
 
+/* 
+body .docsify-copy-code-button{
+	width: 100px;
+} */
 
 
-
-
-
+#change:hover {
+	cursor: pointer;
+}
 
 
 

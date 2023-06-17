@@ -1555,7 +1555,7 @@ body:not([data-platform^=Mac]) .sidebar::-webkit-scrollbar-thumb {
 .sidebar-nav>:last-child {
     margin-bottom: 2rem
 }
-
+/* 
 .sidebar-toggle,
 .sidebar-toggle-button {
     width: var(--sidebar-toggle-width);
@@ -1623,7 +1623,7 @@ body:not([data-platform^=Mac]) .sidebar::-webkit-scrollbar-thumb {
     .sidebar-toggle .sidebar-toggle-button {
         top: 0
     }
-}
+} */
 
 @media print {
     .sidebar-toggle {
@@ -1634,7 +1634,7 @@ body:not([data-platform^=Mac]) .sidebar::-webkit-scrollbar-thumb {
 @media(max-width: 47.99em) {
 
     body.close .sidebar,
-    body.close .sidebar-toggle,
+    /* body.close .sidebar-toggle, */
     body.close .sidebar+.content {
         transform: translateX(var(--sidebar-width))
     }

@@ -1634,7 +1634,7 @@ body:not([data-platform^=Mac]) .sidebar::-webkit-scrollbar-thumb {
 @media(max-width: 47.99em) {
 
     body.close .sidebar,
-    body.close .sidebar-toggle,
+    /* body.close .sidebar-toggle, */
     body.close .sidebar+.content {
         transform: translateX(var(--sidebar-width))
     }
