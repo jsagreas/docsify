@@ -1,0 +1,49 @@
+pre[class*="language-"] {
+	padding: 1em;
+	margin: 0.5em 0;
+	overflow-x: auto!important;
+	
+}		
+
+
+
+
+.sidebar:hover::-webkit-scrollbar-track {
+    background: rgba(9, 9, 9, 0.1)
+}
+
+
+  /*加重描述strong*/
+.markdown-section strong {
+    color: rgb(98, 75, 230);
+}
+/*滚动条样式 start*/
+/* 滚动条宽度 */
+aside::-webkit-scrollbar{width:4px!important;}
+/* 滚动条颜色 */
+aside::-webkit-scrollbar-thumb{
+	background: #33a9dc!important;
+	background-image: linear-gradient(#6ecd56, #33a9dc, #cb6196, #c16290)!important;
+	border-radius: 2em!important;
+}
+
+
+body::-webkit-scrollbar{width:4px!important;}
+/* 滚动条颜色 */
+body::-webkit-scrollbar-thumb{
+	background: #33a9dc!important;
+	background-image: linear-gradient(#6ecd56, #33a9dc, #cb6196, #c16290)!important;
+	border-radius: 2em!important;
+	height: 100px!important;
+	/* height: auto!important;  */
+}
+
+
+
+
+
+
+
+
+
+  
