@@ -1,13 +1,6 @@
 <!-- markdownlint-disable no-empty-links -->
 <!-- markdownlint-disable-next-line first-line-heading -->
-
-
-- 首页
-- 首页
-- Menu <span>(Text)</span>
-  - [Alfa](#)
-  - [Bravo](#)
-  - [Charlie](#)
+- Text
 - [Link](http://google.com)
 - [Menu (Link)](http://google.com)
   - [![alt text](https://icongr.am/simple/facebook.svg?colored&size=16)Facebook](http://facebook.com)
@@ -53,6 +46,3 @@
   - <a href="#" data-link-href="https://cdn.jsdelivr.net/npm/docsify@4/lib/themes/buble.css">Buble</a>
   - <a href="#" data-link-href="https://cdn.jsdelivr.net/npm/docsify@4/lib/themes/dark.css">Dark</a>
   - <a href="#" data-link-href="https://cdn.jsdelivr.net/npm/docsify@4/lib/themes/pure.css">Pure</a>
-- Theme
-  - <span id="day"><a href="#" data-style-group="themeable" data-style-href="css/simple.css">白天</a></span>
-  - <span id="change"><a href="#" data-style-group="themeable" data-style-href="css/dark.css">黑夜</a></span>
