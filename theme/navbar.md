@@ -54,5 +54,5 @@
   - <a href="#" data-link-href="https://cdn.jsdelivr.net/npm/docsify@4/lib/themes/dark.css">Dark</a>
   - <a href="#" data-link-href="https://cdn.jsdelivr.net/npm/docsify@4/lib/themes/pure.css">Pure</a>
 - Theme
-  - <span id="day"><a href="#" data-style-group="themeable" data-style-href="css/simple.css">白天</a></span>
-  - <span id="change"><a href="#" data-style-group="themeable" data-style-href="css/dark.css">黑夜</a></span>
+  - <span data-theme="light"  class="switch" id="switch-1">白天</span>
+  - <span data-theme="dark"  class="switch" id="switch-2">黑夜</span>

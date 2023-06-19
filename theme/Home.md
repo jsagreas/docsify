@@ -1,3 +1,5 @@
+
+
 ```java
 public class MyFirstApp{
     public static void main(String[] args) {
@@ -11,22 +13,6 @@ public class MyFirstApp{
 
 ```
 ### Defaults
-
-
-
-### Simple
-
-
-<a href="#" data-style-group="themeable" data-style-href="css/simple.css">Preview</a>
-
-
-
-### Simple Dark
-
-
-<a href="#" data-style-group="themeable" data-style-href="css/dark.css">Preview</a>
-
-
 
 A minimalist theme containing only the default values used by all other
 themes. This theme is intended to serve as the most basic starting point for a
