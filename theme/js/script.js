@@ -1,7 +1,6 @@
 window.onload=function(){
   let switches = document.getElementsByClassName('switch');
-
-let style = localStorage.getItem('style');
+  let style = localStorage.getItem('style');
 
 if (style == null) {
   setTheme('light');
@@ -23,6 +22,7 @@ function setTheme(theme) {
     document.getElementById('switcher-id').href = 'css/dark.css';
   }
   localStorage.setItem('style', theme);
+
 }
 
 
