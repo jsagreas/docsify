@@ -1,8 +1,6 @@
 <!-- markdownlint-disable no-empty-links -->
 <!-- markdownlint-disable-next-line first-line-heading -->
 
-
-- 首页
 - 首页
 - Menu <span>(Text)</span>
   - [Alfa](#)

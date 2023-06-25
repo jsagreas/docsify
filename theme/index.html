@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <title>Document</title>
@@ -10,40 +11,314 @@
   <!-- <link rel="stylesheet" href="css/dark.css"> -->
   <link rel="stylesheet" id="link" href="css/simple.css">
   <link rel="stylesheet" id="switcher-id" href="">
-   <link href="css/prism-line-numbers.css" rel="stylesheet">
-   <link href="css/prism-tomorrow.css" rel="stylesheet">
-   <link href="css/own.css" rel="stylesheet">
-   <link href="css/btn.css" rel="stylesheet">
+  <link href="css/prism-line-numbers.css" rel="stylesheet">
+  <link href="css/prism-tomorrow.css" rel="stylesheet">
+  <link href="css/own.css" rel="stylesheet">
+  <link href="css/btn.css" rel="stylesheet">
+  <link href="css/BG.css" rel="stylesheet">
 
 
+  <!-- Fontawesome -->
+  <link rel="stylesheet" href="https://unpkg.com/@fortawesome/fontawesome-free/css/fontawesome.css" />
+  <link rel="stylesheet" href="https://unpkg.com/@fortawesome/fontawesome-free/css/brands.css" />
+  <link rel="stylesheet" href="https://unpkg.com/@fortawesome/fontawesome-free/css/regular.css" />
+  <link rel="stylesheet" href="https://unpkg.com/@fortawesome/fontawesome-free/css/solid.css" />
 
 
 </head>
-<body >
 
+<body>
+  <!-- docsify-demo-box-react -->
+  <!-- <script src="https://cdn.bootcss.com/react/15.6.1/react.js"></script>
+  <script src="https://cdn.bootcss.com/react/15.6.1/react-dom.js"></script>
+  <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+  <script src="//unpkg.com/docsify-demo-box-react/dist/docsify-demo-box-react.min.js"></script> -->
 
+  <!-- docsify-demo-box-vue -->
+  <!-- <script src="//cdn.jsdelivr.net/npm/vue@2.7.14/dist/vue.js"></script>
+  <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+  <script src="//unpkg.com/docsify-demo-box-vue/dist/docsify-demo-box-vue.min.js"></script> -->
+
+   <!-- docsify-edit-on-github -->
+   <script src="//cdn.jsdelivr.net/npm/docsify-edit-on-github"></script>
+ 
 
   <div id="app">加载中......</div>
   <script>
+    // docsify-demo-box-react
+    // var jsResources = '<scr' + 'ipt src="//cdn.bootcss.com/react/15.6.1/react.js"></scr' + 'ipt>\n' +  '<scr' + 'ipt src="//cdn.bootcss.com/react/15.6.1/react-dom.js"></scr' + 'ipt>'
+    // var cssResources = '@import url("//cdnjs.cloudflare.com/ajax/libs/normalize/7.0.0/normalize.min.css");'
+    // var bootCode = 'var globalVariable = "leon"'
+    // var globalVariable = "leon"
 
+    // docsify-demo-box-vue
+    // var jsResources = '<scr' + 'ipt src="//cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></scr' + 'ipt>'
+    // var cssResources = '@import url("//cdnjs.cloudflare.com/ajax/libs/normalize/7.0.0/normalize.min.css");'
+    // var bootCode = 'var globalVariable = "leon"'
+    // var globalVariable = "leon"
     
+
     window.$docsify = {
       name: 'docsify',
+      repo: '',
       loadNavbar: 'Navbar.md',
-
+      // loadSidebar:true,
+      hideSidebar: false,
       logo: 'https://img.shields.io/twitter/url/http/shields.io.svg?style=social',
+      homepage: 'Home.md',
+      auto2top: true,
+      notFoundPage: '404.md',
+      relativePath: false,
+      coverpage: 'Cover.md',
+      themeColor: 'var(--mb-colour-pink)',
+      tabs: { persist: true, theme: 'material' },
+      baiduTjId: "xxxxxxx",  // 百度统计ID
+      busuanzi: true,// 开启busuanzi访问量
+      charty: { "theme": '#EE5599', "mode": "light", "debug": false },
+      beian: { ICP: "1", NISMSP: { number: "2", url: "https://www.baidu.com/s?&wd=%E6%97%A5%E5%8E%86", id: "3" }, },
+      chat: { title: '聊天记录', users: [{ nickname: 'yuki', avatar: '' }, { nickname: 'kokkoro', avatar: '' },], myself: 'yuki', animation: 50, os: 'mac', },// chat panel title  // set avatar url  // message dialog on the right (myself)  // animation interval (ms)   // Panel navigation bar style, supporting "mac" and "windows"
+      copyCode: { buttonText: 'Copy to clipboard ', errorText: 'Error', successText: 'Copied' },
+      count: { countable: true, position: 'top', margin: '10px', float: 'right', fontsize: '0.9em', color: 'rgb(90,90,90)', language: 'chinese', localization: { words: "", minute: "" }, isExpected: true },
+      // plugins: [DemoBoxReact.create(jsResources, cssResources, bootCode) ],
+      // plugins: [DemoBoxVue.create(jsResources, cssResources, bootCode)    ],
+      markdown: { renderer: { code: function (code, lang) {   if (lang === 'drawio') {   if (window.drawioConverter) {console.log('drawio 转化中') ; return window.drawioConverter(code) ;}  else { return `<div class='drawio-code'>${code}</div>` ;} }   else {return this.origin.code.apply(this, arguments);} } } },
+      plugins: [EditOnGithubPlugin.create( 'https://github.com/njleonzhang/docsify-edit-on-github/blob/master/', null,function(file) {if (file.indexOf('en') === -1) { return '编辑'} else { return 'edit on git'  }  }) ],
+      footer: {      copy: '<span>Acme &copy; 2023</span>',auth: 'by Me',pre: '<hr/>',style: 'text-align: right;', class: 'className',   },
+      loadFooter: true, // Or load from footer.md  loadFooter: 'footer.md',
+      kroki: { langs: [ "actdiag", "blockdiag",  "bpmn","bytefield", "c4plantuml","d2","dbml", "ditaa","erd","excalidraw","graphviz","mermaid","nomnoml", "nwdiag","packetdiag","pikchr", "plantuml","rackdiag","seqdiag","structurizr", "svgbob","vega","vegalite","wavedrom","wireviz", ], serverPath: "//kroki.io/", },
+      latex: {inlineMath   : [['$', '$'], ['@', '@']], displayMath  : [['$$', '$$'], ['@@', '@@']],  customOptions: {   tex: { tags: 'ams'}, }},
+      valine:{ appId: "", appKey: "",},
+       
+       
+
+       
+           
+          
+ 
+       
+      
+    
+
+   
+     
+     
+  
+      
+      
+     
+      
+      
+      
+      
+      
+     
+      
+      
+     
+      
+      
+      
+     
+      
+      
+      
+      
+
+    
+   
+ 
+ 
+ 
+
+
+
+
+     
+   
+
+         
+         
+          
+            
+             
+            
+             
+          
+        
+        
+     
+           
+             
+
+          
+          
+         
+            
+          
+       
+     
+   
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     };
   </script>
-  <script src="js/docsify.js"></script>
+
+
+
+
+  <script src="//unpkg.com/docsify@4.13.1/lib/docsify.min.js"></script>
+
+  <!-- <script src="js/docsify.js"></script> -->
   <script src="js/prism-line-numbers.js"></script>
   <script src="js/prism-java.js"></script>
   <script src="js/search.js"></script>
-  <script src="js/copy-code.js"></script>
+
   <script src="js/highlight.js"></script>
   <script src="js/change.js"></script>
   <script src="js/script.js"></script>
+
+  <!-- Docsify Accordion -->
+  <link rel="stylesheet" href="//unpkg.com/docsify-accordion/src/style.css">
+  <script src="//unpkg.com/docsify-accordion/src/index.js"></script>
+
+  <!-- 切换颜色 -->
+  <!-- <link rel="stylesheet" href="style.css" /> -->
+  <!-- <script src="index.js"></script> -->
+
+
+
+  <!-- 百度统计 -->
+  <!-- <script src="https://unpkg.com/docsify-baidu-tj@1.0.2/dist/docsify-baidu-tj.min.js"></script> -->
+
+  <!-- 备案 -->
+  <!-- <script src="https://cdn.jsdelivr.net/npm/docsify-beian@latest/dist/beian.min.js"></script> -->
+
+
+  <!-- 开启busuanzi访问量 -->
+  <!-- <script src="https://unpkg.com/docsify-busuanzi@1.0.1/dist/docsify-busuanzi.min.js"></script> -->
+
+
+  <script src="//unpkg.com/@markbattistella/docsify-charty@latest/dist/docsify-charty.min.js"></script>
+  <link rel="stylesheet" href="//unpkg.com/@markbattistella/docsify-charty@latest/dist/docsify-charty.min.css">
+
+  <!-- docsify: tabs -->
+  <script src="https://cdn.jsdelivr.net/npm/docsify-tabs@1"></script>
+
+
+  <!-- Docsify Chat -->
+  <script src="//cdn.jsdelivr.net/npm/docsify-chat/lib/docsify-chat.min.js"></script>
+
+
+  <script src="//cdn.jsdelivr.net/npm/codeblock-iframe@latest/dist/index.min.js"></script>
+  <!-- <script src="//cdn.jsdelivr.net/npm/docsify-codeblock-iframe@latest/dist/index.min.js"></script> -->
+
+
+  <script src="https://unpkg.com/docsify-copy-code@2"></script>
+  <!-- <script src="js/copy-code.js"></script> -->
+
+  <script src="https://cdn.jsdelivr.net/npm/docsify-count@latest/dist/countable.min.js"></script>
+
+
+
+
+
+
+
+
+  <!-- 隐藏显示源码效果 Docsify Demo     https://github.com/JacobWeinbren/docsify-demo-->
+  <!-- <script src="//cdn.jsdelivr.net/npm/docsify-demo@latest/dist/index.min.js"></script>
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify-demo@latest/dist/index.min.css" /> -->
+
+  <!--drawio图渲染 docsify-drawio     https://github.com/KonghaYao/docsify-drawio-->
+  <script src="https://cdn.jsdelivr.net/npm/docsify-drawio/viewer.min.js"></script>
+  <script src='https://cdn.jsdelivr.net/npm/docsify-drawio/drawio.js'></script>
+
+  <!-- 自定义面板样式 docsify-example-panels  https://github.com/VagnerDomingues/docsify-example-panels-->
+  <!-- <script src="https://cdn.jsdelivr.net/npm/docsify-example-panels"></script> -->
+
+  <!--fontawesome字体  docsify-fontawesome       https://github.com/erickjx/docsify-fontawesome -->
+  <script src="//unpkg.com/docsify-fontawesome/dist/docsify-fontawesome.min.js"></script>
+
+  <!--页脚内容docsify-footer-enh   https://github.com/erickjx/docsify-footer-enh -->
+  <script src="//unpkg.com/docsify-footer-enh/dist/docsify-footer-enh.min.js"></script>
+
+  <!--页脚写内容 docsify-footer   https://github.com/alertbox/docsify-footer-->
+  <script src="//cdn.jsdelivr.net/npm/@alertbox/docsify-footer/dist/docsify-footer.min.js"></script>
+
+  <!--gif图片封面 docsify-gifcontrol https://github.com/gbodigital/docsify-gifcontrol -->
+  <link rel="stylesheet" href="//unpkg.com/docsify-gifcontrol/dist/docsify-gifcontrol.css">
+  <script src="//unpkg.com/docsify-gifcontrol/dist/docsify-gifcontrol.js"></script>
+
+  <!--数学公式  docsify-katex     https://github.com/upupming/docsify-katex-->
+  <script src="//cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.js"></script>
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.css" />
+  <script src="//cdn.jsdelivr.net/npm/marked@4"></script>
+  <script src="//cdn.jsdelivr.net/npm/docsify-katex@latest/dist/docsify-katex.js"></script>
+
+  <!-- 自定义按钮   docsify-ko-fi  https://github.com/fcannizzaro/docsify-ko-fi-->
+  <!-- <script src="https://cdn.jsdelivr.net/npm/docsify-ko-fi"></script> -->
+
+  <!-- uml图像 docsify-kroki    https://github.com/zuisong/docsify-kroki-->
+  <script src="//unpkg.com/docsify-kroki"></script>
+
+  <!-- 数学公式 docsify-latex      https://github.com/scruel/docsify-latex -->
+  <script src="//cdn.jsdelivr.net/npm/docsify-latex@0"></script>
+  <script src="//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+  <!-- 代码演示  docsify-live-demo     https://github.com/kossidts/docsify-live-demo -->
+  <link rel="stylesheet" href="live/live-demo.css" />
+  <script src="live/live-demo.js"></script>
+
+<!-- valine评论插件   docsify-mango-valine    https://valine.js.org/configuration.html       https://github.com/mg0324/docsify-mango-valine-->
+  <script src='//cdn.jsdelivr.net/npm/valine/dist/Valine.min.js'></script>
+  <script src="https://unpkg.com/docsify-mango-valine@1.1.1/dist/docsify-mango-valine.min.js"></script>
+
 </body>
 </html>
-
-

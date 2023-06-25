@@ -1,144 +1,54 @@
+# FontAwesome plugin for Docsify
 
 
-```java
-public class MyFirstApp{
-    public static void main(String[] args) {
-        System.out.print("Hello world");
-        }
+:fas fa-home fa-fw:
+:fas fa-th-list fa-fw red:
+:fab fa-linux fa-fw blue:
+:fab fa-aws fa-fw orange:
+
+
+```bash
+--------------------------------------------------------------------------------
+```
+###  Docsify Accordion
+
+
+```html
+<link rel="stylesheet" href="//unpkg.com/docsify-accordion/src/style.css">
+<script src="//unpkg.com/docsify-accordion/src/index.js"></script>
+```
+
++ Question 1? +
+
+  Answer 1
+
++ Question 2? +
+
+  Answer 2
+
+
+
+
+
+charty
+{
+  "title":   '666',
+  "caption": '555',
+  "type":    '222',
+  "options": {
+    "theme":   '',
+    "legend":  '',
+    "labels":  '',
+    "numbers": 'true'
+  },
+  "data": [
+    {
+      "label": '4',
+      "value": '6',
+      "colour": 'red'
     }
-
-
-
-
-
-```
-### Defaults
-
-A minimalist theme containing only the default values used by all other
-themes. This theme is intended to serve as the most basic starting point for a
-customized theme.
-
-<a href="#" data-style-group="themeable" data-style-href="css/theme-defaults.css">Preview</a> |
-[Source](https://github.com/jhildenbiddle/docsify-themeable/tree/master/src/scss/themes/defaults)
-
-```html
-<!-- Theme: Defaults -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/docsify-themeable@0/dist/css/theme-defaults.css">
-```
-
-<figure class="thumbnails">
-    <img src="assets/img/theme-defaults-cover.png" alt="Screenshot of coverpage" title="Cover page">
-    <img src="assets/img/theme-defaults-content.png" alt="Screenshot of content" title="Content">
-</figure>
-
-### Simple
-
-A clean, versatile theme featuring a light color scheme with vibrant accents, a [system font stack](https://css-tricks.com/snippets/css/system-font-stack/), a gradient
-background cover page, and visual indicators for drop-menus and expand/collapse
-state.
-
-<a href="#" data-style-group="themeable" data-style-href="css/theme-simple.css">Preview</a> |
-[Source](https://github.com/jhildenbiddle/docsify-themeable/tree/master/src/scss/themes/theme-simple.scss)
-
-```html
-<!-- Theme: Simple -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/docsify-themeable@0/dist/css/theme-simple.css">
-```
-
-<figure class="thumbnails">
-    <img src="assets/img/theme-simple-cover.png" alt="Screenshot of coverpage" title="Cover page">
-    <img src="assets/img/theme-simple-content.png" alt="Screenshot of content" title="Content">
-</figure>
-
-### Simple Dark
-
-A modified version of the Simple theme featuring a dark color scheme.
-
-<a href="#" data-style-group="themeable" data-style-href="css/theme-simple-dark.css">Preview</a> |
-[Source](https://github.com/jhildenbiddle/docsify-themeable/tree/master/src/scss/themes/theme-simple-dark.scss)
-
-```html
-<!-- Theme: Simple Dark -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/docsify-themeable@0/dist/css/theme-simple-dark.css">
-```
-
-<figure class="thumbnails">
-    <img src="assets/img/theme-simple-dark-cover.png" alt="Screenshot of coverpage" title="Cover page">
-    <img src="assets/img/theme-simple-dark-content.png" alt="Screenshot of content" title="Content">
-</figure>
-
-### Defaults
-
-A minimalist theme containing only the default values used by all other
-themes. This theme is intended to serve as the most basic starting point for a
-customized theme.
-
-<a href="#" data-style-group="themeable" data-style-href="css/theme-defaults.css">Preview</a> |
-[Source](https://github.com/jhildenbiddle/docsify-themeable/tree/master/src/scss/themes/defaults)
-
-```html
-<!-- Theme: Defaults -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/docsify-themeable@0/dist/css/theme-defaults.css">
-```
-
-<figure class="thumbnails">
-    <img src="assets/img/theme-defaults-cover.png" alt="Screenshot of coverpage" title="Cover page">
-    <img src="assets/img/theme-defaults-content.png" alt="Screenshot of content" title="Content">
-</figure>
-
-### Simple
-
-A clean, versatile theme featuring a light color scheme with vibrant accents, a [system font stack](https://css-tricks.com/snippets/css/system-font-stack/), a gradient
-background cover page, and visual indicators for drop-menus and expand/collapse
-state.
-
-<a href="#" data-style-group="themeable" data-style-href="css/theme-simple.css">Preview</a> |
-[Source](https://github.com/jhildenbiddle/docsify-themeable/tree/master/src/scss/themes/theme-simple.scss)
-
-```html
-<!-- Theme: Simple -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/docsify-themeable@0/dist/css/theme-simple.css">
-```
-
-<figure class="thumbnails">
-    <img src="assets/img/theme-simple-cover.png" alt="Screenshot of coverpage" title="Cover page">
-    <img src="assets/img/theme-simple-content.png" alt="Screenshot of content" title="Content">
-</figure>
-
-### Simple Dark
-
-A modified version of the Simple theme featuring a dark color scheme.
-
-<a href="#" data-style-group="themeable" data-style-href="css/theme-simple-dark.css">Preview</a> |
-[Source](https://github.com/jhildenbiddle/docsify-themeable/tree/master/src/scss/themes/theme-simple-dark.scss)
-
-```html
-<!-- Theme: Simple Dark -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/docsify-themeable@0/dist/css/theme-simple-dark.css">
-```
-
-<figure class="thumbnails">
-    <img src="assets/img/theme-simple-dark-cover.png" alt="Screenshot of coverpage" title="Cover page">
-    <img src="assets/img/theme-simple-dark-content.png" alt="Screenshot of content" title="Content">
-</figure>
-
-
-> [!NOTE]
-> An alert of type 'note' using global style 'callout'.
-
-
-
-
-
-> [!WARNING]
-> An alert of type 'warning' using global style 'callout'.
-
-
-
-
-
-> [!NOTE|style:flat]
-> An alert of type 'note' using alert specific style 'flat' which overrides global style 'callout'.
+  ]
+}
 
 
 
@@ -146,27 +56,9 @@ A modified version of the Simple theme featuring a dark color scheme.
 
 
 
-> [!COMMENT]
-> An alert of type 'comment' using style 'callout' with default settings.
 
 
 
-
-
----
-answer: 42
-question: What is your favorite number?
----
-# docsify-mustache
-*Version {{package.version}}*
-
-[![NPM](https://img.shields.io/npm/v/docsify-mustache.svg?style=flat-square)](https://www.npmjs.com/package/docsify-mustache)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](https://github.com/docsify-mustache.github.io/docsify-mustache/blob/master/LICENSE)
-[![Issues](https://img.shields.io/github/issues/docsify-mustache/docsify-mustache.github.io.svg?style=flat-square)](https://github.com/docsify-mustache/docsify-mustache.github.io/issues)
-
-A [Docsify](https://docsify.js.org) plugin that allow preprocessing markdown documents with [Mustache](https://mustache.github.io/) template engine. You can substitute variables in markdown documents using mustache syntax {{=<% %>=}}`{{variable}}` and `{{variable.property}}`<%={{ }}=%>. Variables can be load from various sources, including front matter section of markdown documents, external JSON or XML files and Docsify configuration.
-
-## Installation
 
 Add following script tag to your `index.html` after docsify.
 
