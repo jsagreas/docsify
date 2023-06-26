@@ -88,10 +88,47 @@
       kroki: { langs: [ "actdiag", "blockdiag",  "bpmn","bytefield", "c4plantuml","d2","dbml", "ditaa","erd","excalidraw","graphviz","mermaid","nomnoml", "nwdiag","packetdiag","pikchr", "plantuml","rackdiag","seqdiag","structurizr", "svgbob","vega","vegalite","wavedrom","wireviz", ], serverPath: "//kroki.io/", },
       latex: {inlineMath   : [['$', '$'], ['@', '@']], displayMath  : [['$$', '$$'], ['@@', '@@']],  customOptions: {   tex: { tags: 'ams'}, }},
       valine:{ appId: "", appKey: "",},
-       
+      mermaidConfig: {querySelector: ".mermaid",      },
+      mermaidZoom: { minimumScale: 1,maximumScale: 5,zoomPannel: true,     },
+      mustache: { data: ['doc/vars.json', 'doc/pom.xml', {author: { name: 'John Smith', email: 'john.smith@example.com' }  }  ]},
+        
+			plugins: [
+				(hook, vm) => {
+					hook.doneEach(() => {
+						try {
+							const titleEl = document.querySelector(
+								'.sidebar-nav .active'
+							)
+							const parentEl =
+								titleEl.closest('li:not(.active)')
+							const pageTitle = [parentEl, titleEl]
+								.filter(Boolean)
+								.map((el) =>
+									el
+										.querySelector(':scope > a')
+										.getAttribute('title')
+								)
+								.join(' - ')
+							document.title = `Docsify Nomnoml | ${pageTitle}`
+						} catch (e) {
+							console.error(e)
+						}
+					})
+				},
+			],
        
 
-       
+          
+         
+         
+            
+           
+           
+           
+     
+
+      
+      
            
           
  
@@ -224,6 +261,8 @@
   <script src="js/change.js"></script>
   <script src="js/script.js"></script>
 
+  
+
   <!-- Docsify Accordion -->
   <link rel="stylesheet" href="//unpkg.com/docsify-accordion/src/style.css">
   <script src="//unpkg.com/docsify-accordion/src/index.js"></script>
@@ -277,8 +316,8 @@
   <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify-demo@latest/dist/index.min.css" /> -->
 
   <!--drawio图渲染 docsify-drawio     https://github.com/KonghaYao/docsify-drawio-->
-  <script src="https://cdn.jsdelivr.net/npm/docsify-drawio/viewer.min.js"></script>
-  <script src='https://cdn.jsdelivr.net/npm/docsify-drawio/drawio.js'></script>
+  <!-- <script src="https://cdn.jsdelivr.net/npm/docsify-drawio/viewer.min.js"></script>
+  <script src='https://cdn.jsdelivr.net/npm/docsify-drawio/drawio.js'></script> -->
 
   <!-- 自定义面板样式 docsify-example-panels  https://github.com/VagnerDomingues/docsify-example-panels-->
   <!-- <script src="https://cdn.jsdelivr.net/npm/docsify-example-panels"></script> -->
@@ -306,19 +345,45 @@
   <!-- <script src="https://cdn.jsdelivr.net/npm/docsify-ko-fi"></script> -->
 
   <!-- uml图像 docsify-kroki    https://github.com/zuisong/docsify-kroki-->
-  <script src="//unpkg.com/docsify-kroki"></script>
+  <!-- <script src="//unpkg.com/docsify-kroki"></script> -->
 
   <!-- 数学公式 docsify-latex      https://github.com/scruel/docsify-latex -->
-  <script src="//cdn.jsdelivr.net/npm/docsify-latex@0"></script>
-  <script src="//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <!-- <script src="//cdn.jsdelivr.net/npm/docsify-latex@0"></script>
+  <script src="//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script> -->
 
   <!-- 代码演示  docsify-live-demo     https://github.com/kossidts/docsify-live-demo -->
-  <link rel="stylesheet" href="live/live-demo.css" />
-  <script src="live/live-demo.js"></script>
+  <!-- <link rel="stylesheet" href="live/live-demo.css" />
+  <script src="live/live-demo.js"></script> -->
 
 <!-- valine评论插件   docsify-mango-valine    https://valine.js.org/configuration.html       https://github.com/mg0324/docsify-mango-valine-->
-  <script src='//cdn.jsdelivr.net/npm/valine/dist/Valine.min.js'></script>
-  <script src="https://unpkg.com/docsify-mango-valine@1.1.1/dist/docsify-mango-valine.min.js"></script>
+  <!-- <script src='//cdn.jsdelivr.net/npm/valine/dist/Valine.min.js'></script>
+  <script src="https://unpkg.com/docsify-mango-valine@1.1.1/dist/docsify-mango-valine.min.js"></script> -->
+
+<!--符号icons  docsify-material-icons     https://github.com/erickjx/docsify-material-icons-->
+  <!-- <script src="//unpkg.com/docsify-material-icons/dist/docsify-material-icons.min.js"></script>
+  <link rel="stylesheet"    href="https://fonts.googleapis.com/icon?family=Material+Icons|Material+Icons+Outlined|Material+Icons+Two+Tone|Material+Icons+Round|Material+Icons+Sharp" /> -->
+
+
+
+
+<!--uml图像放大 Docsify-mermaid-zoom    https://github.com/corentinleberre/docsify-mermaid-zoom -->
+  <!-- <script src="//cdn.jsdelivr.net/npm/d3@7"></script>  
+  <script type="module">  import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs"; mermaid.initialize({ startOnLoad: true }); window.mermaid = mermaid; </script> 
+  <script src="//unpkg.com/docsify-mermaid@2.0.0/dist/docsify-mermaid.js"></script>  
+  <script src="//unpkg.com/docsify-mermaid-zoom/dist/docsify-mermaid-zoom.js"></script> -->
+
+
+
+
+  <!-- 模板引擎预处理Markdown文档  docsify-mustache    https://github.com/docsify-mustache/docsify-mustache.github.io -->
+  <!-- <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/front-matter.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/docsify-plugin-flexible-alerts"></script>
+  <script src="//cdn.jsdelivr.net/npm/docsify-mustache"></script> -->
+
+  <!-- 渲染nomnoml 代码围栏 docsify-nomnoml       https://github.com/mylesj/docsify-nomnoml -->
+	<script src="//cdn.jsdelivr.net/npm/graphre@0.1/dist/graphre.js"></script>
+	<script src="//cdn.jsdelivr.net/npm/nomnoml@1.4/dist/nomnoml.js"></script>
+	<script src="//cdn.jsdelivr.net/npm/docsify-nomnoml@1/dist/plugin.min.js"></script>
 
 </body>
 </html>

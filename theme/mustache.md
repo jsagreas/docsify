@@ -1,24 +1,7 @@
-## Example
-
-Code:
-
-<pre v-pre="" data-lang="md" class="language-md">
-<code class="lang-md language-markdown">&#58;mi md-18|home:
-&#58;mi-outlined red|check_circle:
-&#58;mi-round md-36 blue|check_circle:
-&#58;mi-two-tone md-48 green-svg|check_circle:
-&#58;mi-two-tone md-48 blue-svg|chrome_reader_mode
-&#58;mi-sharp green-svg md-48|chrome_reader_mode:
-</code></pre>
-
-Result:
-
-:mi md-18|home:
-:mi-outlined red|check_circle:
-:mi-round md-36 blue|check_circle:
-:mi-two-tone md-48 green-svg|check_circle:
-:mi-two-tone md-48 blue-svg|chrome_reader_mode:
-:mi-sharp green-svg md-48|chrome_reader_mode:
+---
+answer: 41aa
+question: What is your favorite number????aaaa
+---
 
 
 
@@ -26,68 +9,16 @@ Result:
 
 
 
-# FontAwesome plugin for Docsify
+# docsify-mustache
+*Version {{package.version}}*
 
+[![NPM](https://img.shields.io/npm/v/docsify-mustache.svg?style=flat-square)](https://www.npmjs.com/package/docsify-mustache)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](https://github.com/docsify-mustache.github.io/docsify-mustache/blob/master/LICENSE)
+[![Issues](https://img.shields.io/github/issues/docsify-mustache/docsify-mustache.github.io.svg?style=flat-square)](https://github.com/docsify-mustache/docsify-mustache.github.io/issues)
 
+A [Docsify](https://docsify.js.org) plugin that allow preprocessing markdown documents with [Mustache](https://mustache.github.io/) template engine. You can substitute variables in markdown documents using mustache syntax {{=<% %>=}}`{{variable}}` and `{{variable.property}}`<%={{ }}=%>. Variables can be load from various sources, including front matter section of markdown documents, external JSON or XML files and Docsify configuration.
 
-:fas fa-home fa-fw:
-:fas fa-th-list fa-fw red:
-:fab fa-linux fa-fw blue:
-:fab fa-aws fa-fw orange:
-
-
-```bash
---------------------------------------------------------------------------------
-```
-###  Docsify Accordion
-
-
-```html
-<link rel="stylesheet" href="//unpkg.com/docsify-accordion/src/style.css">
-<script src="//unpkg.com/docsify-accordion/src/index.js"></script>
-```
-
-+ Question 1? +
-
-  Answer 1
-
-+ Question 2? +
-
-  Answer 2
-
-
-
-
-
-charty
-{
-  "title":   '666',
-  "caption": '555',
-  "type":    '222',
-  "options": {
-    "theme":   '',
-    "legend":  '',
-    "labels":  '',
-    "numbers": 'true'
-  },
-  "data": [
-    {
-      "label": '4',
-      "value": '6',
-      "colour": 'red'
-    }
-  ]
-}
-
-
-
-
-
-
-
-
-
-
+## Installation
 
 Add following script tag to your `index.html` after docsify.
 
@@ -112,7 +43,7 @@ You can load Mustache variables with `data` option. The value can be a *string*,
    - XML root element will be mapped to Mustache variable with root elements tag name as variable name
  - *object* properties will be mapped to Mustache variables using property name as variable name
  - *array* may be use to specify multiple string or object values as data sources
-
+ 
 Example:
 
 ```javascript
@@ -153,13 +84,13 @@ Example:
 
 <!-- tabs:start -->
 
-** Markdown **
+#### ** Markdown **
 
 {{=<% %>=}}
 ```markdown
 ---
-answer: 42
-question: What is your favorite number?
+answer: 41
+question: What is your favorite number???
 ---
 
 **Est o te viri tum mihi**
@@ -169,7 +100,7 @@ Erat lacte neve vulnus audistis infelix sidera tuae **{{answer}}**.
 ```
 <%={{ }}=%>
 
-** Preview **
+#### ** Preview **
 
 **Est o te viri tum mihi**
 
@@ -324,81 +255,3 @@ Mustache template data is actually merged from multiple different sources before
 ## License
 
 This project is licensed under the MIT License. See the [LICENSE](https://github.com/docsify-mustache/docsify-mustache.github.io/blob/master/LICENSE) for details.
-
-
-For example `😀` will be parsed to <img src="https://twemoji.maxcdn.com/v/12.1.5/72x72/1f600.png" alt="happy" style="zoom:25%;" />
-
-
-<!-- tabs:start -->
-
-#### **English**
-
-Hello!
-
-#### **French**
-
-Bonjour!
-
-#### **Italian**
-
-Ciao!
-
-<!-- tabs:end -->
-
-
-```swimlanes-io
-title: Simple example
-A -> B: Ping
-B --> A: Pong
-```
-
-
-
-<swimlanes-io>
-title: Simple example
-A -> B: Ping
-note:
-```
-{
-    // code block
-}
-```
-B --> A: Pong
-</swimlanes-io>
-
-
-
-
-# 1.1
-
-
-
-
-
-
-> An awesome project.
-
-:100:
-
-home:100: 首页
-
-```java
-public class MyFirstApp
-{
-public static void main(String[] args) 
-{
-System.out.print("Hello world");
-}
-}
-
-```
-
-```sql
-update evel set site_id = 1 where name = '12' and site_id = 3;
-```
-
-
-```sql
-update evel set site_id = 1 where name = '12' and site_id = 3;
-```
-
