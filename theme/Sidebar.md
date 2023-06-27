@@ -1,0 +1,8 @@
+- [Home](/example/router-mode-history/)
+- [Foo](/example/router-mode-history/foo.md#section-3)
+- [Bar A Long Long Long Title](/example/router-mode-history/bar.md)
+- [Baz](/example/router-mode-history/baz.md)
+- [External](https://github.com/)
+
+<footer id="mb-footer"></footer>
+
