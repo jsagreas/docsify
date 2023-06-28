@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Document</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+  <meta name="description" content="Description">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
+<style>
+.icon {
+  width: 1em;
+  height: 1em;
+  vertical-align: -0.15em;
+  fill: currentColor;
+  overflow: hidden;
+}
+
+
+</style>
+
+
+
+
+<style>
+  :root {
+    --docsifytabs-border-color: #ededed;
+    --docsifytabs-tab-highlight-color: purple;
+  }
+
+
+
+</style>
+
+
+
+
+
+
+
+  <!-- Theme: vue -->
+  <!-- <link rel="stylesheet" href="css/vue.css"> -->
+
+   <link rel="icon" href="images/icon.png" type="image/x-icon"/>
+
+   <!-- <link rel="stylesheet" href="css/prism-clike.css"> -->
+   <link href="css/prism-line-numbers.css" rel="stylesheet">
+   <link href="css/sidebar.css" rel="stylesheet">
+   <!-- <link href="css/simple.css" rel="stylesheet"> -->
+   <link href="css/prism-tomorrow.css" rel="stylesheet">
+
+   <!-- <link rel="stylesheet" href="css/simple.css"> -->
+   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+   
+   
+   <!-- <link rel="stylesheet" href="icon/icon/all.css"> -->
+   <!-- https://fontawesome.com.cn/v5 -->
+<!-- https://fontawesome.com.cn/v4/icons -->
+<!-- https://cdnjs.com/libraries/font-awesome -->
+<!-- https://cdn.jsdelivr.net/npm/font-awesome/ -->
+<!-- https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.3/ -->
+<!-- https://www.iconfont.cn/manage/index?manage_type=myprojects&projectId=4054601 -->
+   <link rel="stylesheet" href="//at.alicdn.com/t/c/font_4054601_aw17m9e78xi.css"> 
+
+
+
+
+
+<!-- 主题定制 https://jhildenbiddle.github.io/docsify-themeable/#/ -->
+<!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/docsify-themeable@0/dist/css/theme-simple-dark.css"> -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/docsify-themeable@0/dist/css/theme-simple.css">
+<link href="css/prism-line-numbers.css" rel="stylesheet">
+<link href="css/prism-tomorrow.css" rel="stylesheet">
+</head>
+<body >
+
+  <div id="app">加载中......</div>
+  <script>
+
+    
+    window.$docsify = {
+      name: 'docsify',
+      coverpage  : 'Cover.md',
+    //   coverpage: {
+    //   '/': 'Cover.md',
+    //  '/zh-cn/': 'Cover.md'
+    //   },
+
+      logo: 'https://img.shields.io/twitter/url/http/shields.io.svg?style=social',
+      count:{
+      countable:true,
+      fontsize:'0.9em',
+      color:'rgb(90,90,90)',
+      language:'chinese'
+      },
+
+
+
+      themeColor: '',
+
+      showLevel: false,
+      tocLevel: 3,
+
+      topMargin: 90, // default: 0
+      notFoundPage: '404.md',
+
+
+
+
+      maxLevel: 6,
+      subMaxLevel: 6,
+      hideSidebar: false,
+      mergeNavbar: true,
+
+ 
+
+      auto2top: true,
+
+
+      homepage: 'Home.md',
+
+      externalLinkTarget: '_blank', // default: '_blank'
+      cornerExternalLinkTarget: '_blank', // default: '_blank'
+
+
+      // loadNavbar: 'Navbar.md',// 加载 _navbar.md
+      loadSidebar: 'Sidebar.md',// 加载 Sidebar.md
+ 
+
+      autoHeader: false,
+      
+      formatUpdated: '{MM}/{DD} {HH}:{mm}',
+
+
+
+
+
+
+      copyCode: {
+      buttonText : '复制',
+      errorText  : 'Error',
+      successText: 'Copied'
+      },
+
+
+
+
+      formatUpdated: function(time) {
+      return time;
+      },
+      
+
+      'flexible-alerts': {
+      style: 'flat'
+      },
+
+      
+      'flexible-alerts': {
+      note: {
+        label: "Hinweis"
+      },
+      tip: {
+        label: "Tipp"
+      },
+      warning: {
+        label: "Warnung"
+      },
+      attention: {
+        label: "Achtung"
+      }
+     },
+
+
+     'flexible-alerts': {
+      note: {
+        label: {
+          '/de-DE/': 'Hinweis',
+          '/': 'Note'
+        }
+      },
+      tip: {
+        label: {
+          '/de-DE/': 'Tipp',
+          '/': 'Tip'
+        }
+      },
+      warning: {
+        label: {
+          '/de-DE/': 'Warnung',
+          '/': 'Warning'
+        }
+      },
+      attention: {
+        label: {
+          '/de-DE/': 'Achtung',
+          '/': 'Attention'
+        }
+      }
+      },
+
+      alias: {
+          // '.*?/awesome':
+          //   'https://raw.githubusercontent.com/docsifyjs/awesome-docsify/master/README.md',
+          // '.*?/changelog':
+          //   'https://raw.githubusercontent.com/docsifyjs/docsify/master/CHANGELOG.md',
+          // '/.*/_navbar.md': '/_navbar.md',
+          // '/es/(.*)':
+          //   'https://raw.githubusercontent.com/docsifyjs/docs-es/master/$1',
+          // '/de-de/(.*)':
+          //   'https://raw.githubusercontent.com/docsifyjs/docs-de/master/$1',
+          // '/ru-ru/(.*)':
+          //   'https://raw.githubusercontent.com/docsifyjs/docs-ru/master/$1',
+          // '/zh-cn/(.*)':
+          //   'https://cdn.jsdelivr.net/gh/docsifyjs/docs-zh@master/$1',
+        },
+
+
+
+
+
+
+
+
+
+
+
+
+
+      plugins: [
+        function(hook) {
+          var footer = [
+          '<hr/>',
+          '<footer>',
+          '<span><a href="https://github.com/QingWei-Li">cinwell</a> &copy;2017.</span>',
+          '<span>Proudly published with <a href="https://github.com/docsifyjs/docsify" target="_blank">docsify</a>.</span>',
+          '</footer>'
+          ].join('');
+          hook.afterEach(function(html) {
+          return html + footer;
+        });
+      },
+      
+      //   function(hook, vm) {
+      //     hook.beforeEach(function(html) {
+      //     var url =
+      //     'https://github.com/docsifyjs/docsify/blob/master/docs/' +
+      //     vm.route.file;
+      //     var editHtml = '[📝 EDIT DOCUMENT](' + url + ')\n';
+
+      //     return (
+      //       editHtml +
+      //       html +
+      //       '\n----\n' +
+      //       'Last modified {docsify-updated} ' +
+      //       editHtml
+      //     );
+      //   });
+      // }
+
+    ],
+
+
+
+
+      // search:{  // complete configuration parameters
+      //   maxAge: 86400000, // Expiration time, the default one day
+      //   placeholder: '搜索',
+      //   depth: 6,// Headline depth, 1 - 6
+      //   hideOtherSidebarContent: false, // whether or not to hide other sidebar content
+      //   namespace: 'website-1', // To avoid search index collision   // between multiple websites under the same domain
+      //   // pathNamespaces: ['/zh-cn', '/ru-ru', '/ru-ru/v1'],
+      //   // pathNamespaces: /^(\/(zh-cn|ru-ru))?(\/(v1|v2))?/,
+      // }, 
+
+
+      // autoFooter: {
+      //  name:       '底部信息', 
+      //  copyYear:   2023,   
+      //  url:        '',          // 
+      //  policy:     '' ,  
+      //  terms:      '' ,  
+      //  cookies:    '' ,  
+      //  onBody:     true            
+      // },
+      footer: {
+      copy: '<span>Acme &copy; 2023</span>',
+      auth: 'by Me',
+      pre: '<hr/>',
+      style: 'text-align: right;',
+      class: 'className',
+    },
+
+
+
+    mustache: {
+    data: [
+      'doc/vars.json',
+      'doc/pom.xml',
+      {
+        question: 'What is your favorite number?'
+      }
+    ]
+    },
+
+
+     // docsify-valine (defaults)
+     Valine: {
+              appId: '<APP_ID>',
+              appKey: '<APP_Key>'
+          },
+
+
+    tabs: {
+    persist    : true,      // default
+    sync       : true,      // default
+    theme      : 'classic', // default
+    tabComments: true,      // default
+    tabHeadings: true       // default
+   },
+
+
+
+
+
+
+
+
+    };
+  </script>
+  <script src="js/docsify.js"></script>
+  <script src="js/prism-line-numbers.js"></script>
+  <script src="js/prism-java.js"></script>
+
+  <script src="js/search.js"></script>
+  <script src="js/copy-code.js"></script>
+  <script src="js/pagination.js"></script> 
+  <script src="js/highlight.js"></script>
+  <script src="js/zoom-image.js"></script>
+  <script src="js/countable.js"></script>
+  <script src="js/emoji.js"></script>
+  <script src="js/sidebarFooter.js"></script>
+  <script src="js/collapse.js"></script>
+  <script src="js/my.js"></script>
+
+  <!-- https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/ -->
+  <!-- https://cdn.jsdelivr.net/npm/docsify@4.13.0/lib/themes/ -->
+
+
+  <!-- <script src="//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/docsify-latex@0"></script> -->
+
+
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@2/MathJax.js?config=TeX-AMS_CHTML"></script>
+  <script src="//cdn.jsdelivr.net/npm/docsify-latex@0"></script>
+
+
+<!-- Latest -->
+<script src="https://unpkg.com/docsify-plugin-flexible-alerts"></script>
+
+<!-- <script src="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.js"></script>
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.css" />
+
+<script src="//cdn.jsdelivr.net/npm/docsify-latex@0"></script> -->
+
+<script src="//unpkg.com/docsify-footer-enh/dist/docsify-footer-enh.min.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/docsify-tabs@1"></script>
+
+<!-- docsify-mustache插件 -->
+<script src="//cdn.jsdelivr.net/npm/docsify-mustache"></script>
+<script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/front-matter.min.js"></script>
+
+
+
+
+
+<script src="//unpkg.com/docsify-swimlanes-io@latest/dist/docsify-swimlanes-io.js"></script> 
+
+
+
+
+
+<!-- docsify-valine评论插件 -->
+<!-- <script src='//unpkg.com/valine/dist/Valine.min.js'></script>
+<script src="//unpkg.com/docsify-valine/dist/docsify-valine.min.js"></script> -->
+
+
+
+<!-- PDFObject.js is a required dependency of this plugin -->
+<script src="//cdnjs.cloudflare.com/ajax/libs/pdfobject/2.1.1/pdfobject.min.js"></script> 
+<!-- This is the source code of the pdf embed plugin -->
+
+<!-- or use this if you are not hosting the file yourself -->
+<script src="//unpkg.com/docsify-pdf-embed-plugin/src/docsify-pdf-embed.js"></script>
+
+
+
+
+</body>
+</html>
+
+

@@ -1,0 +1,75 @@
+pre[class*="language-"] {
+	padding: 1em;
+	margin: 0.5em 0;
+	/* 代码块横向滚动条 */
+	overflow-x: auto!important;
+	
+}		
+
+.markdown-section pre>code {
+    font-size: 0.9rem!important;
+	color: #525252;
+	padding-top:10px!important;
+	padding-bottom:10px!important;
+	display: block!important;
+	/* line-height: 1.5rem!important; */
+    /* font-size: .8rem!important; */
+    /* padding: 2.2em 5px!important; */
+    line-height: inherit!important;
+    /* margin: 0 2px!important; */
+    /* max-width: inherit!important; */
+    /* overflow: inherit!important; */
+    /* white-space: inherit!important; */
+}
+
+.line-numbers .line-numbers-rows {
+	padding-top:10px!important;
+    font-size: 100%!important;
+    /* line-height: 1.4130858779rem!important; */
+    /* line-height: 1.53rem!important; */
+	line-height: inherit!important;
+}
+
+
+.sidebar:hover::-webkit-scrollbar-track {
+    background: rgba(9, 9, 9, 0.1)
+}
+
+  /*加重描述strong*/
+.markdown-section strong {
+    color: rgb(98, 75, 230);
+}
+/*滚动条样式 start*/
+/* 滚动条宽度 */
+aside::-webkit-scrollbar{width:4px!important;}
+/* 滚动条颜色 */
+aside::-webkit-scrollbar-thumb{
+	background: #33a9dc!important;
+	background-image: linear-gradient(#6ecd56, #33a9dc, #cb6196, #c16290)!important;
+	border-radius: 2em!important;
+}
+
+
+body::-webkit-scrollbar{width:4px!important;}
+/* 滚动条颜色 */
+body::-webkit-scrollbar-thumb{
+	background: #33a9dc!important;
+	background-image: linear-gradient(#6ecd56, #33a9dc, #cb6196, #c16290)!important;
+	border-radius: 2em!important;
+	height: 100px!important;
+	/* height: auto!important;  */
+}
+
+/* 
+body .docsify-copy-code-button{
+	width: 100px;
+} */
+
+
+#change:hover {
+	cursor: pointer;
+}
+
+
+
+  
