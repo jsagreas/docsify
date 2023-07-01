@@ -143,7 +143,7 @@ body.ready-transition.ready-fix>*:not(.progress) {
     color: var(--base-color);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    font-smoothing: antialiased
+    /* font-smoothing: antialiased */
 }
 
 html,
@@ -797,7 +797,7 @@ pre[data-lang] {
 
     .markdown-section .table-wrapper td::before {
         display: inline-block;
-        float: left;
+        /* float: left; */
         width: 8em;
         margin-left: -8em;
         font-weight: bold;
@@ -1448,7 +1448,7 @@ body:not([data-platform^=Mac]) .sidebar::-webkit-scrollbar-thumb {
     }
 }
 
-.sidebar-nav li>a:before,
+/* .sidebar-nav li>a:before,
 .sidebar-nav li>strong:before {
     display: inline-block
 }
@@ -1468,14 +1468,14 @@ body:not([data-platform^=Mac]) .sidebar::-webkit-scrollbar-thumb {
 .sidebar-nav li>a[href^="#/"]:not([href*="?id="]),
 .sidebar-nav li>a[href^="#/"]:not([href*="?id="])~ul a {
     padding: var(--sidebar-nav-pagelink-padding, var(--sidebar-nav-link-padding))
-}
+} */
 
-.sidebar-nav li>a[href^="/"]:not([href*="?id="]):only-child,
+/* .sidebar-nav li>a[href^="/"]:not([href*="?id="]):only-child,
 .sidebar-nav li>a[href^="#/"]:not([href*="?id="]):only-child {
     background: var(--sidebar-nav-pagelink-background)
-}
+} */
 
-.sidebar-nav li>a[href^="/"]:not([href*="?id="]):not(:only-child),
+/* .sidebar-nav li>a[href^="/"]:not([href*="?id="]):not(:only-child),
 .sidebar-nav li>a[href^="#/"]:not([href*="?id="]):not(:only-child) {
     background: var(--sidebar-nav-pagelink-background--loaded, var(--sidebar-nav-pagelink-background))
 }
@@ -1502,7 +1502,7 @@ body:not([data-platform^=Mac]) .sidebar::-webkit-scrollbar-thumb {
 .sidebar-nav li.collapse>a[href^="/"]:not([href*="?id="]):not(:only-child),
 .sidebar-nav li.collapse>a[href^="#/"]:not([href*="?id="]):not(:only-child) {
     background: var(--sidebar-nav-pagelink-background--collapse, var(--sidebar-nav-pagelink-background--loaded, var(--sidebar-nav-pagelink-background)))
-}
+} */
 
 .sidebar-nav li.collapse .app-sub-sidebar {
     display: none

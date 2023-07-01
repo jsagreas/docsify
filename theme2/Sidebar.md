@@ -1,19 +1,13 @@
-- [数据结构与算法](/general/algorithm/README.md)
-  - 数据结构
-    - [stack](/general/algorithm/data-structures/stack/README.zh-CN.md)
-    - [queue](/general/algorithm/data-structures/queue/README.zh-CN.md)
-    - list
-      - [linked-list](/general/algorithm/data-structures/linked-list/README.zh-CN.md)
-      - [doubly-linked-list](/general/algorithm/data-structures/doubly-linked-list/README.zh-CN.md)
-    - [tree](/general/algorithm/data-structures/tree/README.zh-CN.md)
-      - [binary search tree](/general/algorithm/data-structures/tree/binary-search-tree/README.md)
-      - [red black tree](/general/algorithm/data-structures/tree/red-black-tree/README.md)
-    - [heap](/general/algorithm/data-structures/heap/README.zh-CN.md)
-    - [hash-table](/general/algorithm/data-structures/hash-table/README.md)
-    - [graph](/general/algorithm/data-structures/graph/README.zh-CN.md)
-  - 算法
-    - [排序算法](/general/algorithm/algorithms/sorting.md)
-- [设计模式](/general/design-pattern/README.md)
+- [数据结构](s7.md)
+  - [stack](s8.md)
+  - [tree](s9.md)
+  - [binary search tree](count.md)
+- 算法
+  - [排序算法](pdf.md)
+  - [设计模式](s1.md)
 - 网络
-  - [协议模型](/general/network/protocol-model.md)
-  - [TCP/IP](/general/network/tcp-ip.md)
+  - [协议模型](s3.md)
+  - [TCP/IP](s2.md)
+
+- [测试](tab.md)
+- [数据](live.md)

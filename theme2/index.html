@@ -15,7 +15,7 @@
   <!-- <link rel="stylesheet" media="(prefers-color-scheme: light)" href="https://cdn.jsdelivr.net/npm/docsify-themeable@0/dist/css/theme-simple.css"> -->
   <!-- <link rel="stylesheet" media="(prefers-color-scheme: dark)" href="https://cdn.jsdelivr.net/npm/docsify-themeable@0/dist/css/theme-simple-dark.css"> -->
 
-  <!-- 代码行号 https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css   https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/line-numbers/-->
+  <!-- 代码行号  https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css   https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/line-numbers/-->
   <link href="css/prism-line-numbers.css" rel="stylesheet">
   <!-- <link href="  https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/line-numbers/prism-line-numbers.css" rel="stylesheet"> -->
 
@@ -27,7 +27,7 @@
   <link href="css/own.css" rel="stylesheet">  <!-- 侧边栏 -->
   <link href="css/btn.css" rel="stylesheet">  <!-- 按钮 -->
   <link href="css/BG.css" rel="stylesheet">   <!-- 封面 -->
-
+  <link href="css/ownSidebar.css" rel="stylesheet">   <!-- 封面 -->
 
 </head>
 
@@ -44,6 +44,8 @@
       logo: 'https://img.shields.io/twitter/url/http/shields.io.svg?style=social',
       homepage: 'Home.md',
       auto2top: true,
+
+      subMaxLevel: 1,
       notFoundPage: '404.md',
       relativePath: false,
       coverpage: 'Cover.md',
@@ -53,6 +55,7 @@
       busuanzi: true,// 开启busuanzi访问量
       charty: { "theme": '#EE5599', "mode": "light", "debug": false },
       beian: { ICP: "1", NISMSP: { number: "2", url: "https://www.baidu.com/s?&wd=%E6%97%A5%E5%8E%86", id: "3" }, },
+      search: {maxAge: 86400000,   search: 'auto',   placeholder: ' 搜索', noData: '没有找到!', depth: 6, hideOtherSidebarContent: true, },
       copyCode: { buttonText: 'Copy to clipboard ', errorText: 'Error', successText: 'Copied' },
       count: { countable: true, position: 'top', margin: '10px', float: 'right', fontsize: '0.9em', color: 'rgb(90,90,90)', language: 'chinese', localization: { words: "", minute: "" }, isExpected: true },
       markdown: { renderer: { code: function (code, lang) {   if (lang === 'drawio') {   if (window.drawioConverter) {console.log('drawio 转化中') ; return window.drawioConverter(code) ;}  else { return `<div class='drawio-code'>${code}</div>` ;} }   else {return this.origin.code.apply(this, arguments);} } } },
@@ -64,13 +67,25 @@
       pagination: {previousText: '上一章节', nextText: { '/en/': 'NEXT', '/': '下一章节' },crossChapter: true,crossChapterText: true,  },		
       plantuml: {skin: 'default',  },
       plantuml: { renderAsObject: true,     },
-      remoteMarkdown: {
-      tag: 'remoteMarkdownUrl', },
       select: {detectOperatingSystem: { enabled: false,menuId: "operating-system"  },sync: false,theme: "classic" },
       tabs: { persist    : true,   sync       : true,   theme      : 'classic',  tabComments: true,      tabHeadings: true       },
+      copyCode: { buttonText : 'Copy to clipboard',errorText  : 'Error',successText: 'Copied'  },
       share: {reddit: true,linkedin: true,  facebook: true, twitter: true, whatsapp: true, telegram: true, },
       'flexible-alerts': {   style: 'flat'   },
       'flexible-alerts': {  comment: {    label: 'Comment', icon: 'fas fa-comment', className: 'note', }  }, toc: { tocMaxLevel: 5,target: 'h2, h3, h4, h5, h6',ignoreHeaders:  ['<!-- {docsify-ignore} -->', '<!-- {docsify-ignore-all} -->']},
+      
+      
+      
+
+
+
+
+
+   
+      
+
+      
+      
       markdown: {
         code: function(code, lang) {
             var renderer_func = function(code, lang, base = null) {
@@ -110,45 +125,68 @@
         }
       }
     };
-    
   </script>
-  <!-- docsify核心js      https://unpkg.com/browse/docsify@4.13.1/-->
+
+
+  <!-- 使用指南,核心js      https://unpkg.com/browse/docsify@4.13.1/      https://angry-swanson-b4e47b.netlify.app/zh-cn/embed-files  https://docsify.js.org/#/?id=docsify-->
   <script src="js/docsify.js"></script>
   <!-- <script src="https://unpkg.com/docsify@4.13.1/lib/docsify.js"></script> -->
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  <!-- https://cdn.jsdelivr.net/npm/prismjs@1.29.0/-->
+  <!-- prismjs代码支持    https://cdn.jsdelivr.net/npm/prismjs@1.29.0/-->
   <script src="js/highlight.js"></script>   <!-- 行号支持 -->
   <script src="js/prism-line-numbers.js"></script>    <!-- https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/line-numbers/prism-line-numbers.js -->
-
-
   <script src="js/prism-java.js"></script>    <!-- https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-java.js -->
   <script src="js/prism-sql.js"></script>   <!-- https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-sql.js -->
 
 
+  <!-- 内容搜索 -->
   <script src="js/search.js"></script>
+  <!-- <script src="//unpkg.com/docsify/lib/plugins/search.js"></script> -->
 
 
+  <!-- 切换主题 -->
   <script src="js/change.js"></script>
   <script src="js/script.js"></script>
+  
+
+  <!-- 图像放大  -->
+  <script src="js/zoom-image.js"></script>
+  <!-- <script src="//unpkg.com/docsify/lib/plugins/zoom-image.js"></script> -->
+
+
+  <!-- pdf嵌入 docsify-pdf-embed    https://github.com/lazypanda10117/docsify-pdf-embed -->
+  <script src="js/pdfobject.js"></script> 
+  <script src="js/docsify-pdf-embed.js"></script>
+  <!-- <script src="//cdnjs.cloudflare.com/ajax/libs/pdfobject/2.1.1/pdfobject.min.js"></script> 
+  <script src="//unpkg.com/docsify-pdf-embed-plugin/src/docsify-pdf-embed.js"></script> -->
+
+
+  <!-- 代码拷贝   https://github.com/jperasmus/docsify-copy-code  -->
+  <script src="js/copy-code.js"></script>
+  <!-- <script src="https://unpkg.com/docsify-copy-code@2.1.1/dist/docsify-copy-code.js"></script> -->
+
+
+  <!-- 侧边栏折叠 docsify-sidebar-collapse  https://github.com/iPeng6/docsify-sidebar-collapse-->
+  <script src="js/collapse.js"></script>
+  <!-- <link rel="stylesheet" href="css/sidebar.css" /> -->
+  <!-- <link rel="stylesheet" href="css/sidebar-folder.css" /> -->
+  <!-- <script src="//cdn.jsdelivr.net/npm/docsify-sidebar-collapse/dist/docsify-sidebar-collapse.min.js"></script>
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify-sidebar-collapse/dist/sidebar-folder.min.css" />
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify-sidebar-collapse/dist/sidebar.min.css" /> -->
 
 
 
-  <!-- Docsify Accordion -->
+
+
+
+
+
+
+
+
+
+  <!-- 手风琴 Docsify Accordion  https://github.com/isaozler/docsify-accordion-->
   <!-- <link rel="stylesheet" href="//unpkg.com/docsify-accordion/src/style.css">
   <script src="//unpkg.com/docsify-accordion/src/index.js"></script> -->
 
@@ -173,8 +211,7 @@
   <!-- <script src="//cdn.jsdelivr.net/npm/codeblock-iframe@latest/dist/index.min.js"></script> -->
   <!-- <script src="//cdn.jsdelivr.net/npm/docsify-codeblock-iframe@latest/dist/index.min.js"></script> -->
 
-  <!-- 代码拷贝   https://github.com/jperasmus/docsify-copy-code-->
-  <!-- <script src="https://unpkg.com/docsify-copy-code@2"></script> -->
+
 
   <!-- 页面字数统计   https://github.com/827652549/docsify-count -->
   <!-- <script src="https://cdn.jsdelivr.net/npm/docsify-count@latest/dist/countable.min.js"></script> -->
@@ -247,9 +284,7 @@
   <!-- 添加空格  docsify-pangu   https://github.com/sy-records/docsify-pangu-->
   <!-- <script src="//cdn.jsdelivr.net/npm/docsify-pangu/lib/pangu.min.js"></script> -->
 
-  <!-- pdf嵌入 docsify-pdf-embed    https://github.com/lazypanda10117/docsify-pdf-embed -->
-  <!-- <script src="//cdnjs.cloudflare.com/ajax/libs/pdfobject/2.1.1/pdfobject.min.js"></script> 
-  <script src="//unpkg.com/docsify-pdf-embed-plugin/src/docsify-pdf-embed.js"></script> -->
+
 
   <!--  uml图像 docsify-plantuml     https://github.com/imyelo/docsify-plantuml -->
   <!-- <script src="//unpkg.com/docsify-plantuml/dist/docsify-plantuml.min.js"></script> -->
@@ -284,10 +319,7 @@
   <!-- 分享按钮  Docsify Share   https://github.com/coroo/docsify-share -->
   <!-- <script src="//unpkg.com/docsify-share/build/index.min.js"></script> -->
 
-  <!-- 侧边栏折叠 docsify-sidebar-collapse  https://github.com/iPeng6/docsify-sidebar-collapse-->
-  <!-- <script src="//cdn.jsdelivr.net/npm/docsify-sidebar-collapse/dist/docsify-sidebar-collapse.min.js"></script>
-  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify-sidebar-collapse/dist/sidebar-folder.min.css" />
-  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify-sidebar-collapse/dist/sidebar.min.css" /> -->
+
 
 
 
