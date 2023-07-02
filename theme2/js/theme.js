@@ -12,6 +12,7 @@ for (let i of switches) {
   i.addEventListener('click', function () {
     let theme = this.dataset.theme;
     setTheme(theme);
+    alert(66)
   });
 }
 

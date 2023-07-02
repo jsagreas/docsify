@@ -1330,18 +1330,18 @@ body:not([data-platform^=Mac]) .sidebar::-webkit-scrollbar-thumb {
     }
 }
 
-@media print {
+/* @media print {
     .sidebar {
         display: none
     }
-}
+} */
 
 .sidebar-nav,
 .sidebar nav {
     order: 1;
-    margin: var(--sidebar-nav-margin);
+    /* margin: var(--sidebar-nav-margin);
     padding: var(--sidebar-nav-padding);
-    background: var(--sidebar-nav-background)
+    background: var(--sidebar-nav-background) */
 }
 
 .sidebar-nav ul,
@@ -1351,34 +1351,34 @@ body:not([data-platform^=Mac]) .sidebar::-webkit-scrollbar-thumb {
     list-style: none
 }
 
-.sidebar-nav ul ul,
+/* .sidebar-nav ul ul,
 .sidebar nav ul ul {
     margin-left: var(--sidebar-nav-indent)
-}
+} */
 
 .sidebar-nav a,
 .sidebar nav a {
     display: block;
     overflow: hidden;
-    margin: var(--sidebar-nav-link-margin);
-    padding: var(--sidebar-nav-link-padding);
-    border-width: var(--sidebar-nav-link-border-width, 0);
-    border-style: var(--sidebar-nav-link-border-style);
-    border-color: var(--sidebar-nav-link-border-color);
-    border-radius: var(--sidebar-nav-link-border-radius);
-    background: var(--sidebar-nav-link-background);
-    color: var(--sidebar-nav-link-color);
-    font-weight: var(--sidebar-nav-link-font-weight);
-    white-space: nowrap;
-    -webkit-text-decoration: var(--sidebar-nav-link-text-decoration);
-    text-decoration: var(--sidebar-nav-link-text-decoration);
-    -webkit-text-decoration-color: var(--sidebar-nav-link-text-decoration-color);
-    text-decoration-color: var(--sidebar-nav-link-text-decoration-color);
-    text-overflow: ellipsis;
-    transition: var(--sidebar-nav-link-transition)
+    /* margin: var(--sidebar-nav-link-margin);
+    padding: var(--sidebar-nav-link-padding); */
+    /* border-width: var(--sidebar-nav-link-border-width, 0); */
+    /* border-style: var(--sidebar-nav-link-border-style); */
+    /* border-color: var(--sidebar-nav-link-border-color); */
+   /* border-radius: var(--sidebar-nav-link-border-radius);*/
+   /* background: var(--sidebar-nav-link-background);*/
+   color: var(--sidebar-nav-link-color);
+   /* font-weight: var(--sidebar-nav-link-font-weight);*/
+   /* white-space: nowrap;*/
+   /* -webkit-text-decoration: var(--sidebar-nav-link-text-decoration);*/
+   /* text-decoration: var(--sidebar-nav-link-text-decoration);*/
+   /* -webkit-text-decoration-color: var(--sidebar-nav-link-text-decoration-color);*/
+    /*text-decoration-color: var(--sidebar-nav-link-text-decoration-color);*/
+   /* text-overflow: ellipsis;*/
+   /* transition: var(--sidebar-nav-link-transition) */
 }
 
-.sidebar-nav a img,
+/* .sidebar-nav a img,
 .sidebar nav a img {
     margin-top: -0.25em;
     vertical-align: middle
@@ -1387,9 +1387,9 @@ body:not([data-platform^=Mac]) .sidebar::-webkit-scrollbar-thumb {
 .sidebar-nav a img:first-child,
 .sidebar nav a img:first-child {
     margin-right: .5em
-}
+} */
 
-.sidebar-nav a:hover,
+/* .sidebar-nav a:hover,
 .sidebar nav a:hover {
     border-width: var(--sidebar-nav-link-border-width--hover, var(--sidebar-nav-link-border-width, 0));
     border-style: var(--sidebar-nav-link-border-style--hover, var(--sidebar-nav-link-border-style));
@@ -1417,9 +1417,9 @@ body:not([data-platform^=Mac]) .sidebar::-webkit-scrollbar-thumb {
     font-size: var(--sidebar-nav-strong-font-size);
     font-weight: var(--sidebar-nav-strong-font-weight);
     text-transform: var(--sidebar-nav-strong-text-transform)
-}
+} */
 
-.sidebar-nav ul>li>span+ul,
+/* .sidebar-nav ul>li>span+ul,
 .sidebar-nav ul>li>strong+ul,
 .sidebar nav ul>li>span+ul,
 .sidebar nav ul>li>strong+ul {
@@ -1446,7 +1446,7 @@ body:not([data-platform^=Mac]) .sidebar::-webkit-scrollbar-thumb {
             margin-left: calc(env(safe-area-inset-left)/2)
         }
     }
-}
+} */
 
 /* .sidebar-nav li>a:before,
 .sidebar-nav li>strong:before {
@@ -1504,7 +1504,7 @@ body:not([data-platform^=Mac]) .sidebar::-webkit-scrollbar-thumb {
     background: var(--sidebar-nav-pagelink-background--collapse, var(--sidebar-nav-pagelink-background--loaded, var(--sidebar-nav-pagelink-background)))
 } */
 
-.sidebar-nav li.collapse .app-sub-sidebar {
+/* .sidebar-nav li.collapse .app-sub-sidebar {
     display: none
 }
 
@@ -1545,16 +1545,16 @@ body:not([data-platform^=Mac]) .sidebar::-webkit-scrollbar-thumb {
     content: var(--sidebar-nav-link-before-content-l4, var(--sidebar-nav-link-before-content));
     margin: var(--sidebar-nav-link-before-margin-l4, var(--sidebar-nav-link-before-margin));
     color: var(--sidebar-nav-link-before-color-l4, var(--sidebar-nav-link-before-color))
-}
+} */
 
-.sidebar-nav>ul>li>ul>li>ul>li>ul>li.active>a:before {
+/* .sidebar-nav>ul>li>ul>li>ul>li>ul>li.active>a:before {
     content: var(--sidebar-nav-link-before-content-l4--active, var(--sidebar-nav-link-before-content--active, var(--sidebar-nav-link-before-content-l4, var(--sidebar-nav-link-before-content))));
     color: var(--sidebar-nav-link-before-color-l4--active, var(--sidebar-nav-link-before-color--active, var(--sidebar-nav-link-before-color-l4, var(--sidebar-nav-link-before-color))))
-}
+} */
 
-.sidebar-nav>:last-child {
+/* .sidebar-nav>:last-child {
     margin-bottom: 2rem
-}
+} */
 /* 
 .sidebar-toggle,
 .sidebar-toggle-button {

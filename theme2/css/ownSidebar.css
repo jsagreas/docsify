@@ -1,8 +1,111 @@
-.sidebar {
-    background: #7386D5!important;
-    padding: 0!important;
-}
 
+/*
 .sidebar ul>li{
     background: #da1515!important;
+    margin-top: 0px!important;
+    margin: 0px!important;
+
+    border:1px solid rgb(231, 219, 219);
+    
+}
+
+.sidebar ul>li>p{
+    margin: 0px!important;
+    padding-top: 0px!important;
+
+}
+
+.sidebar ul>li>p>a:hover{
+    color: #fff;
+    background-color: #31c754;
+    border-color: #31e390
+    
+}
+.sidebar ul>li>p:hover{
+    color: #fff;
+    background-color: #31c754;
+    border-color: #31e390
+    
+} */
+
+
+/* .sidebar-nav ul>li>a  {
+    padding-left: 40px!important;
+}
+
+.sidebar-nav  p {
+    padding-left: 50px!important;
+} */
+
+
+.sidebar-nav li {
+    position: relative;
+    margin: 0;
+    cursor: pointer
+}
+
+.sidebar-nav ul:not(.app-sub-sidebar)>li:not(.file)::after {
+    content: '';
+    display: block;
+    position: absolute;
+    top: 10.5px;
+    right:  20px;
+    height: 7px;
+    width: 7px;
+
+    border-right: 2px solid #9da9b4;
+    border-bottom: 2px solid #9da9b4;
+    transform: rotate(-45deg);
+    transition: transform .3s;
+
+}
+
+.sidebar-nav ul:not(.app-sub-sidebar)>li.open::after {
+    transform: rotate(45deg)
+}
+
+.sidebar-nav ul:not(.app-sub-sidebar)>li.collapse::after {
+    transform: rotate(-45deg)
+}
+
+
+
+.sidebar-nav>ul>li>p{
+
+    margin-bottom: 0px!important
+}
+
+.sidebar-nav>ul>li>ul>li{
+    margin-top: 10px!important;
+    padding-left: 8px;
+    
+}
+
+.sidebar {
+    /* margin: 0!important;
+    padding: 0!important; */
+    /* background: #7386D5!important; */
+    /* padding: 0!important; */
+    /* color: rgb(255, 255, 255)!important; */
+}
+.sidebar  a{
+    /* background: #7386D5!important; */
+    /* padding: 0!important; */
+    /* color: rgb(255, 255, 255)!important; */
+}
+
+.sidebar-nav{
+    margin: 0!important;
+    padding: 0!important;
+    width: 100% !important;
+}
+
+
+.folder {
+    display: block!important;
+    overflow: visible!important;
+    height: auto!important;
+    will-change: height!important;
+    transition: height 5ms ease-in-out 0s!important;
+
 }
