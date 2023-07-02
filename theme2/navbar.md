@@ -145,3 +145,6 @@
 - Theme
   <!-- - <span data-theme="light"  class="switch" id="switch-1">白天</span> -->
   - <span data-theme="dark"  class="switch" id="switch-2">黑夜</span>
+
+- <button type="button" class="btn" id="btn" data-theme="dark" >button</button>
+
