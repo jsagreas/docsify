@@ -9488,9 +9488,12 @@
           navAppendToTarget = find('.sidebar');
         } else {
           navEl.classList.add('app-nav');
+          navEl.setAttribute('id','nav');
 
           if (!config.repo) {
             navEl.classList.add('no-badge');
+            navEl.setAttribute('id','nav');
+
           }
         }
 
@@ -9502,6 +9505,7 @@
         if (config.themeColor) {
           $.head.appendChild(
             create('div', theme(config.themeColor)).firstElementChild
+
           );
           // Polyfll
           cssVars(config.themeColor);
