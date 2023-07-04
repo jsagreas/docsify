@@ -161,21 +161,28 @@ window.onload=function(){
 
   if(style=='dark'){
     nav.classList.add("dark");
+    document.getElementById('lightIcon').classList.add("visible");
+    document.getElementById('lightIcon').classList.remove("visible");
   }
       if (style == null) {
         setTheme('light');
     } else {
+      document.getElementById('lightIcon').classList.add("visible");
         setTheme(style);
     }
 
     function setTheme(theme) {
       if (theme == 'light') {
         document.getElementById('switcher-id').href = 'css/light.css';
-        
+
+        document.getElementById('darkIcon').classList.add("visible");
+        document.getElementById('lightIcon').classList.remove("visible");
 
       } else if (theme == 'dark') {
           document.getElementById('switcher-id').href = 'css/dark.css';
-
+  
+          document.getElementById('lightIcon').classList.add("visible");
+          document.getElementById('darkIcon').classList.remove("visible");
       }
       localStorage.setItem('style', theme);
   }

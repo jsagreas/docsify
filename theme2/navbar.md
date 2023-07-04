@@ -142,7 +142,7 @@
   - [随笔](pages/Read/Personal/Index.md)
   - [记录](pages/Read/Recods/Index.md)
   - [书单](pages/Read/Books/Index.md)
-- Theme
+
   <!-- - <span data-theme="light"  class="switch" id="switch-1">白天</span> -->
   <!-- - <span data-theme="dark"  class="switch" id="switch-2">黑夜</span> -->
 
