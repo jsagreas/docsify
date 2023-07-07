@@ -2277,3 +2277,22 @@ body .sidebar {
     --sidebar-toggle-width: 32px
 }
 
+html{
+    overflow-x: auto;
+    
+}
+::-webkit-scrollbar{
+    height:4px
+}
+
+.app-nav{
+    margin-top: 0px;
+    top: 0px !important;
+    padding-top: 0px !important;
+    position:fixed; 
+    z-index: 99!important;
+    background-color:#fff;
+    height: 60px;
+ 
+}
+
