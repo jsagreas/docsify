@@ -86,8 +86,14 @@
   - [商业银行经营管理](pages/Economics/商业银行经营管理/Index.md)
   - [金融风险概论](pages/Economics/金融风险概论/Index.md)
 
-- 办公&阅读
+- 软件工具
   - [Office](pages/Office/Excel/Index.md)
-  - [随笔](pages/Read/Personal/Index.md)
+
+- 记录收藏
+  - [编程网站](s1.md)
+  - [英语网站](s2.md)
+  - [新闻网站](s3.md)
+  - [搜索网站](gif.md)
+  - [docsify](seq.md)
   - [记录](pages/Read/Recods/Index.md)
   - [书单](pages/Read/Books/Index.md)

@@ -1,63 +1,6 @@
 <!-- markdownlint-disable no-empty-links -->
 <!-- markdownlint-disable-next-line first-line-heading -->
-<!-- - s
-- Menu <span>(Text)</span>
-  - [Alfa](#)
-  - [Bravo](#)
-  - [Charlie](#)
-- [Link](http://google.com)
-- [Menu (Link)](http://google.com)
-  - [![alt text](https://icongr.am/simple/facebook.svg?colored&size=16)Facebook](http://facebook.com)
-  - [![alt](https://icongr.am/simple/github.svg?colored&size=16)Github](http://github.com)
-  - [![alt](https://icongr.am/simple/instagram.svg?colored&size=16)Instagram](http://instagram.com)
-  - [![alt](https://icongr.am/simple/linkedin.svg?colored&size=16)Linkedin](http://linkedin.com)
-  - [![alt](https://icongr.am/simple/pinterest.svg?colored&size=16)Pinterest](http://pinterest.com)
-  - [![alt](https://icongr.am/simple/tumblr.svg?colored&size=16)Tumblr](http://tumblr.com)
-  - [![alt](https://icongr.am/simple/twitter.svg?colored&size=16)Twitter](http://twitter.com)
-  - [![alt](https://icongr.am/simple/youtube.svg?colored&size=16)YouTube](http://youtube.com)
-- Menu <span>(Text)</span>
-  - [Alfa](#)
-  - [Bravo](#)
-  - [Charlie](#)
-  - [Delta](#)
-  - [Echo](#)
-  - [Foxtrot](#)
-  - [Golf](#)
-  - [Hotel](#)
-  - [India](#)
-  - [Juliett](#)
-  - [Kilo](#)
-  - [Lima](#)
-  - [Mike](#)
-  - [November](#)
-  - [Oscar](#)
-  - [Papa](#)
-  - [Quebec](#)
-  - [Romeo](#)
-  - [Sierra](#)
-  - [Tango](#)
-  - [Uniform](#)
-  - [Victor](#)
-  - [Whiskey](#)
-  - [X-ray](#)
-  - [Yankee](#)
-  - [Zulu](#)
-- Themes
-  - <a href="#" data-link-href="theme-defaults.css">Defaults</a>
-  - <a href="#" data-link-href="theme-simple.css">Simple</a>
-  - <a href="#" data-link-href="theme-simple-dark.css">Simple Dark</a>
-  - <a href="#" data-link-href="https://cdn.jsdelivr.net/npm/docsify@4/lib/themes/vue.css">Vue</a>
-  - <a href="#" data-link-href="https://cdn.jsdelivr.net/npm/docsify@4/lib/themes/buble.css">Buble</a>
-  - <a href="#" data-link-href="https://cdn.jsdelivr.net/npm/docsify@4/lib/themes/dark.css">Dark</a>
-  - <a href="#" data-link-href="https://cdn.jsdelivr.net/npm/docsify@4/lib/themes/pure.css">Pure</a>  
-  - s -->
-- 首页
-- 网站
-  - [编程网站](s1.md)
-  - [英语网站](s2.md)
-  - [新闻网站](s3.md)
-  - [搜索网站](gif.md)
-  - [docsify](seq.md)
+- [首页](pages/Index.md)
 - 前端
   - [HTML](pages/Frontend/Html/Index.md)
   - [CSS](pages/Frontend/Css/Index.md)
@@ -130,22 +73,24 @@
   - [高等数学-工本](pages/Math/高等数学-工本/Index.md)
   - [概率论与数理统计](pages/Math/概率论与数理统计/Index.md)
   - [英语](pages/English/Pronunciation/Index.md)
-  - [物理](pages/English/Vocabulary/Index.md)
+  - [物理](pages/Physics/Vocabulary/Index.md)
 - 经济学
   - [西方经济学](pages/Economics/西方经济学/Index.md)
   - [金融基础](pages/Economics/金融基础/Index.md)
   - [金融市场](pages/Economics/金融市场/Index.md)
   - [商业银行经营管理](pages/Economics/商业银行经营管理/Index.md)
   - [金融风险概论](pages/Economics/金融风险概论/Index.md)
-- 办公&阅读
-  - [Office](pages/Office/Excel/Index.md)
-  - [随笔](pages/Read/Personal/Index.md)
+- 软件工具
+  - [Office](pages/Software-tools/Excel/Index.md)
+
+- 记录收藏
+  - [编程网站](s1.md)
+  - [英语网站](s2.md)
+  - [新闻网站](s3.md)
+  - [搜索网站](gif.md)
+  - [docsify](seq.md)
   - [记录](pages/Read/Recods/Index.md)
   - [书单](pages/Read/Books/Index.md)
-
-  <!-- - <span data-theme="light"  class="switch" id="switch-1">白天</span> -->
-  <!-- - <span data-theme="dark"  class="switch" id="switch-2">黑夜</span> -->
-
 - <button type="button" class="btn" id="btn"  ><svg viewBox="0 0 24 24" width="24" class="visible" height="24" id="darkIcon"><path fill="currentColor" d="M9.37,5.51C9.19,6.15,9.1,6.82,9.1,7.5c0,4.08,3.32,7.4,7.4,7.4c0.68,0,1.35-0.09,1.99-0.27C17.45,17.19,14.93,19,12,19 c-3.86,0-7-3.14-7-7C5,9.07,6.81,6.55,9.37,5.51z M12,3c-4.97,0-9,4.03-9,9s4.03,9,9,9s9-4.03,9-9c0-0.46-0.04-0.92-0.1-1.36 c-0.98,1.37-2.58,2.26-4.4,2.26c-2.98,0-5.4-2.42-5.4-5.4c0-1.81,0.89-3.42,2.26-4.4C12.92,3.04,12.46,3,12,3L12,3z"></path></svg><svg  viewBox="0 0 24 24" width="24" height="24"  id="lightIcon"><path fill="currentColor" d="M12,9c1.65,0,3,1.35,3,3s-1.35,3-3,3s-3-1.35-3-3S10.35,9,12,9 M12,7c-2.76,0-5,2.24-5,5s2.24,5,5,5s5-2.24,5-5 S14.76,7,12,7L12,7z M2,13l2,0c0.55,0,1-0.45,1-1s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S1.45,13,2,13z M20,13l2,0c0.55,0,1-0.45,1-1 s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S19.45,13,20,13z M11,2v2c0,0.55,0.45,1,1,1s1-0.45,1-1V2c0-0.55-0.45-1-1-1S11,1.45,11,2z M11,20v2c0,0.55,0.45,1,1,1s1-0.45,1-1v-2c0-0.55-0.45-1-1-1C11.45,19,11,19.45,11,20z M5.99,4.58c-0.39-0.39-1.03-0.39-1.41,0 c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0s0.39-1.03,0-1.41L5.99,4.58z M18.36,16.95 c-0.39-0.39-1.03-0.39-1.41,0c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0c0.39-0.39,0.39-1.03,0-1.41 L18.36,16.95z M19.42,5.99c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06c-0.39,0.39-0.39,1.03,0,1.41 s1.03,0.39,1.41,0L19.42,5.99z M7.05,18.36c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06 c-0.39,0.39-0.39,1.03,0,1.41s1.03,0.39,1.41,0L7.05,18.36z"></path></svg></button>
 
 
